@@ -67,7 +67,8 @@ public class CimRunner {
         }
 
         long start = System.nanoTime();
-        Map<Integer, Set<Integer>> neighbors = new CellIndexMethod(m, rc, periodic).findNeighbors(input);
+        Map<Integer, Set<Integer>> neighbors = new CellIndexMethod(m)
+                .findNeighbors(input.particles(), input.l(), rc, periodic);
         long elapsedMs = (System.nanoTime() - start) / 1_000_000;
 
         OutputWriter.write(out, neighbors);

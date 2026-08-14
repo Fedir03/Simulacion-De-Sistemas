@@ -4,6 +4,8 @@ target/
 
 # Salidas de prueba (no versionar resultados de corridas locales)
 salida*.txt
+generated/
+vecinos.txt
 
 # IntelliJ (por si algún TP futuro no tiene su propio módulo con .gitignore)
 *.iws
