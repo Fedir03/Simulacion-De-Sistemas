@@ -1,11 +1,11 @@
 package ar.edu.itba.sds.tp1;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
-import java.util.TreeSet;
 
 public class CellIndexMethod implements NeighborFinder {
 
@@ -37,9 +37,9 @@ public class CellIndexMethod implements NeighborFinder {
 
         List<Particle>[][] grid = buildGrid(l, particles);
 
-        Map<Integer, Set<Integer>> neighbors = new TreeMap<>();
+        Map<Integer, Set<Integer>> neighbors = new HashMap<>();
         for (Particle p : particles) {
-            neighbors.put(p.id(), new TreeSet<>());
+            neighbors.put(p.id(), new HashSet<>());
         }
 
         for (int cx = 0; cx < m; cx++) {
