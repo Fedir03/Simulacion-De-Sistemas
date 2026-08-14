@@ -6,19 +6,30 @@ import java.util.Random;
 
 /** Generates non-overlapping circular particles inside a square domain. */
 public final class ParticleGenerator {
-    private static final double MIN_RADIUS = 0.23;
-    private static final double MAX_RADIUS = 0.26;
+    public static final double DEFAULT_MIN_RADIUS = 0.23;
+    public static final double DEFAULT_MAX_RADIUS = 0.26;
     private static final int MAX_ATTEMPTS_PER_PARTICLE = 100000;
 
     private final Random random;
+    private final double minRadius;
+    private final double maxRadius;
 
     public ParticleGenerator(long seed) {
+        this(seed, DEFAULT_MIN_RADIUS, DEFAULT_MAX_RADIUS);
+    }
+
+    public ParticleGenerator(long seed, double minRadius, double maxRadius) {
+        if (minRadius <= 0 || maxRadius < minRadius) {
+            throw new IllegalArgumentException("minRadius debe ser positivo y maxRadius >= minRadius");
+        }
         this.random = new Random(seed);
+        this.minRadius = minRadius;
+        this.maxRadius = maxRadius;
     }
 
     public List<Particle> generate(int n, double l) {
-        if (n <= 0 || l <= 2 * MAX_RADIUS) {
-            throw new IllegalArgumentException("N debe ser positivo y L debe ser mayor a " + (2 * MAX_RADIUS));
+        if (n <= 0 || l <= 2 * maxRadius) {
+            throw new IllegalArgumentException("N debe ser positivo y L debe ser mayor a " + (2 * maxRadius));
         }
 
         List<Particle> particles = new ArrayList<>(n);
@@ -47,7 +58,7 @@ public final class ParticleGenerator {
     }
 
     private double randomRadius() {
-        return MIN_RADIUS + random.nextDouble() * (MAX_RADIUS - MIN_RADIUS);
+        return minRadius + random.nextDouble() * (maxRadius - minRadius);
     }
 
     private boolean overlapsAny(Particle candidate, List<Particle> particles) {
