@@ -6,6 +6,11 @@ target/
 salida*.txt
 generated/
 vecinos.txt
+bench_*.csv
+test_nmax/
+demo_run/
+demo.csv
+demo.png
 
 # IntelliJ (por si algún TP futuro no tiene su propio módulo con .gitignore)
 *.iws
