@@ -11,7 +11,7 @@ import java.util.List;
 
 /**
  * Generates input files in the formats consumed by {@link ar.edu.itba.sds.tp1.InputReader}.
- * Usage: java -jar target/tp1.jar generate [N] [L] [seed] [output-directory]
+ * Usage: java -jar target/tp1.jar generate [N] [L] [seed|auto] [output-directory]
  */
 public final class GenerateCommand implements Command {
     private static final int DEFAULT_N = 100;
@@ -21,7 +21,9 @@ public final class GenerateCommand implements Command {
     public void execute(String[] args) throws IOException {
         int n = args.length >= 1 ? Integer.parseInt(args[0]) : DEFAULT_N;
         double l = args.length >= 2 ? Double.parseDouble(args[1]) : DEFAULT_L;
-        long seed = args.length >= 3 ? Long.parseLong(args[2]) : System.nanoTime();
+        long seed = args.length >= 3
+                ? (args[2].equalsIgnoreCase("auto") ? System.nanoTime() : Long.parseLong(args[2]))
+                : System.nanoTime();
         Path outputDirectory = args.length >= 4 ? Path.of(args[3]) : Path.of("generated");
 
         if (args.length > 4) {
