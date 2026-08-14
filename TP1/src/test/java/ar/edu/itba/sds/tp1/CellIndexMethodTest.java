@@ -45,6 +45,58 @@ class CellIndexMethodTest {
         assertEquals(expected, actual);
     }
 
+    @Test
+    void m1MatchesBruteForceWallModeOnSampleDatasetRc1() throws IOException {
+        SimulationInput input = InputReader.read(STATIC_100, DYNAMIC_100);
+        double rc = 1.0;
+
+        Map<Integer, Set<Integer>> expected = new BruteForceNeighborFinder()
+                .findNeighbors(input.particles(), input.l(), rc, false);
+        Map<Integer, Set<Integer>> actual = new CellIndexMethod(1)
+                .findNeighbors(input.particles(), input.l(), rc, false);
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    void m1MatchesBruteForceWallModeOnSampleDatasetRc6() throws IOException {
+        SimulationInput input = InputReader.read(STATIC_100, DYNAMIC_100);
+        double rc = 6.0; // rc del archivo de referencia de la cátedra (AlgunosVecinos_100_rc6.txt)
+
+        Map<Integer, Set<Integer>> expected = new BruteForceNeighborFinder()
+                .findNeighbors(input.particles(), input.l(), rc, false);
+        Map<Integer, Set<Integer>> actual = new CellIndexMethod(1)
+                .findNeighbors(input.particles(), input.l(), rc, false);
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    void m1MatchesBruteForcePeriodicModeOnSampleDatasetRc1() throws IOException {
+        SimulationInput input = InputReader.read(STATIC_100, DYNAMIC_100);
+        double rc = 1.0;
+
+        Map<Integer, Set<Integer>> expected = new BruteForceNeighborFinder()
+                .findNeighbors(input.particles(), input.l(), rc, true);
+        Map<Integer, Set<Integer>> actual = new CellIndexMethod(1)
+                .findNeighbors(input.particles(), input.l(), rc, true);
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    void m1MatchesBruteForcePeriodicModeOnSampleDatasetRc6() throws IOException {
+        SimulationInput input = InputReader.read(STATIC_100, DYNAMIC_100);
+        double rc = 6.0; // rc del archivo de referencia de la cátedra (AlgunosVecinos_100_rc6.txt)
+
+        Map<Integer, Set<Integer>> expected = new BruteForceNeighborFinder()
+                .findNeighbors(input.particles(), input.l(), rc, true);
+        Map<Integer, Set<Integer>> actual = new CellIndexMethod(1)
+                .findNeighbors(input.particles(), input.l(), rc, true);
+
+        assertEquals(expected, actual);
+    }
+
     /*
      * Regresión del bug de radio: el criterio de M válido de la cátedra es L/M > rc, que asume
      * partículas puntuales. Con radio, dos partículas siguen siendo vecinas (borde a borde)
@@ -80,6 +132,32 @@ class CellIndexMethodTest {
         Map<Integer, Set<Integer>> expected = new BruteForceNeighborFinder()
                 .findNeighbors(particles, 20, rc, true);
         Map<Integer, Set<Integer>> actual = new CellIndexMethod(m)
+                .findNeighbors(particles, 20, rc, true);
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    void m1MatchesBruteForceWallModeOnGeneratedDataset() {
+        List<Particle> particles = new ParticleGenerator(42).generate(200, 20);
+        double rc = 1.0;
+
+        Map<Integer, Set<Integer>> expected = new BruteForceNeighborFinder()
+                .findNeighbors(particles, 20, rc, false);
+        Map<Integer, Set<Integer>> actual = new CellIndexMethod(1)
+                .findNeighbors(particles, 20, rc, false);
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    void m1MatchesBruteForcePeriodicModeOnGeneratedDataset() {
+        List<Particle> particles = new ParticleGenerator(42).generate(200, 20);
+        double rc = 1.0;
+
+        Map<Integer, Set<Integer>> expected = new BruteForceNeighborFinder()
+                .findNeighbors(particles, 20, rc, true);
+        Map<Integer, Set<Integer>> actual = new CellIndexMethod(1)
                 .findNeighbors(particles, 20, rc, true);
 
         assertEquals(expected, actual);
