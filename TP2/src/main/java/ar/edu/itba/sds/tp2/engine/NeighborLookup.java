@@ -27,4 +27,16 @@ public final class NeighborLookup {
                 .toList();
         return neighborFinder.findNeighbors(tp1Particles, l, rc, periodic);
     }
+
+    public double l() {
+        return l;
+    }
+
+    public double rc() {
+        return rc;
+    }
+
+    public boolean periodic() {
+        return periodic;
+    }
 }
