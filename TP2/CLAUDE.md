@@ -64,3 +64,7 @@ demostrado, no se toca salvo necesidad real).
 Si tildes/ñ se ven como caracteres random al correr `java -jar target/tp2.jar`
 en Windows, es un problema de codepage de la consola (cmd/PowerShell), no un
 bug del código — correr `chcp 65001` antes de ejecutar el jar lo soluciona.
+
+El warning "overlapping resource META-INF/MANIFEST.MF" durante el shade es
+esperado y ya está resuelto por el `ManifestResourceTransformer` configurado
+en el `pom.xml` — no requiere ninguna acción.
