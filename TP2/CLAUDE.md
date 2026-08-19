@@ -59,3 +59,8 @@ Vicsek (con posición Y ángulo θ), y en cada paso de tiempo:
 `Particle` de TP1 y la partícula de Vicsek son dos clases separadas — no se
 fusionan ni se extiende una a la otra. TP1 queda intacto (ya entregado y
 demostrado, no se toca salvo necesidad real).
+
+## CLI
+Si tildes/ñ se ven como caracteres random al correr `java -jar target/tp2.jar`
+en Windows, es un problema de codepage de la consola (cmd/PowerShell), no un
+bug del código — correr `chcp 65001` antes de ejecutar el jar lo soluciona.
