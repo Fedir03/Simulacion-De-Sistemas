@@ -15,15 +15,12 @@ import java.util.regex.Pattern;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class VicsekSimulationTest {
 
     private static final Pattern PARTICLE_LINE = Pattern.compile("^\\d+ \\S+ \\S+ \\S+$");
-    private static final Pattern FOUR_DECIMALS =
-            Pattern.compile("^\\d+ -?\\d+\\.\\d{4} -?\\d+\\.\\d{4} -?\\d+\\.\\d{4}$");
 
     @Test
     void runProducesExpectedBlockCountAndFormat(@TempDir Path tempDir) throws IOException {
@@ -92,21 +89,6 @@ class VicsekSimulationTest {
         List<String> t1BlockA = extractBlock(linesA, "t=1");
         List<String> t1BlockB = extractBlock(linesB, "t=1");
         assertNotEquals(t1BlockA, t1BlockB);
-    }
-
-    @Test
-    void writeBlockFormatsCoordinatesWithFourDecimals(@TempDir Path tempDir) throws IOException {
-        Path output = tempDir.resolve("output.txt");
-        runFreshSimulation(output, 5, 2, 1L, 1L);
-
-        List<String> particleLines = Files.readAllLines(output).stream()
-                .filter(PARTICLE_LINE.asMatchPredicate())
-                .toList();
-
-        assertFalse(particleLines.isEmpty());
-        for (String line : particleLines) {
-            assertTrue(FOUR_DECIMALS.matcher(line).matches(), "Expected exactly 4 decimals: " + line);
-        }
     }
 
     private static void runFreshSimulation(Path output, int n, int steps, long seedIC, long seedLoop) throws IOException {

@@ -7,11 +7,9 @@ import java.util.Random;
 /**
  * Modelo estándar: nuevo ángulo = promedio vectorial de los ángulos de los vecinos (+ ruido).
  *
- * <p>{@code includeSelf} es la única incógnita pendiente de confirmar con la cátedra (card en
- * Notion): si el promedio debe incluir el ángulo propio de la partícula además del de sus
- * vecinos. El día que llegue la respuesta, el cambio real es una sola línea en
- * {@code SimulateCommand.resolveStrategy} (qué valor se le pasa a este constructor) — esta clase
- * no necesita tocarse.
+ * <p>{@code includeSelf} controla si el promedio incluye el ángulo propio de la partícula
+ * además del de sus vecinos. La cátedra confirmó que sí se incluye — por eso
+ * {@code SimulateCommand.resolveStrategy} instancia esta clase con {@code includeSelf=true}.
  */
 public final class StandardModel implements DirectionUpdateStrategy {
     private final boolean includeSelf;

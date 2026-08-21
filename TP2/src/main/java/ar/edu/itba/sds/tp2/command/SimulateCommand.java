@@ -6,6 +6,7 @@ import ar.edu.itba.sds.tp2.engine.InitialConditionGenerator;
 import ar.edu.itba.sds.tp2.engine.NeighborLookup;
 import ar.edu.itba.sds.tp2.engine.VicsekParticle;
 import ar.edu.itba.sds.tp2.engine.VicsekSimulation;
+import ar.edu.itba.sds.tp2.engine.StandardModel;
 import ar.edu.itba.sds.tp2.engine.VoterModel;
 
 import java.io.IOException;
@@ -57,9 +58,7 @@ public final class SimulateCommand implements Command {
     private static DirectionUpdateStrategy resolveStrategy(String model) {
         return switch (model) {
             case "voter" -> new VoterModel();
-            case "standard" -> throw new IllegalArgumentException(
-                    "Modelo estándar todavía no implementado (pendiente confirmar con la cátedra "
-                            + "si se incluye la propia partícula en el promedio, ver card en Notion)");
+            case "standard" -> new StandardModel(true);
             default -> throw new IllegalArgumentException(
                     "Modelo desconocido: '" + model + "'. Valores válidos: voter, standard");
         };

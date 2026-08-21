@@ -15,14 +15,25 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class SimulateCommandTest {
 
     @Test
-    void standardModelThrowsClearError(@TempDir Path tempDir) {
-        String[] args = baseArgs(tempDir, "standard");
+    void validStandardRunProducesExpectedOutputFile(@TempDir Path tempDir) throws IOException {
+        Path out = tempDir.resolve("output.txt");
+        int steps = 2;
+        String[] args = {
+                "--model=standard",
+                "--n=4",
+                "--eta=0.5",
+                "--steps=" + steps,
+                "--out=" + out,
+                "--seedIC=1",
+                "--seedLoop=2"
+        };
 
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
-                () -> new SimulateCommand().execute(args));
+        new SimulateCommand().execute(args);
 
-        assertTrue(exception.getMessage().contains("todavía no implementado"),
-                "mensaje inesperado: " + exception.getMessage());
+        List<String> lines = Files.readAllLines(out);
+        long blockCount = lines.stream().filter(line -> line.startsWith("t=")).count();
+        assertEquals(steps + 1, blockCount);
+        assertTrue(lines.get(0).startsWith("model=standard"));
     }
 
     @Test
