@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
@@ -83,9 +82,9 @@ public final class VicsekSimulation {
         writer.newLine();
         for (VicsekParticle p : particles) {
             writer.write(p.id() + " "
-                    + String.format(Locale.US, "%.4f", p.x()) + " "
-                    + String.format(Locale.US, "%.4f", p.y()) + " "
-                    + String.format(Locale.US, "%.4f", p.theta()));
+                    + p.x() + " "
+                    + p.y() + " "
+                    + p.theta());
             writer.newLine();
         }
     }

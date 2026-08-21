@@ -65,7 +65,7 @@ public final class BenchmarkMCommand implements Command {
 
         writeCsv(outputCsv, n, bruteTimesMs, cimTimesMsByM);
 
-        System.out.printf("benchmark-m: N=%d L=%.4f rc=%.4f repeticiones=%d M=[2,%d] output=%s%n",
+        System.out.printf("benchmark-m: N=%d L=%s rc=%s repeticiones=%d M=[2,%d] output=%s%n",
                 n, l, rc, repetitions, maxM, outputCsv);
     }
 

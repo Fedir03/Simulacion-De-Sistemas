@@ -50,7 +50,7 @@ public final class SimulateCommand implements Command {
                 dt, v0, eta, steps, new Random(seedLoop), seedIC, seedLoop);
         simulation.run(out);
 
-        System.out.printf("modelo=%s N=%d L=%.4f eta=%.4f steps=%d seedIC=%d seedLoop=%d output=%s%n",
+        System.out.printf("modelo=%s N=%d L=%s eta=%s steps=%d seedIC=%d seedLoop=%d output=%s%n",
                 model, n, l, eta, steps, seedIC, seedLoop, out.toAbsolutePath());
     }
 

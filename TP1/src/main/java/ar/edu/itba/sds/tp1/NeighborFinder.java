@@ -11,7 +11,7 @@ public interface NeighborFinder {
         if (l <= 2 * (rc + 2 * maxRadius)) {
             throw new IllegalArgumentException(String.format(
                 "Condiciones periódicas inválidas: se requiere L > 2·(rc + 2·r_max). " +
-                "L=%.4f, rc=%.4f, r_max=%.4f. " +
+                "L=%s, rc=%s, r_max=%s. " +
                 "Reducí rc, los radios de partícula, o desactivá las condiciones periódicas.",
                 l, rc, maxRadius
             ));

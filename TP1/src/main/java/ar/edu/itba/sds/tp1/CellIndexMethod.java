@@ -94,8 +94,8 @@ public class CellIndexMethod implements NeighborFinder {
         double minCellSize = rc + 2 * rMax;
         if (cellSize <= minCellSize) {
             throw new IllegalArgumentException(String.format(
-                    "M invalido: se requiere L/M > rc + 2*rMax, pero L/M = %.4f y rc + 2*rMax = %.4f "
-                            + "(L=%.4f, M=%d, rc=%.4f, rMax=%.4f). El M maximo valido es %d.",
+                    "M invalido: se requiere L/M > rc + 2*rMax, pero L/M = %s y rc + 2*rMax = %s "
+                            + "(L=%s, M=%d, rc=%s, rMax=%s). El M maximo valido es %d.",
                     cellSize, minCellSize, l, m, rc, rMax, maxValidM(l, rc, rMax)));
         }
 

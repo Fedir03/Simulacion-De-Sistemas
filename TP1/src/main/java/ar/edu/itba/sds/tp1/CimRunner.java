@@ -73,7 +73,7 @@ public class CimRunner {
 
         OutputWriter.write(out, neighbors);
 
-        System.out.printf("N=%d L=%.4f rc=%.4f M=%d contorno=%s tiempo=%dms output=%s%n",
+        System.out.printf("N=%d L=%s rc=%s M=%d contorno=%s tiempo=%dms output=%s%n",
                 input.n(), input.l(), rc, m, periodic ? "periodico" : "paredes", elapsedMs, out);
     }
 
