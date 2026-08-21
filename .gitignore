@@ -12,6 +12,8 @@ demo_run/
 demo.csv
 demo.png
 
+corrida.txt
+
 # IntelliJ (por si algún TP futuro no tiene su propio módulo con .gitignore)
 *.iws
 out/
