@@ -1,0 +1,520 @@
+\documentclass[aspectratio=43,11pt]{beamer}
+
+% ================================================================
+% Template basado en la estructura visual de "TP2 - Presentacion".
+% Compilar con: latexmk -pdf template_presentacion_tp2.tex
+% Latexmk repite pdflatex solo cuando hace falta estabilizar la numeracion.
+% ================================================================
+
+\usepackage[T1]{fontenc}
+% "provide=*" permite compilar también en instalaciones mínimas de TeX Live.
+\usepackage[provide=*,spanish]{babel}
+\usepackage{lmodern}
+\usepackage{amsmath,amssymb,bm}
+\usepackage{graphicx}
+
+% ---------- Colores ----------
+\definecolor{TPBlue}{HTML}{3939B5}
+\definecolor{TPBlueDark}{HTML}{29298A}
+\definecolor{TPBlack}{HTML}{050505}
+\definecolor{TPNavGray}{HTML}{858585}
+\definecolor{TPNavDotGray}{HTML}{C4C4C4}
+\definecolor{TPLight}{HTML}{E9E9F2}
+\definecolor{TPPlaceholder}{HTML}{F4F4F7}
+
+\setbeamercolor{normal text}{fg=black,bg=white}
+\setbeamercolor{structure}{fg=TPBlue}
+\setbeamercolor{frametitle}{fg=white,bg=TPBlue}
+\setbeamercolor{itemize item}{fg=TPBlue}
+\setbeamercolor{itemize subitem}{fg=TPBlue}
+\setbeamercolor{title box}{fg=white,bg=TPBlue}
+\setbeamercolor{databox title}{fg=white,bg=TPBlueDark}
+\setbeamercolor{databox body}{fg=black,bg=TPLight}
+\setbeamercolor{algorithm box}{fg=black,bg=white}
+\setbeamertemplate{items}[circle]
+\setbeamertemplate{navigation symbols}{}
+
+\setbeamerfont{frametitle}{size=\Large,series=\mdseries}
+\setbeamerfont{normal text}{size=\normalsize}
+\setbeamerfont{itemize/enumerate body}{size=\normalsize}
+\setbeamerfont{itemize/enumerate subbody}{size=\small}
+
+% ---------- Metadatos: completar ----------
+\title{[Título del trabajo práctico]}
+\subtitle{72.25 - Simulación de Sistemas}
+\author{[Nombre y apellido] \and [Nombre y apellido]}
+\institute{Instituto Tecnológico de Buenos Aires}
+\date{[Año y cuatrimestre] --- Grupo N.º [XX]}
+
+% Si existe logo_itba.png o logo_itba.pdf junto al .tex, se inserta.
+\newcommand{\institutionlogo}{%
+  \IfFileExists{logo_itba.pdf}{\includegraphics[height=0.75cm]{logo_itba.pdf}}{%
+    \IfFileExists{logo_itba.png}{\includegraphics[height=0.75cm]{logo_itba.png}}{%
+      \fbox{\scriptsize LOGO DE LA INSTITUCIÓN}%
+    }%
+  }%
+}
+
+% ---------- Barra superior con progreso por sección ----------
+% Rangos de diapositivas del template:
+% Introducción 2--5 | Implementación 6--9 | Simulaciones 10--14
+% Resultados 15--25 | Conclusiones 26--28
+\makeatletter
+\newcommand{\TPnavdot}[2]{%
+  \makebox[0.14cm][c]{%
+    \raisebox{0.05ex}{\textcolor{#1}{\fontsize{6}{6}\selectfont #2}}}%
+}
+
+\newcommand{\navblock}[5]{%
+  % #1 ancho, #2 nombre, #3 inicio, #4 cantidad, #5 fin
+  \begin{minipage}[c][0.82cm][c]{#1\paperwidth}
+    \centering
+    \ifnum\insertframenumber>1
+      \ifnum\insertframenumber<#3
+        {\color{TPNavGray}\scriptsize #2\par}
+      \else
+        \ifnum\insertframenumber>#5
+          {\color{TPNavGray}\scriptsize #2\par}
+        \else
+          {\color{white}\scriptsize #2\par}
+        \fi
+      \fi
+    \else
+      {\color{TPNavGray}\scriptsize #2\par}
+    \fi
+    \vspace{0.03cm}
+    \@tempcnta=0
+    \loop
+      \advance\@tempcnta by 1
+      \@tempcntb=#3
+      \advance\@tempcntb by \@tempcnta
+      \advance\@tempcntb by -1
+      \ifnum\insertframenumber<#3
+        \TPnavdot{TPNavDotGray}{\textopenbullet}%
+      \else
+        \ifnum\insertframenumber>#5
+          \TPnavdot{TPNavDotGray}{\textbullet}%
+        \else
+          \ifnum\insertframenumber<\@tempcntb
+            \TPnavdot{white}{\textopenbullet}%
+          \else
+            \TPnavdot{white}{\textbullet}%
+          \fi
+        \fi
+      \fi
+    \ifnum\@tempcnta<#4
+    \repeat
+  \end{minipage}%
+}
+\makeatother
+
+\setbeamertemplate{headline}{%
+  \leavevmode
+  \hbox{%
+    \begin{beamercolorbox}[wd=\paperwidth,ht=0.84cm,dp=0cm]{normal text}%
+      \begingroup\setlength{\fboxsep}{0pt}\colorbox{TPBlack}{%
+        \hbox to \paperwidth{%
+          \navblock{0.20}{Introducción}{2}{4}{5}%
+          \navblock{0.22}{Implementación}{6}{4}{9}%
+          \navblock{0.20}{Simulaciones}{10}{5}{14}%
+          \navblock{0.23}{Resultados}{15}{11}{25}%
+          \navblock{0.15}{Conclusiones}{26}{3}{28}%
+        }%
+      }\endgroup%
+    \end{beamercolorbox}%
+  }
+  \begin{beamercolorbox}[wd=\paperwidth,ht=0.08cm,dp=0cm]{frametitle}\end{beamercolorbox}
+}
+
+\setbeamertemplate{frametitle}{%
+  \nointerlineskip
+  \begin{beamercolorbox}[wd=\paperwidth,ht=0.74cm,dp=0.12cm,leftskip=0.35cm]{frametitle}
+    \usebeamerfont{frametitle}\insertframetitle
+  \end{beamercolorbox}
+}
+
+\setbeamersize{text margin left=0.55cm,text margin right=0.55cm}
+
+% Pie mínimo con número de diapositiva.
+\setbeamertemplate{footline}{%
+  \leavevmode
+  \hbox{\begin{beamercolorbox}[wd=\paperwidth,ht=0.20cm,dp=0.10cm,rightskip=0.18cm]{normal text}
+    \hfill{\color{TPNavGray}\tiny\insertframenumber/\inserttotalframenumber}
+  \end{beamercolorbox}}
+}
+
+% ---------- Componentes reutilizables ----------
+\newcommand{\sectiondivider}[1]{%
+  \begin{frame}
+    \vfill
+    \begin{beamercolorbox}[wd=0.56\paperwidth,ht=0.55cm,dp=0.15cm,center]{frametitle}
+      \large #1
+    \end{beamercolorbox}
+    \vfill
+  \end{frame}
+}
+
+\newcommand{\placeholder}[2][4.4cm]{%
+  \begingroup
+    \setlength{\fboxsep}{0pt}%
+    \setlength{\fboxrule}{0.45pt}%
+    \fcolorbox{TPNavGray}{TPPlaceholder}{%
+      \parbox[c][\dimexpr#1-2\fboxrule\relax][c]{%
+        \dimexpr\linewidth-2\fboxrule\relax}{%
+        \centering\color{TPNavGray}\small #2}%
+    }%
+  \endgroup
+}
+
+\newcommand{\maybeimage}[3]{%
+  \IfFileExists{#1}{\includegraphics[width=\linewidth,height=#2,keepaspectratio]{#1}}{%
+    \placeholder[#2]{#3\\[2mm]\nolinkurl{#1}}%
+  }%
+}
+
+\newenvironment{databox}[1]{%
+  \begin{beamercolorbox}[wd=\linewidth,sep=1mm,center]{databox title}%
+    #1
+  \end{beamercolorbox}%
+  \par\nointerlineskip
+  \begin{beamercolorbox}[wd=\linewidth,sep=2mm]{databox body}%
+}{%
+  \end{beamercolorbox}%
+}
+
+% ================================================================
+% PRESENTACIÓN
+% ================================================================
+\begin{document}
+
+% 1. PORTADA
+\begin{frame}
+  \vspace{0.35cm}
+  \begingroup
+    \centering
+    \begin{beamercolorbox}[wd=0.91\linewidth,sep=3mm,center]{title box}
+      {\LARGE\inserttitle\par}
+      \vspace{1mm}
+      {\large\insertsubtitle}
+    \end{beamercolorbox}
+    \par
+  \endgroup
+  \vspace{0.35cm}
+  \begin{center}
+    {\large\insertauthor\par}
+    \vspace{0.18cm}
+    {\small [correo@itba.edu.ar] --- [legajo]\par}
+    \vspace{0.13cm}
+    {\small\insertinstitute\par}
+    \vspace{0.35cm}
+    {\large\insertdate\par}
+    \vfill
+    \institutionlogo
+  \end{center}
+\end{frame}
+
+% ---------------- INTRODUCCIÓN ----------------
+% 2
+\sectiondivider{Introducción}
+
+% 3. Objetivo y panorama general
+\begin{frame}{Introducción}
+  \vspace{0.9cm}
+  [Nombre del modelo o sistema]:
+  \begin{itemize}
+    \item Objetivo: [objetivo principal]
+    \item Variables: [variables principales]
+    \item Observables: [observables definidos]
+    \item Contorno: [condiciones o supuestos]
+  \end{itemize}
+\end{frame}
+
+% 4. Fenómeno o sistema real
+\begin{frame}{Sistema Real}
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.54\textwidth}
+      [Descripción breve del fenómeno estudiado.]
+      \begin{itemize}
+        \item Ejemplo 1: [descripción]
+        \item Ejemplo 2: [descripción]
+        \item Relevancia: [por qué modelarlo]
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.42\textwidth}
+      \maybeimage{figuras/sistema-real.png}{3.7cm}{Insertar imagen del sistema real}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% 5. Fundamentos matemáticos
+\begin{frame}{Fundamentos}
+  [Presentar las ecuaciones centrales del modelo.]
+  \vspace{0.25cm}
+  \begin{align*}
+    \bm{x}(t+1) &= [\text{ecuación de actualización}],\\
+    \theta(t+1) &= [\text{ecuación angular o regla secundaria}].
+  \end{align*}
+  \vspace{0.15cm}
+  [Definir aquí la interacción, promedio local o condición de contorno.]
+  \begin{equation*}
+    [\text{expresión matemática principal}].
+  \end{equation*}
+\end{frame}
+
+% ---------------- IMPLEMENTACIÓN ----------------
+% 6
+\sectiondivider{Implementación}
+
+% 7. Arquitectura general
+\begin{frame}{Arquitectura}
+  Implementación:
+  \begin{itemize}
+    \item Lenguaje: [nombre y versión]
+    \item Bibliotecas: [bibliotecas principales]
+    \item Entorno: [entorno de ejecución]
+  \end{itemize}
+  Estructura:
+  \begin{itemize}
+    \item \texttt{[módulo-principal.py]}
+    \item \texttt{[modelo.py]}
+    \item \texttt{[procesamiento.py]}
+    \item \texttt{[visualización.py]}
+  \end{itemize}
+\end{frame}
+
+% 8. Diagrama de arquitectura
+\begin{frame}{Diagrama de la Arquitectura}
+  \centering
+  \maybeimage{figuras/arquitectura.pdf}{5.7cm}{Insertar diagrama de arquitectura}
+\end{frame}
+
+% 9. Algoritmo implementado
+\begin{frame}{Algoritmo Implementado}
+  \begin{beamercolorbox}[wd=\linewidth,sep=2mm]{algorithm box}
+    \textbf{Algoritmo: [nombre del algoritmo]}\\[1mm]
+    1. [Inicializar variables y estado.]\\
+    2. [Calcular vecindad o entradas.]\\
+    3. [Aplicar la regla de actualización.]\\
+    4. [Actualizar el estado del sistema.]\\
+    5. [Registrar observables.]\\
+    6. [Repetir hasta completar $T$ pasos.]\\
+    7. [Guardar resultados.]
+  \end{beamercolorbox}
+\end{frame}
+
+% ---------------- SIMULACIONES ----------------
+% 10
+\sectiondivider{Simulaciones}
+
+% 11. Parámetros
+\begin{frame}{Simulaciones}
+  Parámetros de entrada fijos:
+  \begin{itemize}
+    \item $[p_1]=[\text{valor}]$ --- [descripción]
+    \item $[p_2]=[\text{valor}]$ --- [descripción]
+  \end{itemize}
+  Parámetros de entrada variables:
+  \begin{itemize}
+    \item $N\in[\text{rango}]$ --- [cantidad de entidades]
+    \item $L\in[\text{rango}]$ --- [tamaño del dominio]
+    \item $T\in[\text{rango}]$ --- [cantidad de pasos]
+    \item $\eta\in[\text{rango}]$ --- [ruido u otro parámetro]
+  \end{itemize}
+\end{frame}
+
+% 12. Observable principal
+\begin{frame}{Observable Definido}
+  \centering
+  Parámetro de orden $v_a(t)$
+  \begin{equation*}
+    v_a=\frac{1}{N}\left|\sum_{i=1}^{N}\bm{v}_i\right|
+  \end{equation*}
+  \begin{itemize}
+    \item Valor alto: [interpretación.]
+    \item Valor bajo: [interpretación.]
+  \end{itemize}
+  [Explicar combinaciones de parámetros, cantidad de corridas y criterio de comparación.]
+\end{frame}
+
+% 13. Dispersión / barras de error
+\begin{frame}{Desvío Estándar}
+  [Indicar cómo se calcularon las barras de error.]
+  \begin{equation*}
+    \overline{v}_a=\frac{1}{M}\sum_{j=1}^{M}v_a^{(j)},
+  \end{equation*}
+  \begin{equation*}
+    \sigma_{v_a}=\sqrt{\frac{1}{M-1}\sum_{j=1}^{M}
+    \left(v_a^{(j)}-\overline{v}_a\right)^2}.
+  \end{equation*}
+  [Aclarar qué representa $M$ y qué parte de la serie temporal se utiliza.]
+\end{frame}
+
+% 14. Regla o variante adicional
+\begin{frame}{Interacción [Nombre de la Variante]}
+  [Describir la modificación de la regla de interacción.]
+  \vspace{0.25cm}
+  Simulaciones:
+  \begin{itemize}
+    \item Experimento 1: [descripción.]
+    \item Experimento 2: [descripción.]
+    \item Controles: [variables fijas y variables modificadas.]
+  \end{itemize}
+\end{frame}
+
+% ---------------- RESULTADOS ----------------
+% 15
+\sectiondivider{Resultados}
+
+% 16--18. Resultados visuales / animaciones
+\begin{frame}{Animaciones del Sistema}
+  \begin{columns}[c,onlytextwidth]
+    \begin{column}{0.68\textwidth}
+      \maybeimage{figuras/animacion-1.png}{4.9cm}{Insertar captura o enlace visual a la animación}
+    \end{column}
+    \begin{column}{0.29\textwidth}
+      \begin{databox}{Datos del Sistema}
+        \begin{itemize}
+          \item $N=[\ ]$
+          \item $L=[\ ]$
+          \item $T=[\ ]$
+          \item $\eta=[\ ]$
+        \end{itemize}
+      \end{databox}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Animaciones del Sistema}
+  \begin{columns}[c,onlytextwidth]
+    \begin{column}{0.68\textwidth}
+      \maybeimage{figuras/animacion-2.png}{4.9cm}{Insertar segunda captura o animación}
+    \end{column}
+    \begin{column}{0.29\textwidth}
+      \begin{databox}{Datos del Sistema}
+        \begin{itemize}
+          \item $N=[\ ]$
+          \item $L=[\ ]$
+          \item $T=[\ ]$
+          \item $\eta=[\ ]$
+        \end{itemize}
+      \end{databox}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Animaciones del Sistema}
+  \begin{columns}[c,onlytextwidth]
+    \begin{column}{0.68\textwidth}
+      \maybeimage{figuras/animacion-3.png}{4.9cm}{Insertar tercera captura o animación}
+    \end{column}
+    \begin{column}{0.29\textwidth}
+      \begin{databox}{Datos del Sistema}
+        \begin{itemize}
+          \item $N=[\ ]$
+          \item $L=[\ ]$
+          \item $T=[\ ]$
+          \item $\eta=[\ ]$
+        \end{itemize}
+      \end{databox}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% 19. Serie temporal
+\begin{frame}{Evolución Temporal del Observable}
+  \centering
+  \maybeimage{figuras/evolucion-temporal.pdf}{5.6cm}{Insertar gráfico de evolución temporal}
+\end{frame}
+
+% 20. Relación entre parámetro y observable
+\begin{frame}{Relación entre [Parámetro] y [Observable]}
+  \centering
+  \maybeimage{figuras/relacion-parametro-observable.pdf}{4.65cm}{Insertar gráfico con barras de error}
+  \vspace{0.08cm}
+  \colorbox{TPLight}{\parbox[c][0.55cm][c]{0.90\linewidth}{\centering
+    $[\text{parámetro fijo 1}]=[\ ]$\hfill$[\text{parámetro fijo 2}]=[\ ]$}}
+\end{frame}
+
+% 21. Barrido de tamaño o densidad
+\begin{frame}{Relación entre [Variable] y [Observable]}
+  \centering
+  \maybeimage{figuras/barrido-variable.pdf}{5.0cm}{Insertar gráfico del barrido de parámetros}
+  \colorbox{TPLight}{\parbox[c][0.48cm][c]{0.90\linewidth}{\centering
+    $[\text{variable}]\in\{[\text{valores estudiados}]\}$}}
+\end{frame}
+
+% 22--23. Variante de interacción: resultados visuales
+\begin{frame}{Interacción [Nombre de la Variante]}
+  \begin{columns}[c,onlytextwidth]
+    \begin{column}{0.68\textwidth}
+      \maybeimage{figuras/variante-1.png}{4.9cm}{Insertar resultado visual de la variante}
+    \end{column}
+    \begin{column}{0.29\textwidth}
+      \begin{databox}{Datos del Sistema}
+        \begin{itemize}
+          \item $N=[\ ]$
+          \item $L=[\ ]$
+          \item $T=[\ ]$
+          \item $\eta=[\ ]$
+        \end{itemize}
+      \end{databox}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Interacción [Nombre de la Variante]}
+  \begin{columns}[c,onlytextwidth]
+    \begin{column}{0.68\textwidth}
+      \maybeimage{figuras/variante-2.png}{4.9cm}{Insertar segundo resultado visual de la variante}
+    \end{column}
+    \begin{column}{0.29\textwidth}
+      \begin{databox}{Datos del Sistema}
+        \begin{itemize}
+          \item $N=[\ ]$
+          \item $L=[\ ]$
+          \item $T=[\ ]$
+          \item $\eta=[\ ]$
+        \end{itemize}
+      \end{databox}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% 24--25. Gráficos finales de la variante
+\begin{frame}{Interacción [Nombre de la Variante]}
+  \centering
+  \maybeimage{figuras/evolucion-variante.pdf}{5.6cm}{Insertar evolución temporal de la variante}
+\end{frame}
+
+\begin{frame}{Interacción [Nombre de la Variante]}
+  \centering
+  \maybeimage{figuras/resultado-final.pdf}{5.0cm}{Insertar gráfico final con barras de error}
+  \colorbox{TPLight}{\parbox[c][0.48cm][c]{0.90\linewidth}{\centering
+    $[\text{variable}]\in\{[\text{valores estudiados}]\}$}}
+\end{frame}
+
+% ---------------- CONCLUSIONES ----------------
+% 26
+\sectiondivider{Conclusiones}
+
+% 27
+\begin{frame}{Conclusiones}
+  Principales conclusiones obtenidas:
+  \begin{itemize}
+    \item Hallazgo principal: [conclusión respaldada por los resultados.]
+    \item Parámetro principal: [efecto observado.]
+    \item Comparación: [modelo base frente a variante.]
+    \item Trabajo futuro: [limitación o próxima línea de análisis.]
+  \end{itemize}
+\end{frame}
+
+% 28. Cierre
+\begin{frame}
+  \vfill
+  \begin{beamercolorbox}[wd=0.86\paperwidth,ht=0.72cm,dp=0.20cm,center]{frametitle}
+    \LARGE Muchas gracias
+  \end{beamercolorbox}
+  \vfill
+\end{frame}
+
+\end{document}

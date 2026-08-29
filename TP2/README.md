@@ -87,3 +87,31 @@ página de Notion "Material para Informe — TP2".
 
 Para decisiones de diseño más profundas, ver `TP2/CLAUDE.md` y la página de
 Notion del TP2.
+
+## Generar animaciones
+
+El módulo de animación es independiente del motor: recibe una corrida ya
+terminada y genera un archivo MP4. Requiere Python 3, Matplotlib y FFmpeg.
+
+Desde la raíz del repositorio, instalar la dependencia de Python:
+
+```bash
+python3 -m pip install -r TP2/requirements.txt
+```
+
+Generar una animación:
+
+```bash
+python3 TP2/scripts/animate.py corrida.txt \
+  --out=generated/animations/voter_rho4_eta05.mp4
+```
+
+Para corridas largas, `--stride=5` toma un cuadro cada cinco pasos (y conserva
+siempre el último). También se pueden ajustar `--fps=30` y `--dpi=150`.
+
+La animación usa ejes fijos `[0,L] x [0,L]`, representa la velocidad con un
+vector y colorea cada vector según su ángulo. El título informa modelo,
+densidad, ruido y tiempo físico. Durante la codificación se muestra una barra
+de progreso con el porcentaje y la cantidad de cuadros procesados. Los MP4 no
+deben embeberse en el PDF de la presentación: hay que subirlos por separado y
+agregar links explícitos.
