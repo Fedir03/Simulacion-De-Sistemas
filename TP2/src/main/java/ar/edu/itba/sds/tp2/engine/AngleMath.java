@@ -22,11 +22,10 @@ public final class AngleMath {
      * [0, 2π).
      *
      * <p>Este método NO decide si el ángulo propio de una partícula debe
-     * incluirse en el promedio de sus vecinos — eso todavía no está
-     * confirmado con la cátedra para el modelo estándar de Vicsek (ver
-     * card pendiente en Notion). La inclusión o exclusión del propio
-     * ángulo es responsabilidad de quien arma la lista {@code thetas}
-     * antes de llamar a este método.
+     * incluirse en el promedio de sus vecinos — esa decisión (para el
+     * modelo estándar de Vicsek, la cátedra confirmó que sí se incluye)
+     * es responsabilidad de quien arma la lista {@code thetas} antes de
+     * llamar a este método.
      */
     static double vectorialAverage(List<Double> thetas) {
         if (thetas.isEmpty()) {
