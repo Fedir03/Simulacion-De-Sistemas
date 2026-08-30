@@ -18,7 +18,6 @@
 \definecolor{TPBlueDark}{HTML}{29298A}
 \definecolor{TPBlack}{HTML}{050505}
 \definecolor{TPNavGray}{HTML}{858585}
-\definecolor{TPNavDotGray}{HTML}{C4C4C4}
 \definecolor{TPLight}{HTML}{E9E9F2}
 \definecolor{TPPlaceholder}{HTML}{F4F4F7}
 
@@ -31,6 +30,7 @@
 \setbeamercolor{databox title}{fg=white,bg=TPBlueDark}
 \setbeamercolor{databox body}{fg=black,bg=TPLight}
 \setbeamercolor{algorithm box}{fg=black,bg=white}
+\setbeamercolor{headline navigation}{fg=TPNavGray,bg=TPBlack}
 \setbeamertemplate{items}[circle]
 \setbeamertemplate{navigation symbols}{}
 
@@ -40,11 +40,15 @@
 \setbeamerfont{itemize/enumerate subbody}{size=\small}
 
 % ---------- Metadatos: completar ----------
-\title{[Título del trabajo práctico]}
+\title{Trabajo Práctico Nro.2: Autómatas Celulares}
 \subtitle{72.25 - Simulación de Sistemas}
-\author{[Nombre y apellido] \and [Nombre y apellido]}
+\author{%
+  Federico Ignacio Ruckauf\texorpdfstring{\textsuperscript{1}}{1}
+  \and Federico Spivak Fontaiña\texorpdfstring{\textsuperscript{2}}{2}
+  \and Lorenzo Chiossone\texorpdfstring{\textsuperscript{3}}{3}%
+}
 \institute{Instituto Tecnológico de Buenos Aires}
-\date{[Año y cuatrimestre] --- Grupo N.º [XX]}
+\date{2026 2C --- Grupo N.º 02}
 
 % Si existe logo_itba.png o logo_itba.pdf junto al .tex, se inserta.
 \newcommand{\institutionlogo}{%
@@ -55,75 +59,42 @@
   }%
 }
 
-% ---------- Barra superior con progreso por sección ----------
+% ---------- Barra superior por sección ----------
 % Rangos de diapositivas del template:
-% Introducción 2--5 | Implementación 6--9 | Simulaciones 10--14
-% Resultados 15--25 | Conclusiones 26--28
-\makeatletter
-\newcommand{\TPnavdot}[2]{%
-  \makebox[0.14cm][c]{%
-    \raisebox{0.05ex}{\textcolor{#1}{\fontsize{6}{6}\selectfont #2}}}%
-}
-
-\newcommand{\navblock}[5]{%
-  % #1 ancho, #2 nombre, #3 inicio, #4 cantidad, #5 fin
-  \begin{minipage}[c][0.82cm][c]{#1\paperwidth}
-    \centering
+% Introducción 2--4 | Implementación 5--8 | Simulaciones 9--13
+% Resultados 14--24 | Conclusiones 25--27
+\newcommand{\navblock}[4]{%
+  % #1 ancho, #2 nombre, #3 inicio, #4 fin
+  \makebox[#1\paperwidth][c]{%
     \ifnum\insertframenumber>1
       \ifnum\insertframenumber<#3
-        {\color{TPNavGray}\scriptsize #2\par}
+        {\color{TPNavGray}\scriptsize\strut #2}%
       \else
-        \ifnum\insertframenumber>#5
-          {\color{TPNavGray}\scriptsize #2\par}
+        \ifnum\insertframenumber>#4
+          {\color{TPNavGray}\scriptsize\strut #2}%
         \else
-          {\color{white}\scriptsize #2\par}
+          {\color{white}\scriptsize\strut #2}%
         \fi
       \fi
     \else
-      {\color{TPNavGray}\scriptsize #2\par}
+      {\color{TPNavGray}\scriptsize\strut #2}%
     \fi
-    \vspace{0.03cm}
-    \@tempcnta=0
-    \loop
-      \advance\@tempcnta by 1
-      \@tempcntb=#3
-      \advance\@tempcntb by \@tempcnta
-      \advance\@tempcntb by -1
-      \ifnum\insertframenumber<#3
-        \TPnavdot{TPNavDotGray}{\textopenbullet}%
-      \else
-        \ifnum\insertframenumber>#5
-          \TPnavdot{TPNavDotGray}{\textbullet}%
-        \else
-          \ifnum\insertframenumber<\@tempcntb
-            \TPnavdot{white}{\textopenbullet}%
-          \else
-            \TPnavdot{white}{\textbullet}%
-          \fi
-        \fi
-      \fi
-    \ifnum\@tempcnta<#4
-    \repeat
-  \end{minipage}%
+  }%
 }
-\makeatother
 
 \setbeamertemplate{headline}{%
   \leavevmode
-  \hbox{%
-    \begin{beamercolorbox}[wd=\paperwidth,ht=0.84cm,dp=0cm]{normal text}%
-      \begingroup\setlength{\fboxsep}{0pt}\colorbox{TPBlack}{%
-        \hbox to \paperwidth{%
-          \navblock{0.20}{Introducción}{2}{4}{5}%
-          \navblock{0.22}{Implementación}{6}{4}{9}%
-          \navblock{0.20}{Simulaciones}{10}{5}{14}%
-          \navblock{0.23}{Resultados}{15}{11}{25}%
-          \navblock{0.15}{Conclusiones}{26}{3}{28}%
-        }%
-      }\endgroup%
-    \end{beamercolorbox}%
-  }
-  \begin{beamercolorbox}[wd=\paperwidth,ht=0.08cm,dp=0cm]{frametitle}\end{beamercolorbox}
+  \begin{beamercolorbox}[wd=\paperwidth,ht=0.50cm,dp=0.20cm]{headline navigation}%
+    \makebox[\paperwidth][l]{%
+      \navblock{0.20}{Introducción}{2}{4}%
+      \navblock{0.22}{Implementación}{5}{8}%
+      \navblock{0.20}{Simulaciones}{9}{13}%
+      \navblock{0.23}{Resultados}{14}{24}%
+      \navblock{0.15}{Conclusiones}{25}{27}%
+    }%
+  \end{beamercolorbox}%
+  \par\nointerlineskip
+  \begin{beamercolorbox}[wd=\paperwidth,ht=0.05cm,dp=0cm]{frametitle}\end{beamercolorbox}%
 }
 
 \setbeamertemplate{frametitle}{%
@@ -145,12 +116,12 @@
 
 % ---------- Componentes reutilizables ----------
 \newcommand{\sectiondivider}[1]{%
-  \begin{frame}
-    \vfill
-    \begin{beamercolorbox}[wd=0.56\paperwidth,ht=0.55cm,dp=0.15cm,center]{frametitle}
-      \large #1
-    \end{beamercolorbox}
-    \vfill
+  \begin{frame}[c]
+    \makebox[\linewidth][c]{%
+      \begin{beamercolorbox}[wd=0.56\paperwidth,ht=0.55cm,dp=0.15cm,center]{frametitle}
+        \large #1
+      \end{beamercolorbox}%
+    }
   \end{frame}
 }
 
@@ -191,19 +162,25 @@
 \begin{frame}
   \vspace{0.35cm}
   \begingroup
-    \centering
-    \begin{beamercolorbox}[wd=0.91\linewidth,sep=3mm,center]{title box}
-      {\LARGE\inserttitle\par}
-      \vspace{1mm}
-      {\large\insertsubtitle}
-    \end{beamercolorbox}
+    \makebox[\linewidth][c]{%
+      \begin{beamercolorbox}[wd=0.91\linewidth,sep=3mm,center]{title box}
+        \resizebox{0.92\linewidth}{!}{\strut\inserttitle}\par
+        \vspace{1mm}
+        {\large\insertsubtitle}
+      \end{beamercolorbox}%
+    }
     \par
   \endgroup
   \vspace{0.35cm}
   \begin{center}
-    {\large\insertauthor\par}
+    {\small\insertauthor\par}
     \vspace{0.18cm}
-    {\small [correo@itba.edu.ar] --- [legajo]\par}
+    {\scriptsize
+      \textsuperscript{1}\href{mailto:fruckauf@itba.edu.ar}{fruckauf@itba.edu.ar}\\[0.5mm]
+      \textsuperscript{2}\href{mailto:fespivak@itba.edu.ar}{fespivak@itba.edu.ar}\\[0.5mm]
+      \textsuperscript{3}\href{mailto:lchiossone@itba.edu.ar}{lchiossone@itba.edu.ar}
+      \par
+    }
     \vspace{0.13cm}
     {\small\insertinstitute\par}
     \vspace{0.35cm}
@@ -217,19 +194,7 @@
 % 2
 \sectiondivider{Introducción}
 
-% 3. Objetivo y panorama general
-\begin{frame}{Introducción}
-  \vspace{0.9cm}
-  [Nombre del modelo o sistema]:
-  \begin{itemize}
-    \item Objetivo: [objetivo principal]
-    \item Variables: [variables principales]
-    \item Observables: [observables definidos]
-    \item Contorno: [condiciones o supuestos]
-  \end{itemize}
-\end{frame}
-
-% 4. Fenómeno o sistema real
+% 3. Fenómeno o sistema real
 \begin{frame}{Sistema Real}
   \begin{columns}[T,onlytextwidth]
     \begin{column}{0.54\textwidth}
@@ -246,7 +211,7 @@
   \end{columns}
 \end{frame}
 
-% 5. Fundamentos matemáticos
+% 4. Fundamentos matemáticos
 \begin{frame}{Fundamentos}
   [Presentar las ecuaciones centrales del modelo.]
   \vspace{0.25cm}
@@ -262,10 +227,10 @@
 \end{frame}
 
 % ---------------- IMPLEMENTACIÓN ----------------
-% 6
+% 5
 \sectiondivider{Implementación}
 
-% 7. Arquitectura general
+% 6. Arquitectura general
 \begin{frame}{Arquitectura}
   Implementación:
   \begin{itemize}
@@ -282,13 +247,13 @@
   \end{itemize}
 \end{frame}
 
-% 8. Diagrama de arquitectura
+% 7. Diagrama de arquitectura
 \begin{frame}{Diagrama de la Arquitectura}
   \centering
   \maybeimage{figuras/arquitectura.pdf}{5.7cm}{Insertar diagrama de arquitectura}
 \end{frame}
 
-% 9. Algoritmo implementado
+% 8. Algoritmo implementado
 \begin{frame}{Algoritmo Implementado}
   \begin{beamercolorbox}[wd=\linewidth,sep=2mm]{algorithm box}
     \textbf{Algoritmo: [nombre del algoritmo]}\\[1mm]
@@ -303,10 +268,10 @@
 \end{frame}
 
 % ---------------- SIMULACIONES ----------------
-% 10
+% 9
 \sectiondivider{Simulaciones}
 
-% 11. Parámetros
+% 10. Parámetros
 \begin{frame}{Simulaciones}
   Parámetros de entrada fijos:
   \begin{itemize}
@@ -322,7 +287,7 @@
   \end{itemize}
 \end{frame}
 
-% 12. Observable principal
+% 11. Observable principal
 \begin{frame}{Observable Definido}
   \centering
   Parámetro de orden $v_a(t)$
@@ -336,7 +301,7 @@
   [Explicar combinaciones de parámetros, cantidad de corridas y criterio de comparación.]
 \end{frame}
 
-% 13. Dispersión / barras de error
+% 12. Dispersión / barras de error
 \begin{frame}{Desvío Estándar}
   [Indicar cómo se calcularon las barras de error.]
   \begin{equation*}
@@ -349,7 +314,7 @@
   [Aclarar qué representa $M$ y qué parte de la serie temporal se utiliza.]
 \end{frame}
 
-% 14. Regla o variante adicional
+% 13. Regla o variante adicional
 \begin{frame}{Interacción [Nombre de la Variante]}
   [Describir la modificación de la regla de interacción.]
   \vspace{0.25cm}
@@ -362,10 +327,10 @@
 \end{frame}
 
 % ---------------- RESULTADOS ----------------
-% 15
+% 14
 \sectiondivider{Resultados}
 
-% 16--18. Resultados visuales / animaciones
+% 15--17. Resultados visuales / animaciones
 \begin{frame}{Animaciones del Sistema}
   \begin{columns}[c,onlytextwidth]
     \begin{column}{0.68\textwidth}
@@ -420,13 +385,13 @@
   \end{columns}
 \end{frame}
 
-% 19. Serie temporal
+% 18. Serie temporal
 \begin{frame}{Evolución Temporal del Observable}
   \centering
   \maybeimage{figuras/evolucion-temporal.pdf}{5.6cm}{Insertar gráfico de evolución temporal}
 \end{frame}
 
-% 20. Relación entre parámetro y observable
+% 19. Relación entre parámetro y observable
 \begin{frame}{Relación entre [Parámetro] y [Observable]}
   \centering
   \maybeimage{figuras/relacion-parametro-observable.pdf}{4.65cm}{Insertar gráfico con barras de error}
@@ -435,7 +400,7 @@
     $[\text{parámetro fijo 1}]=[\ ]$\hfill$[\text{parámetro fijo 2}]=[\ ]$}}
 \end{frame}
 
-% 21. Barrido de tamaño o densidad
+% 20. Barrido de tamaño o densidad
 \begin{frame}{Relación entre [Variable] y [Observable]}
   \centering
   \maybeimage{figuras/barrido-variable.pdf}{5.0cm}{Insertar gráfico del barrido de parámetros}
@@ -443,7 +408,7 @@
     $[\text{variable}]\in\{[\text{valores estudiados}]\}$}}
 \end{frame}
 
-% 22--23. Variante de interacción: resultados visuales
+% 21--22. Variante de interacción: resultados visuales
 \begin{frame}{Interacción [Nombre de la Variante]}
   \begin{columns}[c,onlytextwidth]
     \begin{column}{0.68\textwidth}
@@ -480,7 +445,7 @@
   \end{columns}
 \end{frame}
 
-% 24--25. Gráficos finales de la variante
+% 23--24. Gráficos finales de la variante
 \begin{frame}{Interacción [Nombre de la Variante]}
   \centering
   \maybeimage{figuras/evolucion-variante.pdf}{5.6cm}{Insertar evolución temporal de la variante}
@@ -494,10 +459,10 @@
 \end{frame}
 
 % ---------------- CONCLUSIONES ----------------
-% 26
+% 25
 \sectiondivider{Conclusiones}
 
-% 27
+% 26
 \begin{frame}{Conclusiones}
   Principales conclusiones obtenidas:
   \begin{itemize}
@@ -508,7 +473,7 @@
   \end{itemize}
 \end{frame}
 
-% 28. Cierre
+% 27. Cierre
 \begin{frame}
   \vfill
   \begin{beamercolorbox}[wd=0.86\paperwidth,ht=0.72cm,dp=0.20cm,center]{frametitle}

@@ -1,5 +1,5 @@
 # Fdb version 4
-["pdflatex"] 1788018552.71398 "template_presentacion_tp2.tex" "template_presentacion_tp2.pdf" "template_presentacion_tp2" 1788018554.71052 0
+["pdflatex"] 1788132237.76132 "template_presentacion_tp2.tex" "template_presentacion_tp2.pdf" "template_presentacion_tp2" 1788132239.19329 0
   "/etc/texmf/web2c/texmf.cnf" 1788017368.07024 475 c0e671620eb5563b2130f56340a5fde8 ""
   "/usr/share/texlive/texmf-dist/fonts/map/fontname/texfonts.map" 1577235249 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/jknappen/ec/ecss1095.tfm" 1136768653 3584 8ece407347b270c252c46fdfaef5a9ef ""
@@ -212,7 +212,6 @@
   "/usr/share/texmf/fonts/tfm/public/lm/rm-lmss10.tfm" 1254269338 10976 59d4d2acacc56ba9abc92645023932ec ""
   "/usr/share/texmf/fonts/tfm/public/lm/rm-lmss8.tfm" 1254269338 10976 d5243dcaf5ba5ee7825c8438c6b7a7ea ""
   "/usr/share/texmf/fonts/tfm/public/lm/ts1-lmss12.tfm" 1254269338 1616 c39fdc7c64b8176841da12b57edf2370 ""
-  "/usr/share/texmf/fonts/tfm/public/lm/ts1-lmss8.tfm" 1254269338 1604 48051ef252c0ddf583dd76f1a193d4ae ""
   "/usr/share/texmf/fonts/type1/public/lm/lmex10.pfb" 1254269338 23055 2e5b42921de910eaa97b85df04ca4891 ""
   "/usr/share/texmf/fonts/type1/public/lm/lmmi10.pfb" 1254269338 30388 702fae6a5f0e6e9c48a1d872b442ffcf ""
   "/usr/share/texmf/fonts/type1/public/lm/lmss10.pfb" 1255129361 97408 f595704ec2a07246c2d6f7b602587452 ""
@@ -237,10 +236,11 @@
   "/usr/share/texmf/web2c/texmf.cnf" 1769369718 41603 27f93b3067076450172040dcd57ca8b3 ""
   "/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map" 1788017407 5541477 3118940318599480888143717dd32d64 ""
   "/var/lib/texmf/web2c/pdftex/pdflatex.fmt" 1788017553 3642461 9b2efa42c40470e08f57658e4a1c62bb ""
-  "template_presentacion_tp2.aux" 1788018554.56608 4162 3f432b1009687a1cefce5f4afdbcf89e "pdflatex"
-  "template_presentacion_tp2.nav" 1788018554.56708 2783 f8b0d1eaf383f71e4268670ac899f7e1 "pdflatex"
-  "template_presentacion_tp2.out" 1788018553.46523 0 d41d8cd98f00b204e9800998ecf8427e "pdflatex"
-  "template_presentacion_tp2.tex" 1788018527.80904 16045 8ec24fd51c0117f26b9fce15fe251ed4 ""
+  "logo_itba.png" 1788131729.34789 26290 343035c0db948ff141d955de55eef31f ""
+  "template_presentacion_tp2.aux" 1788132239.06755 4033 33cb9e9a2f6096808bc4bc1fbb29ec49 "pdflatex"
+  "template_presentacion_tp2.nav" 1788132239.06855 2690 5474d22c5ffff884555771824040e220 "pdflatex"
+  "template_presentacion_tp2.out" 1788132238.42154 0 d41d8cd98f00b204e9800998ecf8427e "pdflatex"
+  "template_presentacion_tp2.tex" 1788132231.88947 15319 83e4f85da62ac44a99925e870649c50d ""
   (generated)
   "template_presentacion_tp2.aux"
   "template_presentacion_tp2.log"
