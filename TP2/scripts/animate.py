@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Genera una animacion MP4 a partir del archivo de salida del motor TP2.
 
+El parseo del archivo de corrida vive en simulation_io.py; aca solo queda el render.
+
 Uso:
     python3 TP2/scripts/animate.py corrida.txt --out=animacion.mp4
     python3 TP2/scripts/animate.py corrida.txt --out=animacion.mp4 --fps=30 --stride=5
@@ -10,60 +12,37 @@ from __future__ import annotations
 
 import argparse
 import math
-import re
 import sys
-from dataclasses import dataclass
 from pathlib import Path
 from typing import Sequence, TextIO
 
+from simulation_io import (
+    TWO_PI,
+    Frame,
+    ParticleState,
+    SimulationData,
+    SimulationFormatError,
+    SimulationHeader,
+    parse_header,
+    parse_simulation,
+    stream_simulation,
+)
 
-TWO_PI = 2.0 * math.pi
-TIME_MARKER = re.compile(r"t=(\d+)")
-REQUIRED_HEADER_FIELDS = {
-    "model", "N", "L", "rc", "dt", "v0", "eta", "periodic", "seedIC", "seedLoop"
-}
-
-
-class SimulationFormatError(ValueError):
-    """El archivo no respeta el formato de salida del motor."""
-
-
-@dataclass(frozen=True)
-class SimulationHeader:
-    model: str
-    n: int
-    l: float
-    rc: float
-    dt: float
-    v0: float
-    eta: float
-    periodic: bool
-    seed_ic: int
-    seed_loop: int
-
-    @property
-    def density(self) -> float:
-        return self.n / (self.l * self.l)
-
-
-@dataclass(frozen=True)
-class ParticleState:
-    particle_id: int
-    x: float
-    y: float
-    theta: float
-
-
-@dataclass(frozen=True)
-class Frame:
-    step: int
-    particles: tuple[ParticleState, ...]
-
-
-@dataclass(frozen=True)
-class SimulationData:
-    header: SimulationHeader
-    frames: tuple[Frame, ...]
+__all__ = [
+    "TWO_PI",
+    "Frame",
+    "ParticleState",
+    "ProgressBar",
+    "SimulationData",
+    "SimulationFormatError",
+    "SimulationHeader",
+    "parse_header",
+    "parse_simulation",
+    "render_animation",
+    "select_frames",
+    "stream_simulation",
+    "velocity_components",
+]
 
 
 class ProgressBar:
@@ -90,157 +69,6 @@ class ProgressBar:
             file=self.stream,
             flush=True,
         )
-
-
-def _finite_float(field: str, value: str, line_number: int = 1) -> float:
-    try:
-        parsed = float(value)
-    except ValueError as exc:
-        raise SimulationFormatError(
-            f"linea {line_number}: {field} debe ser numerico, se recibio {value!r}"
-        ) from exc
-    if not math.isfinite(parsed):
-        raise SimulationFormatError(f"linea {line_number}: {field} debe ser finito")
-    return parsed
-
-
-def _integer(field: str, value: str, line_number: int = 1) -> int:
-    try:
-        return int(value)
-    except ValueError as exc:
-        raise SimulationFormatError(
-            f"linea {line_number}: {field} debe ser entero, se recibio {value!r}"
-        ) from exc
-
-
-def parse_header(line: str) -> SimulationHeader:
-    fields: dict[str, str] = {}
-    for token in line.lstrip("\ufeff").split():
-        if "=" not in token:
-            raise SimulationFormatError(f"linea 1: campo de cabecera invalido: {token!r}")
-        key, value = token.split("=", 1)
-        if not key or not value:
-            raise SimulationFormatError(f"linea 1: campo de cabecera invalido: {token!r}")
-        if key in fields:
-            raise SimulationFormatError(f"linea 1: campo de cabecera duplicado: {key}")
-        fields[key] = value
-
-    missing = sorted(REQUIRED_HEADER_FIELDS - fields.keys())
-    if missing:
-        raise SimulationFormatError(
-            "linea 1: faltan campos obligatorios: " + ", ".join(missing)
-        )
-
-    n = _integer("N", fields["N"])
-    l = _finite_float("L", fields["L"])
-    rc = _finite_float("rc", fields["rc"])
-    dt = _finite_float("dt", fields["dt"])
-    v0 = _finite_float("v0", fields["v0"])
-    eta = _finite_float("eta", fields["eta"])
-    if n <= 0:
-        raise SimulationFormatError("linea 1: N debe ser positivo")
-    if l <= 0 or rc < 0 or dt <= 0 or v0 <= 0 or eta < 0:
-        raise SimulationFormatError(
-            "linea 1: se requiere L>0, rc>=0, dt>0, v0>0 y eta>=0"
-        )
-
-    periodic_text = fields["periodic"].lower()
-    if periodic_text not in {"true", "false"}:
-        raise SimulationFormatError("linea 1: periodic debe ser true o false")
-
-    return SimulationHeader(
-        model=fields["model"],
-        n=n,
-        l=l,
-        rc=rc,
-        dt=dt,
-        v0=v0,
-        eta=eta,
-        periodic=periodic_text == "true",
-        seed_ic=_integer("seedIC", fields["seedIC"]),
-        seed_loop=_integer("seedLoop", fields["seedLoop"]),
-    )
-
-
-def parse_simulation(path: str | Path) -> SimulationData:
-    input_path = Path(path)
-    try:
-        lines = input_path.read_text(encoding="utf-8-sig").splitlines()
-    except UnicodeDecodeError as exc:
-        raise SimulationFormatError(f"{input_path}: el archivo no es texto UTF-8 valido") from exc
-
-    if not lines:
-        raise SimulationFormatError(f"{input_path}: el archivo esta vacio")
-    if not lines[0].strip():
-        raise SimulationFormatError("linea 1: se esperaba la cabecera")
-
-    header = parse_header(lines[0])
-    frames: list[Frame] = []
-    expected_ids: tuple[int, ...] | None = None
-    seen_steps: set[int] = set()
-    index = 1
-
-    while index < len(lines):
-        if not lines[index].strip():
-            index += 1
-            continue
-
-        marker_line = index + 1
-        marker = TIME_MARKER.fullmatch(lines[index].strip())
-        if marker is None:
-            raise SimulationFormatError(
-                f"linea {marker_line}: se esperaba un marcador t=<entero>"
-            )
-        step = int(marker.group(1))
-        if step in seen_steps:
-            raise SimulationFormatError(f"linea {marker_line}: bloque t={step} duplicado")
-        if frames and step <= frames[-1].step:
-            raise SimulationFormatError(
-                f"linea {marker_line}: los tiempos deben estar en orden creciente"
-            )
-        seen_steps.add(step)
-        index += 1
-
-        particles: list[ParticleState] = []
-        ids_in_frame: set[int] = set()
-        for particle_number in range(header.n):
-            if index >= len(lines) or TIME_MARKER.fullmatch(lines[index].strip()):
-                raise SimulationFormatError(
-                    f"bloque t={step}: se esperaban {header.n} particulas y se encontraron "
-                    f"{particle_number}"
-                )
-            line_number = index + 1
-            parts = lines[index].split()
-            if len(parts) != 4:
-                raise SimulationFormatError(
-                    f"linea {line_number}: se esperaba 'id x y theta'"
-                )
-            particle_id = _integer("id", parts[0], line_number)
-            if particle_id in ids_in_frame:
-                raise SimulationFormatError(
-                    f"linea {line_number}: id de particula duplicado: {particle_id}"
-                )
-            ids_in_frame.add(particle_id)
-            particles.append(ParticleState(
-                particle_id=particle_id,
-                x=_finite_float("x", parts[1], line_number),
-                y=_finite_float("y", parts[2], line_number),
-                theta=_finite_float("theta", parts[3], line_number),
-            ))
-            index += 1
-
-        current_ids = tuple(p.particle_id for p in particles)
-        if expected_ids is None:
-            expected_ids = current_ids
-        elif current_ids != expected_ids:
-            raise SimulationFormatError(
-                f"bloque t={step}: los IDs o su orden no coinciden con el primer bloque"
-            )
-        frames.append(Frame(step=step, particles=tuple(particles)))
-
-    if not frames:
-        raise SimulationFormatError("el archivo no contiene bloques de tiempo")
-    return SimulationData(header=header, frames=tuple(frames))
 
 
 def select_frames(frames: Sequence[Frame], stride: int) -> tuple[Frame, ...]:
