@@ -31,7 +31,7 @@ class VicsekSimulationTest {
         NeighborLookup lookup = new NeighborLookup(new BruteForceNeighborFinder(), l, 1.0, true);
         VicsekSimulation simulation = new VicsekSimulation(
                 initial, lookup, new VoterModel(), "voter",
-                1.0, 0.03, 0.5, steps, new Random(99), 1L, 99L);
+                1.0, 0.03, 0.5, steps, new Random(99), 1L, 99L, "random");
 
         Path output = tempDir.resolve("output.txt");
         simulation.run(output);
@@ -69,10 +69,10 @@ class VicsekSimulationTest {
 
         VicsekSimulation simA = new VicsekSimulation(
                 sharedInitial, lookupA, new VoterModel(), "voter",
-                1.0, 0.03, 0.5, 2, new Random(1), 3L, 1L);
+                1.0, 0.03, 0.5, 2, new Random(1), 3L, 1L, "random");
         VicsekSimulation simB = new VicsekSimulation(
                 sharedInitial, lookupB, new VoterModel(), "voter",
-                1.0, 0.03, 0.5, 2, new Random(2), 3L, 2L);
+                1.0, 0.03, 0.5, 2, new Random(2), 3L, 2L, "random");
 
         Path outputA = tempDir.resolve("a.txt");
         Path outputB = tempDir.resolve("b.txt");
@@ -97,7 +97,7 @@ class VicsekSimulationTest {
         NeighborLookup lookup = new NeighborLookup(new BruteForceNeighborFinder(), l, 1.0, true);
         VicsekSimulation simulation = new VicsekSimulation(
                 initial, lookup, new VoterModel(), "voter",
-                1.0, 0.03, 0.5, steps, new Random(seedLoop), seedIC, seedLoop);
+                1.0, 0.03, 0.5, steps, new Random(seedLoop), seedIC, seedLoop, "random");
         simulation.run(output);
     }
 

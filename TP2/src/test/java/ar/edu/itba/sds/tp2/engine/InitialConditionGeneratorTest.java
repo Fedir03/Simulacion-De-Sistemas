@@ -35,6 +35,29 @@ class InitialConditionGeneratorTest {
     }
 
     @Test
+    void fixedTheta0AppliesToEveryParticle() {
+        List<VicsekParticle> particles = InitialConditionGenerator.generate(20, 10.0, new Random(7), 0.0);
+
+        for (VicsekParticle p : particles) {
+            assertEquals(0.0, p.theta());
+        }
+    }
+
+    @Test
+    void sameSeedGivesSamePositionsWithRandomAndFixedAngles() {
+        List<VicsekParticle> random = InitialConditionGenerator.generate(30, 10.0, new Random(5), null);
+        List<VicsekParticle> aligned = InitialConditionGenerator.generate(30, 10.0, new Random(5), 1.5);
+
+        for (int i = 0; i < random.size(); i++) {
+            assertEquals(random.get(i).x(), aligned.get(i).x(), "las posiciones x tienen que coincidir");
+            assertEquals(random.get(i).y(), aligned.get(i).y(), "las posiciones y tienen que coincidir");
+            assertEquals(1.5, aligned.get(i).theta());
+        }
+        assertTrue(random.stream().anyMatch(p -> p.theta() != 1.5),
+                "los angulos random no deberian coincidir con el angulo fijo");
+    }
+
+    @Test
     void sameSeedProducesIdenticalResults() {
         List<VicsekParticle> a = InitialConditionGenerator.generate(30, 10.0, new Random(42));
         List<VicsekParticle> b = InitialConditionGenerator.generate(30, 10.0, new Random(42));

@@ -23,6 +23,7 @@ public final class VicsekSimulation {
     private final Random loopRandom;
     private final long seedIC;
     private final long seedLoop;
+    private final String theta0Label;
 
     public VicsekSimulation(List<VicsekParticle> initialParticles,
                              NeighborLookup neighborLookup,
@@ -34,7 +35,8 @@ public final class VicsekSimulation {
                              int steps,
                              Random loopRandom,
                              long seedIC,
-                             long seedLoop) {
+                             long seedLoop,
+                             String theta0Label) {
         this.initialParticles = initialParticles;
         this.neighborLookup = neighborLookup;
         this.strategy = strategy;
@@ -46,6 +48,7 @@ public final class VicsekSimulation {
         this.loopRandom = loopRandom;
         this.seedIC = seedIC;
         this.seedLoop = seedLoop;
+        this.theta0Label = theta0Label;
     }
 
     public void run(Path output) throws IOException {
@@ -71,7 +74,8 @@ public final class VicsekSimulation {
                 "eta=" + eta,
                 "periodic=" + neighborLookup.periodic(),
                 "seedIC=" + seedIC,
-                "seedLoop=" + seedLoop
+                "seedLoop=" + seedLoop,
+                "theta0=" + theta0Label
         );
         writer.write(header);
         writer.newLine();
