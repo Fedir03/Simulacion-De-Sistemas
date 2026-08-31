@@ -165,12 +165,13 @@ def draw_axes(ax, series, labels, transient, logy, ticker, show_ylabel: bool,
     ax.legend(fontsize=8)
 
 
-def report_tail(series, labels, transient: int | None, prefix: str = "") -> None:
+def report_tail(series, labels, transient: int | None, prefix: str = "",
+                observable: str = "va") -> None:
     if transient is None:
         return
     for (_, steps, values), label in zip(series, labels):
         mean, stdev = tail_stats(steps, values, transient)
-        print(f"{prefix}{label}: <v_a> = {mean:.4f} +/- {stdev:.4f} (t >= {transient})")
+        print(f"{prefix}{label}: <{observable}> = {mean:.4f} +/- {stdev:.4f} (t >= {transient})")
 
 
 def plot(paths: Sequence[Path], label_by: str, transient: int | None, title: str | None,
@@ -196,7 +197,7 @@ def plot(paths: Sequence[Path], label_by: str, transient: int | None, title: str
         draw_axes(ax, series, labels, transient, logy, ticker, show_ylabel=True,
                   ylabel=axis_label)
         ax.set_title(title if title is not None else build_title(headers, observable))
-        report_tail(series, labels, transient)
+        report_tail(series, labels, transient, observable=observable)
         fig.tight_layout()
         return fig
 
@@ -217,7 +218,8 @@ def plot(paths: Sequence[Path], label_by: str, transient: int | None, title: str
                   show_ylabel=position == 0, ylabel=axis_label)
         ax.set_title(key[1])
         print(f"\n{key[1]}")
-        report_tail(panel_series, panel_labels, transient, prefix="  ")
+        report_tail(panel_series, panel_labels, transient, prefix="  ",
+                    observable=observable)
     fig.suptitle(title if title is not None else build_title(headers, observable))
     fig.tight_layout()
     return fig
