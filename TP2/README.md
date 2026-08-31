@@ -181,6 +181,59 @@ python3 TP2/scripts/plot_va_vs_eta.py generated/size_rho4_L*/runs.csv --group-by
     --transient=500 --out=TP2/presentacion/figuras/barrido-variable.pdf
 ```
 
+### Puntos (d) y (e) — clusters y componente gigante
+
+Un cluster es una **componente conexa del grafo de vecinos**: un conjunto de partículas donde
+todo par está unido por una cadena de saltos entre partículas a distancia menor que `rc`. El
+observable es `S`, la fracción de partículas que caen en el cluster más grande.
+
+Lo calcula un comando nuevo del motor, que **lee el archivo de texto de una corrida** (no
+invoca al simulador):
+
+```
+java -jar TP2/target/tp2.jar clusters --in=corrida.txt --out=S.csv [--stride=5]
+```
+
+`--stride=5` calcula `S` cada 5 pasos en vez de en todos: 600 puntos por corrida alcanzan de
+sobra para las curvas y para promediar la cola, y el cálculo baja 5 veces. El CSV que escribe
+tiene la misma forma que los de `v_a`, así que `plot_va.py` y `plot_va_vs_eta.py` lo grafican
+sin cambios (la etiqueta del eje sale del nombre de la columna).
+
+**Densidades**: el anuncio de la cátedra del 21/08 extiende el estudio de clusters a
+`ρ = 1/π, 1/(2π), 1/(3π)`. No es un capricho: con `rc = 1` el número medio de vecinos es
+`π·rc²·ρ`, o sea **1, ½ y ⅓** — muy por debajo del umbral de percolación en 2D (~4.5 vecinos,
+`ρ_c ≈ 1.44`). Las densidades 2, 4 y 8 del enunciado están todas percoladas y ahí `S ≈ 1`
+para todo `η`. Como esas densidades dan un `N` no entero con `L = 10` (31.8, 15.9 y 10.6),
+se fija **N = 400** y se despeja `L = √(N/ρ)` → 35.449, 50.133 y 61.400.
+
+```bash
+# barrido de las densidades bajas
+python3 TP2/scripts/sweep.py eta --model=standard --n=400 --l=35.449077 --steps=3000 \
+    --etas=0,0.5,1.0,1.5,2.0,2.5,3.0,3.5,4.0,4.5,5.0 --runs=5 --no-keep-traj \
+    --outdir=generated/d_eta_rho1pi
+
+# S sobre un barrido ya hecho: re-simula con las semillas del indice y agrega la columna s_csv
+python3 TP2/scripts/sweep.py clusters --index=generated/d_eta_rho1pi/runs.csv --stride=5
+```
+
+Hay que volver a simular porque `S` se calcula desde las posiciones y las trayectorias se
+borran con `--no-keep-traj`. Es reproducible al bit: las semillas están en el `runs.csv`.
+
+```bash
+# S(t) - punto (d)
+python3 TP2/scripts/plot_va.py generated/d_eta_rho1pi/eta1_seed1_S.csv --transient=500 \
+    --width=16 --height=5 --out=TP2/presentacion/figuras/clusters-temporal.pdf
+
+# <S> vs eta, una curva por densidad - punto (d)
+python3 TP2/scripts/plot_va_vs_eta.py generated/d_eta_rho*/runs.csv --group-by=density \
+    --observable=s_csv --transient=500 \
+    --out=TP2/presentacion/figuras/clusters-vs-eta.pdf
+
+# v_a vs S - punto (e)
+python3 TP2/scripts/plot_va_vs_s.py generated/d_eta_rho*/runs.csv --transient=500 \
+    --out=TP2/presentacion/figuras/va-vs-s.pdf
+```
+
 ### Unidades del eje temporal
 
 El modelo es adimensional: el eje x de los gráficos temporales es `t = paso × Δt`, en las
