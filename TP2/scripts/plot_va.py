@@ -23,7 +23,7 @@ import math
 from pathlib import Path
 from typing import Sequence
 
-from order_parameter import load_series, tail_stats
+from order_parameter import load_named_series, tail_stats
 from simulation_io import SimulationFormatError, SimulationHeader
 
 
@@ -97,7 +97,17 @@ def time_axis_label(headers: Sequence[SimulationHeader]) -> str:
     return f"Tiempo $t$ = paso × $\\Delta t$   [unidades de tiempo del modelo, $\\Delta t$ = {reference.dt:g}]"
 
 
-def build_title(headers: Sequence[SimulationHeader]) -> str:
+OBSERVABLE_LABELS = {
+    "va": "Parámetro de orden $v_a$",
+    "S": "Fracción en la componente gigante $S$",
+}
+
+
+def observable_label(observable: str) -> str:
+    return OBSERVABLE_LABELS.get(observable, observable)
+
+
+def build_title(headers: Sequence[SimulationHeader], observable: str = "va") -> str:
     """Los parametros que comparten todas las corridas van al titulo, no a la leyenda."""
     reference = headers[0]
     shared = [f"Modelo {reference.model}"] if all(h.model == reference.model for h in headers) else []
@@ -106,7 +116,8 @@ def build_title(headers: Sequence[SimulationHeader]) -> str:
         shared.append(f"ρ={reference.density:g}")
     if all(h.eta == reference.eta for h in headers):
         shared.append(f"η={reference.eta:g}")
-    return "Parámetro de orden $v_a$ vs. tiempo" + (" — " + ", ".join(shared) if shared else "")
+    nombre = "Parámetro de orden $v_a$" if observable == "va" else observable_label(observable)
+    return f"{nombre} vs. tiempo" + (" — " + ", ".join(shared) if shared else "")
 
 
 def panel_key(header: SimulationHeader, field: str) -> tuple[float, str]:
@@ -120,7 +131,8 @@ def panel_key(header: SimulationHeader, field: str) -> tuple[float, str]:
     return 0.0, f"modelo {header.model}"
 
 
-def draw_axes(ax, series, labels, transient, logy, ticker, show_ylabel: bool) -> None:
+def draw_axes(ax, series, labels, transient, logy, ticker, show_ylabel: bool,
+              ylabel: str) -> None:
     """Dibuja un conjunto de curvas v_a(t) sobre unos ejes ya creados."""
     headers = [header for header, _, _ in series]
     for index, ((header, steps, values), label) in enumerate(zip(series, labels)):
@@ -140,7 +152,7 @@ def draw_axes(ax, series, labels, transient, logy, ticker, show_ylabel: bool) ->
 
     ax.set_xlabel(time_axis_label(headers))
     if show_ylabel:
-        ax.set_ylabel("Parámetro de orden $v_a$")
+        ax.set_ylabel(ylabel)
     if logy:
         # en escala log el 0 no existe: se deja que Matplotlib elija el piso segun los datos
         ax.set_yscale("log")
@@ -163,22 +175,27 @@ def report_tail(series, labels, transient: int | None, prefix: str = "") -> None
 
 def plot(paths: Sequence[Path], label_by: str, transient: int | None, title: str | None,
          logy: bool = False, panels_by: str | None = None,
-         figsize: tuple[float, float] = (9.0, 6.0)):
+         figsize: tuple[float, float] = (9.0, 6.0), ylabel: str | None = None):
     import matplotlib.pyplot as plt
     from matplotlib import ticker
 
-    series = [load_series(path) for path in paths]
+    named = [load_named_series(path) for path in paths]
+    series = [item[:3] for item in named]
     headers = [item[0] for item in series]
+    observable = named[0][3]
 
     if label_by == "auto":
         labels = auto_labels(headers, paths)
     else:
         labels = [label_for(header, path, label_by) for header, path in zip(headers, paths)]
 
+    axis_label = ylabel if ylabel is not None else observable_label(observable)
+
     if panels_by is None:
         fig, ax = plt.subplots(figsize=figsize)
-        draw_axes(ax, series, labels, transient, logy, ticker, show_ylabel=True)
-        ax.set_title(title if title is not None else build_title(headers))
+        draw_axes(ax, series, labels, transient, logy, ticker, show_ylabel=True,
+                  ylabel=axis_label)
+        ax.set_title(title if title is not None else build_title(headers, observable))
         report_tail(series, labels, transient)
         fig.tight_layout()
         return fig
@@ -197,11 +214,11 @@ def plot(paths: Sequence[Path], label_by: str, transient: int | None, title: str
         panel_series = [series[i] for i in indices]
         panel_labels = [labels[i] for i in indices]
         draw_axes(ax, panel_series, panel_labels, transient, logy, ticker,
-                  show_ylabel=position == 0)
+                  show_ylabel=position == 0, ylabel=axis_label)
         ax.set_title(key[1])
         print(f"\n{key[1]}")
         report_tail(panel_series, panel_labels, transient, prefix="  ")
-    fig.suptitle(title if title is not None else build_title(headers))
+    fig.suptitle(title if title is not None else build_title(headers, observable))
     fig.tight_layout()
     return fig
 
@@ -227,6 +244,8 @@ def build_argument_parser() -> argparse.ArgumentParser:
                         help="partir en un panel por cada valor de este campo")
     parser.add_argument("--logy", action="store_true",
                         help="escala logaritmica en el eje vertical (v_a)")
+    parser.add_argument("--ylabel", default=None,
+                        help="etiqueta del eje y (default: segun el observable del CSV)")
     parser.add_argument("--title", default=None, help="titulo del grafico")
     parser.add_argument("--dpi", type=int, default=150, help="resolucion de salida (default: 150)")
     return parser
@@ -239,7 +258,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             import matplotlib
             matplotlib.use("Agg")  # sin ventana: solo se guarda el archivo
         fig = plot(args.inputs, args.label_by, args.transient, args.title,
-                   args.logy, args.panels_by, (args.width, args.height))
+                   args.logy, args.panels_by, (args.width, args.height), args.ylabel)
     except (OSError, SimulationFormatError, ValueError) as exc:
         print(f"Error: {exc}")
         return 1

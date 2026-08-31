@@ -6,7 +6,9 @@ import unittest
 from pathlib import Path
 
 from order_parameter import (
+    load_named_series,
     load_series,
+    read_series_csv,
     mean_and_stdev,
     read_va_csv,
     tail_stats,
@@ -174,6 +176,48 @@ class CsvRoundTripTest(unittest.TestCase):
 
             with self.assertRaisesRegex(SimulationFormatError, "cabecera"):
                 read_va_csv(csv_path)
+
+
+class GenericSeriesTest(unittest.TestCase):
+    """El mismo lector sirve para v_a y para el S que escribe el comando `clusters`."""
+
+    def write(self, temp_dir: str, contents: str) -> Path:
+        path = Path(temp_dir) / "serie.csv"
+        path.write_text(contents, encoding="utf-8")
+        return path
+
+    def test_reads_a_clusters_csv_and_reports_its_column(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            path = self.write(temp_dir, "# " + HEADER.strip() + "\nt,S\n0,0.25\n5,0.5\n")
+
+            header, steps, values, column = read_series_csv(path)
+
+            self.assertEqual("S", column)
+            self.assertEqual([0, 5], steps)
+            self.assertEqual([0.25, 0.5], values)
+            self.assertEqual("standard", header.model)
+
+    def test_va_csv_still_reports_its_own_column(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            path = self.write(temp_dir, "# " + HEADER.strip() + "\nt,va\n0,1.0\n")
+
+            self.assertEqual("va", read_series_csv(path)[3])
+
+    def test_load_named_series_defaults_to_va_for_a_trajectory(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            path = Path(temp_dir) / "corrida.txt"
+            path.write_text(
+                HEADER + "t=0\n1 0 0 0.0\n2 0 0 0.0\n3 0 0 0.0\n4 0 0 0.0\n",
+                encoding="utf-8")
+
+            self.assertEqual("va", load_named_series(path)[3])
+
+    def test_rejects_a_row_with_the_wrong_number_of_columns(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            path = self.write(temp_dir, "# " + HEADER.strip() + "\nt,S\n0,0.25,extra\n")
+
+            with self.assertRaisesRegex(SimulationFormatError, "dos columnas"):
+                read_series_csv(path)
 
 
 class StatisticsTest(unittest.TestCase):

@@ -62,9 +62,16 @@ def write_va_csv(path: str | Path, header: SimulationHeader, steps: Sequence[int
             stream.write(f"{step},{value!r}\n")
 
 
-def read_va_csv(path: str | Path) -> tuple[SimulationHeader, list[int], list[float]]:
+def read_series_csv(path: str | Path) -> tuple[SimulationHeader, list[int], list[float], str]:
+    """Lee un CSV de serie temporal de cualquier observable.
+
+    El formato es el que escriben write_va_csv y el comando `clusters` del motor: la
+    cabecera de la corrida como comentario, una linea `t,<observable>` y despues los datos.
+    Devuelve tambien el nombre de la columna, para que los graficos se etiqueten solos.
+    """
     input_path = Path(path)
     header: SimulationHeader | None = None
+    column: str | None = None
     steps: list[int] = []
     values: list[float] = []
     with input_path.open("r", encoding="utf-8-sig") as stream:
@@ -76,13 +83,14 @@ def read_va_csv(path: str | Path) -> tuple[SimulationHeader, list[int], list[flo
                 if header is None:
                     header = parse_header(line.lstrip(CSV_COMMENT).strip())
                 continue
-            if line == "t,va":
-                continue
             parts = line.split(",")
             if len(parts) != 2:
                 raise SimulationFormatError(
-                    f"{input_path}:{line_number}: se esperaba 't,va'"
+                    f"{input_path}:{line_number}: se esperaban dos columnas 't,<observable>'"
                 )
+            if column is None and parts[0] == "t":
+                column = parts[1]
+                continue
             steps.append(int(parts[0]))
             values.append(float(parts[1]))
     if header is None:
@@ -90,7 +98,12 @@ def read_va_csv(path: str | Path) -> tuple[SimulationHeader, list[int], list[flo
             f"{input_path}: falta la linea de cabecera '{CSV_COMMENT} model=... '"
         )
     if not steps:
-        raise SimulationFormatError(f"{input_path}: no hay datos de v_a")
+        raise SimulationFormatError(f"{input_path}: no hay datos")
+    return header, steps, values, column or "va"
+
+
+def read_va_csv(path: str | Path) -> tuple[SimulationHeader, list[int], list[float]]:
+    header, steps, values, _ = read_series_csv(path)
     return header, steps, values
 
 
@@ -113,10 +126,16 @@ def format_header(header: SimulationHeader) -> str:
 
 def load_series(path: str | Path) -> tuple[SimulationHeader, list[int], list[float]]:
     """Acepta indistintamente una trayectoria .txt del motor o un .csv ya calculado."""
+    return load_named_series(path)[:3]
+
+
+def load_named_series(path: str | Path) -> tuple[SimulationHeader, list[int], list[float], str]:
+    """Igual que load_series pero informando ademas que observable trae el archivo."""
     input_path = Path(path)
     if input_path.suffix.lower() == ".csv":
-        return read_va_csv(input_path)
-    return va_series(input_path)
+        return read_series_csv(input_path)
+    header, steps, values = va_series(input_path)
+    return header, steps, values, "va"
 
 
 def tail_stats(steps: Sequence[int], values: Sequence[float],
