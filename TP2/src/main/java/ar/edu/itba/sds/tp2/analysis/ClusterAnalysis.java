@@ -39,31 +39,36 @@ public final class ClusterAnalysis {
         Set<Integer> visited = new HashSet<>(neighbors.size() * 2);
         int largest = 0;
         int clusters = 0;
+        Set<Integer> largestMembers = Set.of();
 
         for (Integer start : neighbors.keySet()) {
             if (!visited.add(start)) {
                 continue;
             }
             clusters++;
-            int size = 1;
+            Set<Integer> component = new HashSet<>();
+            component.add(start);
             Deque<Integer> pending = new ArrayDeque<>();
             pending.add(start);
             while (!pending.isEmpty()) {
                 Integer current = pending.removeFirst();
                 for (Integer neighbor : neighbors.getOrDefault(current, Set.of())) {
                     if (visited.add(neighbor)) {
-                        size++;
+                        component.add(neighbor);
                         pending.addLast(neighbor);
                     }
                 }
             }
-            largest = Math.max(largest, size);
+            if (component.size() > largest) {
+                largest = component.size();
+                largestMembers = component;
+            }
         }
 
         if (visited.size() != n) {
             throw new IllegalStateException("el grafo de vecinos cubre " + visited.size()
                     + " particulas pero se esperaban " + n);
         }
-        return new ClusterStats(largest, clusters, n);
+        return new ClusterStats(largest, clusters, n, largestMembers);
     }
 }

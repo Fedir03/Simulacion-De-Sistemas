@@ -17,6 +17,7 @@ import java.util.Map;
 /**
  * Calcula la fraccion de particulas en la componente gigante (S) a lo largo de una corrida.
  * Uso: java -jar target/tp2.jar clusters --in=&lt;corrida.txt&gt; --out=&lt;S.csv&gt; [--stride=1]
+ *      [--members=&lt;miembros.txt&gt;]
  *
  * <p>Lee el archivo de texto que produjo el motor: no lo invoca ni depende de el.
  */
@@ -29,6 +30,8 @@ public final class ClustersCommand implements Command {
         Path in = Path.of(CommandSupport.require(flags, "in"));
         Path out = Path.of(CommandSupport.require(flags, "out"));
         int stride = CommandSupport.parseInt("stride", CommandSupport.optional(flags, "stride", "1"));
+        String membersFlag = CommandSupport.optional(flags, "members", "");
+        Path members = membersFlag.isEmpty() ? null : Path.of(membersFlag);
         if (stride <= 0) {
             throw new IllegalArgumentException("stride debe ser un entero positivo: " + stride);
         }
@@ -38,9 +41,14 @@ public final class ClustersCommand implements Command {
         if (out.getParent() != null) {
             Files.createDirectories(out.getParent());
         }
+        if (members != null && members.getParent() != null) {
+            Files.createDirectories(members.getParent());
+        }
 
         try (SimulationReader reader = SimulationReader.open(in);
-             BufferedWriter writer = Files.newBufferedWriter(out)) {
+             BufferedWriter writer = Files.newBufferedWriter(out);
+             BufferedWriter membersWriter = members == null
+                     ? null : Files.newBufferedWriter(members)) {
 
             RunHeader header = reader.header();
             NeighborLookup lookup = new NeighborLookup(
@@ -57,6 +65,9 @@ public final class ClustersCommand implements Command {
                 ClusterStats stats = ClusterAnalysis.of(frame.particles(), lookup);
                 writer.write(frame.step() + "," + stats.s());
                 writer.newLine();
+                if (membersWriter != null) {
+                    writeMembers(membersWriter, frame.step(), stats);
+                }
                 lastS = stats.s();
                 analyzed++;
             }
@@ -64,6 +75,20 @@ public final class ClustersCommand implements Command {
 
         System.out.printf("clusters: %d cuadros analizados (stride=%d) S(final)=%.4f output=%s%n",
                 analyzed, stride, lastS, out.toAbsolutePath());
+    }
+
+    /**
+     * Una linea por cuadro: el paso y despues los ids del cluster mas grande, separados por
+     * espacios. Lo consume animate.py para resaltar esas particulas.
+     */
+    private static void writeMembers(BufferedWriter writer, int step, ClusterStats stats)
+            throws IOException {
+        StringBuilder line = new StringBuilder().append(step);
+        for (Integer id : stats.sortedMembers()) {
+            line.append(' ').append(id);
+        }
+        writer.write(line.toString());
+        writer.newLine();
     }
 
     /**
