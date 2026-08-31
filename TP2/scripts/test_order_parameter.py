@@ -7,6 +7,7 @@ from pathlib import Path
 
 from order_parameter import (
     load_named_series,
+    resolve_transient,
     load_series,
     read_series_csv,
     mean_and_stdev,
@@ -243,6 +244,18 @@ class StatisticsTest(unittest.TestCase):
 
         self.assertAlmostEqual(0.5, mean)
         self.assertAlmostEqual(0.1, stdev)
+
+    def test_percentage_transient_scales_with_the_run_length(self):
+        self.assertEqual(4000, resolve_transient("40%", 10000))
+        self.assertEqual(1200, resolve_transient("40%", 3000))
+
+    def test_absolute_transient_ignores_the_run_length(self):
+        self.assertEqual(500, resolve_transient(500, 3000))
+        self.assertEqual(500, resolve_transient("500", 10000))
+
+    def test_rejects_an_out_of_range_percentage(self):
+        with self.assertRaisesRegex(ValueError, "porcentaje"):
+            resolve_transient("120%", 3000)
 
     def test_mean_and_stdev_with_one_run(self):
         self.assertEqual((0.7, 0.0), mean_and_stdev([0.7]))

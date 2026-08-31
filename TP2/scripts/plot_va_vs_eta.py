@@ -25,7 +25,12 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Sequence
 
-from order_parameter import load_named_series, mean_and_stdev, tail_stats
+from order_parameter import (
+    load_named_series,
+    mean_and_stdev,
+    resolve_transient,
+    tail_stats,
+)
 from simulation_io import SimulationFormatError, SimulationHeader
 
 
@@ -80,7 +85,7 @@ def read_index(path: Path) -> list[dict[str, str]]:
     return rows
 
 
-def collect(indexes: Sequence[Path], transient: int, group_by: str,
+def collect(indexes: Sequence[Path], transient: str | int, group_by: str,
             column: str = "va_csv") -> tuple[list[Curve], str, str]:
     """Lee todos los indices y arma una curva <v_a> vs eta por cada grupo."""
     per_run: list[tuple[SimulationHeader, float, float]] = []
@@ -95,7 +100,7 @@ def collect(indexes: Sequence[Path], transient: int, group_by: str,
             if not series_path.is_absolute():
                 series_path = index_path.parent / series_path
             header, steps, values, observable = load_named_series(series_path)
-            run_mean, _ = tail_stats(steps, values, transient)
+            run_mean, _ = tail_stats(steps, values, resolve_transient(transient, steps[-1]))
             per_run.append((header, float(row["eta"]), run_mean))
             observables.add(observable)
 
@@ -142,7 +147,7 @@ def plot(curves: Sequence[Curve], title: str | None, transient: int, observable:
     ax.set_ylabel(ylabel)
     ax.set_ylim(0.0, 1.02)
     ax.set_title(title if title is not None
-                 else f"{default_title} (promedio para $t \\geq {transient}$)")
+                 else f"{default_title} (transitorio descartado: {transient})")
     ax.grid(alpha=0.3)
     ax.legend(fontsize=9)
     fig.tight_layout()
@@ -155,8 +160,10 @@ def build_argument_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("indexes", nargs="+", type=Path,
                         help="uno o mas runs.csv generados por sweep.py")
-    parser.add_argument("--transient", type=int, default=None,
-                        help="primer paso del estado estacionario (elegido a ojo con plot_va.py)")
+    parser.add_argument("--transient", default=None,
+                        help="primer paso del estado estacionario, en pasos (500) o como "
+                             "porcentaje del largo de cada corrida (40%%). El porcentaje "
+                             "permite mezclar corridas de distinto largo")
     parser.add_argument("--out", type=Path, default=None,
                         help="archivo de salida (.pdf/.png); sin este flag abre una ventana")
     parser.add_argument("--group-by", choices=GROUP_FIELDS + ("auto",), default="auto",
@@ -184,7 +191,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             print(f"\n{curve.label}")
             for eta, mean, stdev, count in zip(curve.etas, curve.means,
                                                curve.stdevs, curve.counts):
-                print(f"  eta={eta:<6g} <v_a>={mean:.4f} +/- {stdev:.4f}  (M={count})")
+                print(f"  eta={eta:<6g} <{observable}>={mean:.4f} +/- {stdev:.4f}  (M={count})")
         if args.out is not None:
             import matplotlib
             matplotlib.use("Agg")

@@ -138,6 +138,24 @@ def load_named_series(path: str | Path) -> tuple[SimulationHeader, list[int], li
     return header, steps, values, "va"
 
 
+def resolve_transient(spec: str | int, last_step: int) -> int:
+    """Convierte un transitorio en pasos.
+
+    Acepta un entero (pasos absolutos) o un porcentaje del largo del run ('40%'). El
+    porcentaje sirve para comparar corridas de distinto largo con el mismo criterio
+    relativo: 40% son 1200 pasos en un run de 3000 y 4000 en uno de 10000.
+    """
+    if isinstance(spec, int):
+        return spec
+    text = str(spec).strip()
+    if text.endswith("%"):
+        fraction = float(text[:-1]) / 100.0
+        if not 0.0 <= fraction < 1.0:
+            raise ValueError(f"el porcentaje de transitorio debe estar en [0, 100): {spec}")
+        return int(fraction * last_step)
+    return int(text)
+
+
 def tail_stats(steps: Sequence[int], values: Sequence[float],
                transient: int = 0) -> tuple[float, float]:
     """Media y desvio de v_a sobre la cola estacionaria (pasos con t >= transient).
