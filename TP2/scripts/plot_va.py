@@ -162,7 +162,8 @@ def report_tail(series, labels, transient: int | None, prefix: str = "") -> None
 
 
 def plot(paths: Sequence[Path], label_by: str, transient: int | None, title: str | None,
-         logy: bool = False, panels_by: str | None = None):
+         logy: bool = False, panels_by: str | None = None,
+         figsize: tuple[float, float] = (9.0, 6.0)):
     import matplotlib.pyplot as plt
     from matplotlib import ticker
 
@@ -175,7 +176,7 @@ def plot(paths: Sequence[Path], label_by: str, transient: int | None, title: str
         labels = [label_for(header, path, label_by) for header, path in zip(headers, paths)]
 
     if panels_by is None:
-        fig, ax = plt.subplots(figsize=(9, 6))
+        fig, ax = plt.subplots(figsize=figsize)
         draw_axes(ax, series, labels, transient, logy, ticker, show_ylabel=True)
         ax.set_title(title if title is not None else build_title(headers))
         report_tail(series, labels, transient)
@@ -187,7 +188,8 @@ def plot(paths: Sequence[Path], label_by: str, transient: int | None, title: str
         groups.setdefault(panel_key(header, panels_by), []).append(index)
     ordered = sorted(groups)
 
-    fig, axes = plt.subplots(1, len(ordered), figsize=(5.0 * len(ordered), 5.0),
+    fig, axes = plt.subplots(1, len(ordered),
+                             figsize=(figsize[0] * len(ordered), figsize[1]),
                              sharey=True, squeeze=False)
     for position, key in enumerate(ordered):
         indices = groups[key]
@@ -216,6 +218,11 @@ def build_argument_parser() -> argparse.ArgumentParser:
                         help="que campo usar para la leyenda (default: auto, los que difieren)")
     parser.add_argument("--transient", type=int, default=None,
                         help="marca el inicio del estacionario e informa <v_a> de la cola")
+    parser.add_argument("--width", type=float, default=9.0,
+                        help="ancho de la figura en pulgadas (default: 9). Subirlo estira el "
+                             "eje temporal sin cambiar el rango de datos")
+    parser.add_argument("--height", type=float, default=6.0,
+                        help="alto de la figura en pulgadas (default: 6)")
     parser.add_argument("--panels-by", choices=("density", "n", "eta", "model"), default=None,
                         help="partir en un panel por cada valor de este campo")
     parser.add_argument("--logy", action="store_true",
@@ -232,7 +239,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             import matplotlib
             matplotlib.use("Agg")  # sin ventana: solo se guarda el archivo
         fig = plot(args.inputs, args.label_by, args.transient, args.title,
-                   args.logy, args.panels_by)
+                   args.logy, args.panels_by, (args.width, args.height))
     except (OSError, SimulationFormatError, ValueError) as exc:
         print(f"Error: {exc}")
         return 1
