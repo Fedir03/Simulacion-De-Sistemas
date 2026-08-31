@@ -36,7 +36,7 @@ from simulation_io import SimulationFormatError
 DEFAULT_JAR = Path(__file__).resolve().parents[1] / "target" / "tp2.jar"
 BYTES_PER_PARTICLE_LINE = 65  # estimacion: "id x y theta" con doubles en precision completa
 INDEX_COLUMNS = ["model", "n", "l", "eta", "theta0", "seedIC", "seedLoop", "steps",
-                 "traj", "va_csv"]
+                 "traj", "va_csv", "s_csv"]
 
 
 @dataclass(frozen=True)
@@ -50,7 +50,10 @@ class Run:
 
 def simulate(args, run: Run, outdir: Path) -> tuple[Path, Path]:
     """Corre el jar para una configuracion y devuelve (trayectoria, csv de v_a)."""
-    traj = outdir / f"{run.name}.txt"
+    # con --tmpdir la trayectoria se escribe en disco local: en WSL, escribir los ~70 MB de
+    # cada corrida en /mnt/c cuesta 2.6x mas que en /tmp, y despues se borra igual
+    traj_dir = args.tmpdir if (args.tmpdir is not None and not args.keep_traj) else outdir
+    traj = traj_dir / f"{run.name}.txt"
     series_csv = outdir / f"{run.name}.csv"
 
     if args.skip_existing and series_csv.is_file():
@@ -122,9 +125,10 @@ def estimated_megabytes(args, run_count: int) -> float:
 
 def write_index(path: Path, rows: Sequence[dict[str, str]]) -> None:
     with path.open("w", encoding="utf-8", newline="") as stream:
-        writer = csv.DictWriter(stream, fieldnames=INDEX_COLUMNS)
+        writer = csv.DictWriter(stream, fieldnames=INDEX_COLUMNS, extrasaction="ignore")
         writer.writeheader()
-        writer.writerows(rows)
+        for row in rows:
+            writer.writerow({column: row.get(column, "") for column in INDEX_COLUMNS})
 
 
 def run_sweep(args) -> int:
@@ -136,6 +140,8 @@ def run_sweep(args) -> int:
     runs = plan_runs(args)
     outdir = args.outdir
     outdir.mkdir(parents=True, exist_ok=True)
+    if args.tmpdir is not None:
+        args.tmpdir.mkdir(parents=True, exist_ok=True)
 
     size = estimated_megabytes(args, len(runs))
     print(f"{len(runs)} corridas de {args.steps} pasos con N={args.n} "
@@ -160,12 +166,88 @@ def run_sweep(args) -> int:
             "steps": args.steps,
             "traj": traj.name if args.keep_traj else "",
             "va_csv": series_csv.name,
+            "s_csv": "",
         })
 
     index_path = outdir / "runs.csv"
     write_index(index_path, rows)
     print(f"Indice escrito en {index_path.resolve()}")
     return 0
+
+
+def run_clusters(args) -> int:
+    """Re-simula las corridas de un indice y les calcula S con el comando `clusters` del jar.
+
+    Hay que volver a simular porque S se calcula desde las posiciones y las trayectorias se
+    borran despues de extraer v_a. Es reproducible al bit: las semillas estan en el indice.
+    """
+    if not args.jar.is_file():
+        print(f"Error: no existe el jar {args.jar}; compilar con 'mvn clean package'")
+        return 1
+
+    index_path = args.index
+    outdir = index_path.parent
+    if args.tmpdir is not None:
+        args.tmpdir.mkdir(parents=True, exist_ok=True)
+    with index_path.open("r", encoding="utf-8-sig", newline="") as stream:
+        rows = list(csv.DictReader(stream))
+    if not rows:
+        print(f"Error: {index_path} no tiene corridas")
+        return 1
+
+    print(f"{len(rows)} corridas de {index_path} -> S cada {args.stride} pasos")
+    for index, row in enumerate(rows, start=1):
+        name = Path(row["va_csv"]).stem
+        s_csv = outdir / f"{name}_S.csv"
+        row["s_csv"] = s_csv.name
+
+        if args.skip_existing and s_csv.is_file():
+            print(f"[{index}/{len(rows)}] {name}: ya existe, se saltea", flush=True)
+            continue
+
+        traj = (args.tmpdir or outdir) / f"{name}__tmp.txt"
+        simulate_command = [
+            args.java, "-jar", str(args.jar), "simulate",
+            f"--model={row['model']}",
+            f"--n={row['n']}",
+            f"--eta={row['eta']}",
+            f"--steps={row['steps']}",
+            f"--seedIC={row['seedIC']}",
+            f"--seedLoop={row['seedLoop']}",
+            f"--theta0={row['theta0']}",
+            f"--l={row['l']}",
+            f"--rc={args.rc}",
+            f"--dt={args.dt}",
+            f"--v0={args.v0}",
+            f"--periodic={str(args.periodic).lower()}",
+            f"--out={traj}",
+        ]
+        clusters_command = [
+            args.java, "-jar", str(args.jar), "clusters",
+            f"--in={traj}", f"--out={s_csv}", f"--stride={args.stride}",
+        ]
+        try:
+            for command in (simulate_command, clusters_command):
+                result = subprocess.run(command, capture_output=True, text=True)
+                if result.returncode != 0:
+                    raise RuntimeError(f"{name} fallo (codigo {result.returncode}):\n"
+                                       f"{result.stdout}{result.stderr}")
+        finally:
+            traj.unlink(missing_ok=True)
+
+        _, _, values = read_s_csv(s_csv)
+        print(f"[{index}/{len(rows)}] {name}: S(t=0)={values[0]:.4f} -> S(final)={values[-1]:.4f}",
+              flush=True)
+
+    write_index(index_path, rows)
+    print(f"Indice actualizado con la columna s_csv: {index_path.resolve()}")
+    return 0
+
+
+def read_s_csv(path: Path) -> tuple[object, list[int], list[float]]:
+    from order_parameter import read_series_csv
+    header, steps, values, _ = read_series_csv(path)
+    return header, steps, values
 
 
 def comma_separated_floats(value: str) -> list[float]:
@@ -190,6 +272,10 @@ def add_common_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--periodic", type=lambda v: v.lower() == "true", default=True)
     parser.add_argument("--jar", type=Path, default=DEFAULT_JAR)
     parser.add_argument("--java", default="java", help="ejecutable de Java (default: java)")
+    parser.add_argument("--tmpdir", type=Path, default=None,
+                        help="carpeta para las trayectorias temporales; conviene un disco "
+                             "local (ej: /tmp) porque escribir en /mnt/c es ~2.6x mas lento. "
+                             "Se ignora si se conservan las trayectorias")
     parser.add_argument("--no-keep-traj", dest="keep_traj", action="store_false",
                         help="borrar cada trayectoria .txt despues de calcular v_a")
     parser.add_argument("--skip-existing", action="store_true",
@@ -221,12 +307,31 @@ def build_argument_parser() -> argparse.ArgumentParser:
     theta_parser.add_argument("--seedLoop", type=int, default=1)
     theta_parser.add_argument("--aligned", type=float, default=0.0,
                               help="angulo comun de la corrida alineada, en radianes (default: 0)")
+
+    clusters_parser = subparsers.add_parser(
+        "clusters", help="re-simula las corridas de un indice y les calcula S")
+    clusters_parser.add_argument("--index", type=Path, required=True,
+                                 help="runs.csv de un barrido ya hecho")
+    clusters_parser.add_argument("--stride", type=int, default=5,
+                                 help="calcular S cada STRIDE pasos (default: 5)")
+    clusters_parser.add_argument("--rc", type=float, default=1.0)
+    clusters_parser.add_argument("--dt", type=float, default=1.0)
+    clusters_parser.add_argument("--v0", type=float, default=0.03)
+    clusters_parser.add_argument("--periodic", type=lambda v: v.lower() == "true", default=True)
+    clusters_parser.add_argument("--jar", type=Path, default=DEFAULT_JAR)
+    clusters_parser.add_argument("--java", default="java")
+    clusters_parser.add_argument("--tmpdir", type=Path, default=None,
+                                 help="carpeta para la trayectoria temporal (ej: /tmp)")
+    clusters_parser.add_argument("--skip-existing", action="store_true",
+                                 help="saltear las corridas que ya tengan su CSV de S")
     return parser
 
 
 def main(argv: Sequence[str] | None = None) -> int:
     args = build_argument_parser().parse_args(argv)
     try:
+        if args.mode == "clusters":
+            return run_clusters(args)
         return run_sweep(args)
     except (OSError, RuntimeError, SimulationFormatError, ValueError) as exc:
         print(f"Error: {exc}")
