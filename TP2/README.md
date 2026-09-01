@@ -27,26 +27,49 @@ java -jar TP2/target/tp2.jar simulate --model=voter --n=400 --eta=0.5 --steps=10
 | Flag | Obligatorio | Default | Descripción |
 |---|---|---|---|
 | `--model` | Sí | — | `voter` o `standard` (ver estado actual abajo) |
-| `--n` | Sí | — | Cantidad de partículas |
+| `--n` | Sí, salvo con `--icFile` | — | Cantidad de partículas |
 | `--eta` | Sí | — | Magnitud del ruido angular |
 | `--steps` | Sí | — | Cantidad de pasos de tiempo a simular (además del `t=0` inicial) |
-| `--seedIC` | Sí | — | Semilla para las posiciones/ángulos iniciales (entero o `auto`) |
+| `--seedIC` | Sí, salvo con `--icFile` | — | Semilla para las posiciones/ángulos iniciales (entero o `auto`) |
 | `--seedLoop` | Sí | — | Semilla para el ruido angular de cada paso (entero o `auto`) |
 | `--out` | Sí | — | Path del archivo de salida |
-| `--l` | No | `10.0` | Lado de la caja cuadrada `[0,L] x [0,L]` |
+| `--l` | No, prohibido con `--icFile` | `10.0` | Lado de la caja cuadrada `[0,L] x [0,L]` |
 | `--rc` | No | `1.0` | Radio de interacción |
 | `--dt` | No | `1.0` | Paso temporal |
 | `--v0` | No | `0.03` | Velocidad (constante para todas las partículas) |
 | `--periodic` | No | `true` | Condiciones de contorno periódicas (`true`/`false`) |
-| `--theta0` | No | `random` | Ángulo inicial: `random` (uno al azar por partícula) o un ángulo en radianes común a todas |
+| `--theta0` | No, prohibido con `--icFile` | `random` | Ángulo inicial: `random` (uno al azar por partícula) o un ángulo en radianes común a todas |
+| `--icFile` | No | — | Lee la condición inicial de un archivo generado con `generate-ic` en vez de generarla desde `--n`/`--seedIC` (ver abajo) |
 
-## Condición inicial: `--theta0`
+## Condición inicial: `--theta0` y `--icFile`
 
 Con el mismo `--seedIC`, las **posiciones** iniciales son idénticas se use
 `--theta0=random` o `--theta0=<ángulo>`: el ángulo al azar se saca del generador
 igual aunque después se descarte. Eso permite comparar dos corridas que arrancan
 del mismo estado de partida y difieren únicamente en los ángulos iniciales
 (ver "Parámetro de orden y gráficos").
+
+Esa garantía depende de que dos invocaciones separadas del jar, con el mismo
+`--seedIC`, generen exactamente la misma secuencia de números al azar — hoy es
+así porque `InitialConditionGenerator` no depende del modelo, pero es un
+invariante implícito, no algo forzado por el compilador. Para comparar
+**estándar vs. votante** (punto f) esa fragilidad importa más, porque ahí sí
+hace falta que dos procesos completamente distintos arranquen del mismo
+estado. Por eso existe un segundo mecanismo, más robusto porque no depende de
+que la generación sea determinística entre procesos:
+
+```
+java -jar TP2/target/tp2.jar generate-ic --n=400 --l=10 --seedIC=1 --out=ic.txt
+java -jar TP2/target/tp2.jar simulate --model=standard --icFile=ic.txt --eta=0.5 --steps=1000 --seedLoop=1 --out=standard.txt
+java -jar TP2/target/tp2.jar simulate --model=voter    --icFile=ic.txt --eta=0.5 --steps=1000 --seedLoop=2 --out=voter.txt
+```
+
+`generate-ic` escribe la condición inicial (posiciones + ángulos al azar) a un
+archivo una sola vez; `simulate --icFile=<archivo>` la lee de vuelta en lugar de
+generarla, así que las dos corridas parten del mismo objeto de datos, no de dos
+generaciones independientes. `--icFile` es mutuamente excluyente con `--n`,
+`--seedIC`, `--l` y `--theta0` — esos cuatro quedan determinados por el archivo.
+`sweep.py` automatiza esto con `--shared-ic-dir` (ver punto f).
 
 ## Formato del archivo de salida
 
@@ -157,11 +180,25 @@ de esa corrida, y la barra de error es el desvío muestral entre semillas.
 
 ### Punto (f) — comparación con el modelo votante
 
-Los mismos comandos con `--model=voter` y otro `--outdir`; después se grafican los dos
-juntos:
+Los mismos comandos con `--model=voter` y otro `--outdir`, pero agregando
+`--shared-ic-dir` (mismo directorio y mismo `--seed` en las dos invocaciones) para
+que la corrida de voter reutilice, condición inicial por condición inicial, los
+mismos archivos que generó la corrida de standard — en vez de que cada modelo genere
+la suya por separado a partir de `--seedIC` (ver "Condición inicial: `--theta0` y
+`--icFile`" para por qué importa). `--seedLoopBase` en la segunda invocación evita
+que, además de la posición inicial, las dos corridas compartan también la secuencia
+de ruido:
 
 ```bash
-python3 TP2/scripts/plot_va_vs_eta.py generated/c_eta_rho4/runs.csv generated/f_voter_rho4/runs.csv \
+python3 TP2/scripts/sweep.py eta --model=standard --n=400 --l=10 --steps=3000 \
+    --etas=0,0.5,1.0,1.5,2.0,2.5,3.0,3.5,4.0,4.5,5.0 --runs=5 --seed=1 \
+    --shared-ic-dir=generated/f_shared_ic --no-keep-traj --outdir=generated/f_standard_rho4
+
+python3 TP2/scripts/sweep.py eta --model=voter --n=400 --l=10 --steps=3000 \
+    --etas=0,0.5,1.0,1.5,2.0,2.5,3.0,3.5,4.0,4.5,5.0 --runs=5 --seed=1 --seedLoopBase=1001 \
+    --shared-ic-dir=generated/f_shared_ic --no-keep-traj --outdir=generated/f_voter_rho4
+
+python3 TP2/scripts/plot_va_vs_eta.py generated/f_standard_rho4/runs.csv generated/f_voter_rho4/runs.csv \
     --group-by=model --transient=500 --out=TP2/presentacion/figuras/comparacion-modelos.pdf
 ```
 

@@ -2,6 +2,7 @@ package ar.edu.itba.sds.tp2;
 
 import ar.edu.itba.sds.tp2.command.ClustersCommand;
 import ar.edu.itba.sds.tp2.command.Command;
+import ar.edu.itba.sds.tp2.command.GenerateIcCommand;
 import ar.edu.itba.sds.tp2.command.SimulateCommand;
 
 import java.io.IOException;
@@ -11,7 +12,8 @@ import java.util.Map;
 public final class Main {
     private static final Map<String, Command> COMMANDS = Map.of(
             "simulate", new SimulateCommand(),
-            "clusters", new ClustersCommand()
+            "clusters", new ClustersCommand(),
+            "generate-ic", new GenerateIcCommand()
     );
 
     private Main() {
@@ -48,10 +50,11 @@ public final class Main {
     private static void printUsage() {
         System.err.println("Uso: java -jar target/tp2.jar <comando> [opciones]");
         System.err.println("Comandos disponibles:");
-        System.err.println("  simulate --model=voter|standard --n=<int> --eta=<double> --steps=<int> --out=<archivo>");
-        System.err.println("           --seedIC=<long|auto> --seedLoop=<long|auto>");
+        System.err.println("  simulate --model=voter|standard --eta=<double> --steps=<int> --out=<archivo>");
+        System.err.println("           (--n=<int> --seedIC=<long|auto> | --icFile=<archivo>) --seedLoop=<long|auto>");
         System.err.println("           [--l=10.0] [--rc=1.0] [--dt=1.0] [--v0=0.03] [--periodic=true|false]");
         System.err.println("           [--theta0=random|<radianes>]");
         System.err.println("  clusters --in=<corrida.txt> --out=<S.csv> [--stride=1]");
+        System.err.println("  generate-ic --n=<int> --seedIC=<long|auto> --out=<archivo> [--l=10.0]");
     }
 }

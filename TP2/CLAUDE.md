@@ -39,11 +39,20 @@ tiempo y quien lo consume son los gráficos. El paquete `analysis` de Java sigue
 vacío y reservado para lo que sí necesita al CIM: clusters por BFS, detección de
 estado estacionario y benchmarking.
 
-El único cambio que Paquete C forzó en el motor es el flag `--theta0`: para
+El primer cambio que Paquete C forzó en el motor es el flag `--theta0`: para
 comparar dos corridas que arrancan del mismo estado y difieren sólo en los
 ángulos iniciales, `InitialConditionGenerator` consume el `nextDouble()` del
 ángulo aunque lo descarte, de modo que las posiciones quedan idénticas para un
 mismo `--seedIC`.
+
+El segundo fue `generate-ic` + `--icFile` en `simulate`: comparar estándar vs.
+votante corre el jar dos veces (dos procesos separados), y ahí depender de
+"mismo seedIC, dos generaciones independientes" es más frágil que en el caso de
+`--theta0` (dos invocaciones síncronas dentro del mismo `sweep.py`, mismo
+proceso Python). `generate-ic` escribe la condición inicial a un archivo una
+sola vez; `simulate --icFile=<archivo>` la lee de vuelta en las dos corridas en
+lugar de regenerarla. Ver `TP2/README.md` para el detalle y `sweep.py
+--shared-ic-dir`/`--seedLoopBase` para cómo se automatiza en el punto (f).
 
 Los 3 paquetes se comunican solo a través de los archivos de texto que
 escribe A y luego B — no hay código Java compartido entre ellos.

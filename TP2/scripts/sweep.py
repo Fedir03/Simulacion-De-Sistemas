@@ -48,6 +48,33 @@ class Run:
     seed_loop: int
 
 
+def ensure_shared_ic(args, run: Run) -> Path:
+    """Genera (si no existe) la IC compartida para run.seed_ic y devuelve su path.
+
+    La IC (posiciones + angulos) no depende de eta, asi que dentro de un mismo barrido con
+    varios --etas y la misma semilla de repeticion, generate-ic se invoca una sola vez por
+    semilla: las etas siguientes reusan el archivo ya generado.
+    """
+    ic_path = args.shared_ic_dir / f"ic_n{args.n}_l{args.l:g}_seed{run.seed_ic}.txt"
+    if ic_path.exists():
+        return ic_path
+
+    command = [
+        args.java, "-jar", str(args.jar), "generate-ic",
+        f"--n={args.n}",
+        f"--l={args.l}",
+        f"--seedIC={run.seed_ic}",
+        f"--out={ic_path}",
+    ]
+    result = subprocess.run(command, capture_output=True, text=True)
+    if result.returncode != 0:
+        raise RuntimeError(
+            f"generate-ic para seed {run.seed_ic} fallo (codigo {result.returncode}):\n"
+            f"{result.stdout}{result.stderr}"
+        )
+    return ic_path
+
+
 def simulate(args, run: Run, outdir: Path) -> tuple[Path, Path]:
     """Corre el jar para una configuracion y devuelve (trayectoria, csv de v_a)."""
     # con --tmpdir la trayectoria se escribe en disco local: en WSL, escribir los ~70 MB de
@@ -60,22 +87,38 @@ def simulate(args, run: Run, outdir: Path) -> tuple[Path, Path]:
         print(f"  {run.name}: ya existe, se saltea", flush=True)
         return traj, series_csv
 
-    command = [
-        args.java, "-jar", str(args.jar), "simulate",
-        f"--model={args.model}",
-        f"--n={args.n}",
-        f"--eta={run.eta}",
-        f"--steps={args.steps}",
-        f"--seedIC={run.seed_ic}",
-        f"--seedLoop={run.seed_loop}",
-        f"--theta0={run.theta0}",
-        f"--l={args.l}",
-        f"--rc={args.rc}",
-        f"--dt={args.dt}",
-        f"--v0={args.v0}",
-        f"--periodic={str(args.periodic).lower()}",
-        f"--out={traj}",
-    ]
+    if args.shared_ic_dir is not None:
+        ic_path = ensure_shared_ic(args, run)
+        command = [
+            args.java, "-jar", str(args.jar), "simulate",
+            f"--model={args.model}",
+            f"--eta={run.eta}",
+            f"--steps={args.steps}",
+            f"--icFile={ic_path}",
+            f"--seedLoop={run.seed_loop}",
+            f"--rc={args.rc}",
+            f"--dt={args.dt}",
+            f"--v0={args.v0}",
+            f"--periodic={str(args.periodic).lower()}",
+            f"--out={traj}",
+        ]
+    else:
+        command = [
+            args.java, "-jar", str(args.jar), "simulate",
+            f"--model={args.model}",
+            f"--n={args.n}",
+            f"--eta={run.eta}",
+            f"--steps={args.steps}",
+            f"--seedIC={run.seed_ic}",
+            f"--seedLoop={run.seed_loop}",
+            f"--theta0={run.theta0}",
+            f"--l={args.l}",
+            f"--rc={args.rc}",
+            f"--dt={args.dt}",
+            f"--v0={args.v0}",
+            f"--periodic={str(args.periodic).lower()}",
+            f"--out={traj}",
+        ]
     result = subprocess.run(command, capture_output=True, text=True)
     if result.returncode != 0:
         raise RuntimeError(
@@ -99,12 +142,14 @@ def plan_runs(args) -> list[Run]:
         for eta in args.etas:
             for repetition in range(args.runs):
                 seed = args.seed + repetition
+                seed_loop = (args.seedLoopBase + repetition
+                            if args.seedLoopBase is not None else seed)
                 runs.append(Run(
                     name=f"eta{eta:g}_seed{seed}",
                     eta=eta,
                     theta0=args.theta0,
                     seed_ic=seed,
-                    seed_loop=seed,
+                    seed_loop=seed_loop,
                 ))
         return runs
 
@@ -142,6 +187,8 @@ def run_sweep(args) -> int:
     outdir.mkdir(parents=True, exist_ok=True)
     if args.tmpdir is not None:
         args.tmpdir.mkdir(parents=True, exist_ok=True)
+    if args.shared_ic_dir is not None:
+        args.shared_ic_dir.mkdir(parents=True, exist_ok=True)
 
     size = estimated_megabytes(args, len(runs))
     print(f"{len(runs)} corridas de {args.steps} pasos con N={args.n} "
@@ -280,6 +327,18 @@ def add_common_arguments(parser: argparse.ArgumentParser) -> None:
                         help="borrar cada trayectoria .txt despues de calcular v_a")
     parser.add_argument("--skip-existing", action="store_true",
                         help="saltear las corridas que ya tengan su .csv (retomar un barrido)")
+    parser.add_argument("--shared-ic-dir", type=Path, default=None,
+                        help="si se pasa, la condicion inicial se genera una vez por semilla "
+                             "en este directorio (con generate-ic) y se reutiliza via --icFile "
+                             "en vez de regenerarse en cada invocacion del jar; permite comparar "
+                             "modelos (o cualquier otro barrido) con la misma condicion inicial "
+                             "bit a bit. Corriendo dos sweeps con el mismo --shared-ic-dir y "
+                             "--seed, el segundo reutiliza las IC que genero el primero")
+    parser.add_argument("--seedLoopBase", type=int, default=None,
+                        help="si se pasa junto con --shared-ic-dir, seedLoop se deriva de esta "
+                             "base (seedLoopBase + repeticion) en vez de --seed; sirve para que "
+                             "dos barridos compartan seedIC/icFile pero tengan ruido "
+                             "independiente (ej: comparar standard vs voter)")
 
 
 def build_argument_parser() -> argparse.ArgumentParser:
