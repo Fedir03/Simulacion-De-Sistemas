@@ -137,25 +137,12 @@ def render_animation(
         angles="xy", scale_units="xy", scale=quiver_scale,
         cmap="hsv", norm=norm, pivot="tail", width=0.003,
     )
-    colorbar = fig.colorbar(arrows, ax=ax, pad=0.02)
-    colorbar.set_label("Angulo de velocidad θ [rad]")
-    colorbar.set_ticks([0, math.pi / 2, math.pi, 3 * math.pi / 2, TWO_PI])
-    colorbar.set_ticklabels(["0", "π/2", "π", "3π/2", "2π"])
-
     ax.set_xlim(0.0, header.l)
     ax.set_ylim(0.0, header.l)
     ax.set_aspect("equal", adjustable="box")
-    ax.set_xlabel("x")
-    ax.set_ylabel("y")
-    ax.grid(alpha=0.15)
-
-    def title_for(frame: Frame) -> str:
-        return (
-            f"Modelo {header.model} | ρ={header.density:g} | η={header.eta:g} | "
-            f"t={frame.step * header.dt:g}"
-        )
-
-    ax.set_title(title_for(first))
+    ax.set_xticks([])
+    ax.set_yticks([])
+    ax.set_title("Animación de Viseck")
 
     def update(frame: Frame):
         frame_x = [p.x for p in frame.particles]
@@ -164,7 +151,6 @@ def render_animation(
         frame_u, frame_v = velocity_components(frame, header.v0)
         arrows.set_offsets(list(zip(frame_x, frame_y)))
         arrows.set_UVC(frame_u, frame_v, frame_angles)
-        ax.set_title(title_for(frame))
         return arrows,
 
     animation = FuncAnimation(
@@ -178,7 +164,7 @@ def render_animation(
     writer = FFMpegWriter(
         fps=fps,
         codec="libx264",
-        metadata={"title": f"Vicsek {header.model}"},
+        metadata={"title": "Animación de Viseck"},
         extra_args=["-pix_fmt", "yuv420p", "-movflags", "+faststart"],
     )
     progress = ProgressBar(len(frames))
