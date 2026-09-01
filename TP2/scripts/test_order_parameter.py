@@ -13,6 +13,7 @@ from order_parameter import (
     mean_and_stdev,
     read_va_csv,
     tail_stats,
+    tail_values,
     va,
     va_series,
     write_va_csv,
@@ -259,6 +260,31 @@ class StatisticsTest(unittest.TestCase):
 
     def test_mean_and_stdev_with_one_run(self):
         self.assertEqual((0.7, 0.0), mean_and_stdev([0.7]))
+
+    def test_tail_values_returns_the_raw_points_past_the_transient(self):
+        steps = [0, 1, 2, 3]
+        values = [0.9, 0.1, 0.2, 0.3]
+
+        self.assertEqual([0.1, 0.2, 0.3], tail_values(steps, values, transient=1))
+
+    def test_tail_values_rejects_a_transient_past_the_run(self):
+        with self.assertRaisesRegex(ValueError, "t >= 10"):
+            tail_values([0, 1], [0.5, 0.5], transient=10)
+
+    def test_pooling_raw_points_gives_a_different_stdev_than_averaging_per_run(self):
+        # Dos corridas con el mismo promedio pero mucha dispersion interna: el desvio
+        # "entre promedios de corrida" da 0 (ambas corridas promedian 0.5), pero la
+        # bolsa de puntos crudos de las dos corridas juntas capta la dispersion real.
+        run_a = [0.0, 1.0]
+        run_b = [1.0, 0.0]
+        mean_a, _ = mean_and_stdev(run_a)
+        mean_b, _ = mean_and_stdev(run_b)
+        _, between_run_means_stdev = mean_and_stdev([mean_a, mean_b])
+        pooled_mean, pooled_stdev = mean_and_stdev(run_a + run_b)
+
+        self.assertAlmostEqual(0.0, between_run_means_stdev)
+        self.assertGreater(pooled_stdev, between_run_means_stdev)
+        self.assertAlmostEqual(0.5, pooled_mean)
 
 
 if __name__ == "__main__":

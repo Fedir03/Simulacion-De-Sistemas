@@ -29,7 +29,7 @@ from order_parameter import (
     load_named_series,
     mean_and_stdev,
     resolve_transient,
-    tail_stats,
+    tail_values,
 )
 from simulation_io import SimulationFormatError, SimulationHeader
 
@@ -88,7 +88,7 @@ def read_index(path: Path) -> list[dict[str, str]]:
 def collect(indexes: Sequence[Path], transient: str | int, group_by: str,
             column: str = "va_csv") -> tuple[list[Curve], str, str]:
     """Lee todos los indices y arma una curva <v_a> vs eta por cada grupo."""
-    per_run: list[tuple[SimulationHeader, float, float]] = []
+    per_run: list[tuple[SimulationHeader, float, list[float]]] = []
     observables: set[str] = set()
     for index_path in indexes:
         for row in read_index(index_path):
@@ -100,27 +100,31 @@ def collect(indexes: Sequence[Path], transient: str | int, group_by: str,
             if not series_path.is_absolute():
                 series_path = index_path.parent / series_path
             header, steps, values, observable = load_named_series(series_path)
-            run_mean, _ = tail_stats(steps, values, resolve_transient(transient, steps[-1]))
-            per_run.append((header, float(row["eta"]), run_mean))
+            tail = tail_values(steps, values, resolve_transient(transient, steps[-1]))
+            per_run.append((header, float(row["eta"]), tail))
             observables.add(observable)
 
     field = differing_field([header for header, _, _ in per_run]) if group_by == "auto" else group_by
 
-    grouped: dict[tuple[float, str], dict[float, list[float]]] = defaultdict(
+    pooled: dict[tuple[float, str], dict[float, list[float]]] = defaultdict(
         lambda: defaultdict(list))
-    for header, eta, run_mean in per_run:
-        grouped[group_key(header, field)][eta].append(run_mean)
+    run_counts: dict[tuple[float, str], dict[float, int]] = defaultdict(
+        lambda: defaultdict(int))
+    for header, eta, tail in per_run:
+        key = group_key(header, field)
+        pooled[key][eta].extend(tail)
+        run_counts[key][eta] += 1
 
     curves: list[Curve] = []
-    for (order, label) in sorted(grouped, key=lambda key: (key[0], key[1])):
-        per_eta = grouped[(order, label)]
+    for (order, label) in sorted(pooled, key=lambda key: (key[0], key[1])):
+        per_eta = pooled[(order, label)]
         etas = sorted(per_eta)
         means, stdevs, counts = [], [], []
         for eta in etas:
             mean, stdev = mean_and_stdev(per_eta[eta])
             means.append(mean)
             stdevs.append(stdev)
-            counts.append(len(per_eta[eta]))
+            counts.append(run_counts[(order, label)][eta])
         curves.append(Curve(label=label, etas=etas, means=means, stdevs=stdevs, counts=counts))
     return curves, field, observables.pop() if len(observables) == 1 else "va"
 

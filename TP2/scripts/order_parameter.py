@@ -156,9 +156,9 @@ def resolve_transient(spec: str | int, last_step: int) -> int:
     return int(text)
 
 
-def tail_stats(steps: Sequence[int], values: Sequence[float],
-               transient: int = 0) -> tuple[float, float]:
-    """Media y desvio de v_a sobre la cola estacionaria (pasos con t >= transient).
+def tail_values(steps: Sequence[int], values: Sequence[float],
+                transient: int = 0) -> list[float]:
+    """Puntos crudos de v_a sobre la cola estacionaria (pasos con t >= transient) de UNA corrida.
 
     El transitorio se elige a ojo mirando v_a(t): ver la seccion correspondiente del
     README de TP2.
@@ -168,13 +168,25 @@ def tail_stats(steps: Sequence[int], values: Sequence[float],
         raise ValueError(
             f"no quedan pasos con t >= {transient} (la corrida llega hasta t={steps[-1]})"
         )
+    return tail
+
+
+def tail_stats(steps: Sequence[int], values: Sequence[float],
+               transient: int = 0) -> tuple[float, float]:
+    """Media y desvio de v_a sobre la cola estacionaria de UNA corrida."""
+    tail = tail_values(steps, values, transient)
     if len(tail) == 1:
         return tail[0], 0.0
     return statistics.fmean(tail), statistics.stdev(tail)
 
 
 def mean_and_stdev(values: Iterable[float]) -> tuple[float, float]:
-    """Media y desvio muestral (M-1) entre corridas; con una sola corrida el desvio es 0."""
+    """Media y desvio muestral (M-1) de una lista de valores; con un solo valor el desvio es 0.
+
+    Para combinar varias corridas de forma estadisticamente correcta hay que pasarle la
+    bolsa de puntos crudos de todas las corridas juntas (ver tail_values), no un promedio
+    por corrida: el desvio "entre promedios" subestima la dispersion real.
+    """
     data = list(values)
     if not data:
         raise ValueError("no hay valores para promediar")

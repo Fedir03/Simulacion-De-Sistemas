@@ -19,7 +19,7 @@ from plot_va import (
     time_axis_label,
 )
 from plot_va_vs_eta import differing_field, group_key
-from plot_va_vs_s import steady_mean
+from plot_va_vs_s import steady_values
 from simulation_io import SimulationHeader
 
 
@@ -182,11 +182,11 @@ class TransientEquivalenceTest(unittest.TestCase):
             temp_path = Path(temp_dir)
             write_series_csv(temp_path, "va.csv", self.STEPS, self.VALUES)
 
-            with_percentage = steady_mean(temp_path, "va.csv", "50%")
-            with_absolute = steady_mean(temp_path, "va.csv", 20)
+            with_percentage = steady_values(temp_path, "va.csv", "50%")
+            with_absolute = steady_values(temp_path, "va.csv", 20)
 
             self.assertEqual(with_absolute, with_percentage)
-            self.assertEqual((0.5, 0.0), with_percentage)
+            self.assertEqual([0.5, 0.5, 0.5], with_percentage)
 
     def test_plot_va_vs_eta_collect_percentage_matches_absolute(self):
         with tempfile.TemporaryDirectory() as temp_dir:

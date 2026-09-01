@@ -19,7 +19,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Sequence
 
-from order_parameter import load_series, mean_and_stdev, tail_stats
+from order_parameter import load_series, mean_and_stdev, resolve_transient, tail_values
 from simulation_io import SimulationFormatError, SimulationHeader
 
 
@@ -36,15 +36,15 @@ class Point:
     s_error: float
 
 
-def steady_mean(index_dir: Path, relative: str, transient: int) -> tuple[float, float]:
+def steady_values(index_dir: Path, relative: str, transient: str | int) -> list[float]:
     path = Path(relative)
     if not path.is_absolute():
         path = index_dir / path
     _, steps, values = load_series(path)
-    return tail_stats(steps, values, transient)
+    return tail_values(steps, values, resolve_transient(transient, steps[-1]))
 
 
-def collect(indexes: Sequence[Path], transient: int) -> dict[tuple[float, str], list[Point]]:
+def collect(indexes: Sequence[Path], transient: str | int) -> dict[tuple[float, str], list[Point]]:
     """Agrupa por densidad y devuelve un punto (v_a, S) por cada eta."""
     grouped: dict[tuple[float, str], dict[float, tuple[list[float], list[float]]]] = defaultdict(
         lambda: defaultdict(lambda: ([], [])))
@@ -57,13 +57,13 @@ def collect(indexes: Sequence[Path], transient: int) -> dict[tuple[float, str], 
                 raise SimulationFormatError(
                     f"{index_path}: falta la columna s_csv "
                     f"(correr antes: sweep.py clusters --index={index_path})")
-            va_mean, _ = steady_mean(index_path.parent, row["va_csv"], transient)
-            s_mean, _ = steady_mean(index_path.parent, row["s_csv"], transient)
+            va_tail = steady_values(index_path.parent, row["va_csv"], transient)
+            s_tail = steady_values(index_path.parent, row["s_csv"], transient)
             density = int(row["n"]) / (float(row["l"]) ** 2)
             key = (density, f"ρ = {density:.4g} (N = {row['n']}, L = {float(row['l']):.4g})")
             va_list, s_list = grouped[key][float(row["eta"])]
-            va_list.append(va_mean)
-            s_list.append(s_mean)
+            va_list.extend(va_tail)
+            s_list.extend(s_tail)
 
     curves: dict[tuple[float, str], list[Point]] = {}
     for key, per_eta in grouped.items():
@@ -77,7 +77,7 @@ def collect(indexes: Sequence[Path], transient: int) -> dict[tuple[float, str], 
     return curves
 
 
-def plot(curves: dict[tuple[float, str], list[Point]], title: str | None, transient: int):
+def plot(curves: dict[tuple[float, str], list[Point]], title: str | None, transient: str | int):
     import matplotlib.pyplot as plt
 
     fig, ax = plt.subplots(figsize=(9, 6))
@@ -95,7 +95,7 @@ def plot(curves: dict[tuple[float, str], list[Point]], title: str | None, transi
     ax.set_xlim(0.0, 1.02)
     ax.set_ylim(0.0, 1.02)
     ax.set_title(title if title is not None
-                 else f"Polarización vs. componente gigante (promedios para $t \\geq {transient}$)")
+                 else f"Polarización vs. componente gigante (promedios para $t \\geq$ {transient})")
     ax.grid(alpha=0.3)
     ax.legend(fontsize=9)
     fig.tight_layout()
@@ -107,8 +107,10 @@ def build_argument_parser() -> argparse.ArgumentParser:
         description="Grafica v_a estacionario en funcion de S estacionario, por densidad.")
     parser.add_argument("indexes", nargs="+", type=Path,
                         help="uno o mas runs.csv que ya tengan la columna s_csv")
-    parser.add_argument("--transient", type=int, default=0,
-                        help="primer paso del estado estacionario")
+    parser.add_argument("--transient", default=0,
+                        help="primer paso del estado estacionario, en pasos (500) o como "
+                             "porcentaje del largo de cada corrida (40%%). El porcentaje "
+                             "permite mezclar corridas de distinto largo")
     parser.add_argument("--out", type=Path, default=None,
                         help="archivo de salida; sin este flag abre una ventana")
     parser.add_argument("--title", default=None)
