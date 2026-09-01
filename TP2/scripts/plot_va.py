@@ -23,7 +23,7 @@ import math
 from pathlib import Path
 from typing import Sequence
 
-from order_parameter import load_named_series, tail_stats
+from order_parameter import load_named_series, resolve_transient, tail_stats
 from simulation_io import SimulationFormatError, SimulationHeader
 
 
@@ -140,8 +140,9 @@ def draw_axes(ax, series, labels, transient, logy, ticker, show_ylabel: bool,
         ax.plot(times, values, color=PALETTE[index % len(PALETTE)], linewidth=1.2, label=label)
 
     if transient is not None:
-        ax.axvline(transient * headers[0].dt, color="#555555", linestyle="--", alpha=0.7,
-                   label=f"inicio del estacionario (t={transient})")
+        resolved_transient = resolve_transient(transient, series[0][1][-1])
+        ax.axvline(resolved_transient * headers[0].dt, color="#555555", linestyle="--", alpha=0.7,
+                   label=f"inicio del estacionario (t={resolved_transient})")
 
     last_time = max(steps[-1] * header.dt for header, steps, _ in series)
     major_step, minor_step = nice_tick_steps(last_time)
@@ -165,16 +166,17 @@ def draw_axes(ax, series, labels, transient, logy, ticker, show_ylabel: bool,
     ax.legend(fontsize=8)
 
 
-def report_tail(series, labels, transient: int | None, prefix: str = "",
+def report_tail(series, labels, transient: str | int | None, prefix: str = "",
                 observable: str = "va") -> None:
     if transient is None:
         return
     for (_, steps, values), label in zip(series, labels):
-        mean, stdev = tail_stats(steps, values, transient)
-        print(f"{prefix}{label}: <{observable}> = {mean:.4f} +/- {stdev:.4f} (t >= {transient})")
+        resolved = resolve_transient(transient, steps[-1])
+        mean, stdev = tail_stats(steps, values, resolved)
+        print(f"{prefix}{label}: <{observable}> = {mean:.4f} +/- {stdev:.4f} (t >= {resolved})")
 
 
-def plot(paths: Sequence[Path], label_by: str, transient: int | None, title: str | None,
+def plot(paths: Sequence[Path], label_by: str, transient: str | int | None, title: str | None,
          logy: bool = False, panels_by: str | None = None,
          figsize: tuple[float, float] = (9.0, 6.0), ylabel: str | None = None):
     import matplotlib.pyplot as plt
@@ -235,8 +237,9 @@ def build_argument_parser() -> argparse.ArgumentParser:
                         help="archivo de salida (.pdf/.png); sin este flag abre una ventana")
     parser.add_argument("--label-by", choices=LABEL_FIELDS + ("auto",), default="auto",
                         help="que campo usar para la leyenda (default: auto, los que difieren)")
-    parser.add_argument("--transient", type=int, default=None,
-                        help="marca el inicio del estacionario e informa <v_a> de la cola")
+    parser.add_argument("--transient", default=None,
+                        help="marca el inicio del estacionario e informa <v_a> de la cola, en "
+                             "pasos (500) o como porcentaje del largo de cada corrida (40%%)")
     parser.add_argument("--width", type=float, default=9.0,
                         help="ancho de la figura en pulgadas (default: 9). Subirlo estira el "
                              "eje temporal sin cambiar el rango de datos")

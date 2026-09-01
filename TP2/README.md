@@ -156,6 +156,9 @@ python3 TP2/scripts/plot_va.py \
 ```
 
 `--transient` es lo que dibuja la línea vertical, y además imprime el `<v_a>` de la cola.
+Acepta un entero (pasos absolutos) o un porcentaje del largo de la corrida (`40%`), igual en
+los tres graficadores (`plot_va.py`, `plot_va_vs_eta.py`, `plot_va_vs_s.py`) — el criterio de
+dónde cortar sigue siendo a ojo, esto solo cambia en qué unidad se lo expresa.
 
 ### Punto (c) — `v_a` vs. `η` con barras de error, para las tres densidades
 

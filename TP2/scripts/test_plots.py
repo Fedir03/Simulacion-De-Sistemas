@@ -1,16 +1,25 @@
 #!/usr/bin/env python3
-"""Pruebas de las partes puras de los graficadores (no requieren Matplotlib)."""
+"""Pruebas de las partes de los graficadores que no requieren Matplotlib."""
 
+import io
+import tempfile
 import unittest
+from contextlib import redirect_stdout
+from pathlib import Path
 
+import plot_va
+import plot_va_vs_eta
+import plot_va_vs_s
 from plot_va import (
     auto_labels,
     differing_fields,
     nice_tick_steps,
     panel_key,
+    report_tail,
     time_axis_label,
 )
 from plot_va_vs_eta import differing_field, group_key
+from plot_va_vs_s import steady_mean
 from simulation_io import SimulationHeader
 
 
@@ -107,6 +116,89 @@ class GroupingTest(unittest.TestCase):
     def test_same_density_different_size_groups_by_n(self):
         headers = [header(n=200, l=10.0), header(n=800, l=20.0)]  # ambas rho = 2
         self.assertEqual("n", differing_field(headers))
+
+
+SERIES_HEADER = (
+    "model=standard N=4 L=10.0 rc=1.0 dt=0.5 v0=0.03 eta=0.5 "
+    "periodic=true seedIC=1 seedLoop=2 theta0=random"
+)
+
+
+def write_series_csv(directory: Path, name: str, steps, values, column: str = "va") -> Path:
+    path = directory / name
+    lines = [f"# {SERIES_HEADER}", f"t,{column}"]
+    lines += [f"{step},{value}" for step, value in zip(steps, values)]
+    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    return path
+
+
+class TransientArgparseTest(unittest.TestCase):
+    """Los 3 graficadores aceptan --transient tanto en pasos absolutos como en porcentaje."""
+
+    def test_plot_va_accepts_percentage(self):
+        args = plot_va.build_argument_parser().parse_args(["dummy.csv", "--transient=40%"])
+        self.assertEqual("40%", args.transient)
+
+    def test_plot_va_still_accepts_absolute_steps(self):
+        args = plot_va.build_argument_parser().parse_args(["dummy.csv", "--transient=500"])
+        self.assertEqual("500", args.transient)
+
+    def test_plot_va_vs_eta_accepts_percentage(self):
+        args = plot_va_vs_eta.build_argument_parser().parse_args(["dummy.csv", "--transient=40%"])
+        self.assertEqual("40%", args.transient)
+
+    def test_plot_va_vs_s_accepts_percentage(self):
+        args = plot_va_vs_s.build_argument_parser().parse_args(["dummy.csv", "--transient=40%"])
+        self.assertEqual("40%", args.transient)
+
+    def test_plot_va_vs_s_still_accepts_absolute_steps(self):
+        args = plot_va_vs_s.build_argument_parser().parse_args(["dummy.csv", "--transient=500"])
+        self.assertEqual("500", args.transient)
+
+
+class TransientEquivalenceTest(unittest.TestCase):
+    """Un porcentaje y su paso absoluto equivalente dan el mismo resultado en los 3 graficadores."""
+
+    STEPS = [0, 10, 20, 30, 40]
+    VALUES = [1.0, 1.0, 0.5, 0.5, 0.5]
+
+    def test_plot_va_report_tail_percentage_matches_absolute(self):
+        series = [(None, self.STEPS, self.VALUES)]
+        labels = ["corrida"]
+
+        with_percentage = io.StringIO()
+        with redirect_stdout(with_percentage):
+            report_tail(series, labels, "50%")
+
+        with_absolute = io.StringIO()
+        with redirect_stdout(with_absolute):
+            report_tail(series, labels, 20)
+
+        self.assertEqual(with_absolute.getvalue(), with_percentage.getvalue())
+        self.assertIn("t >= 20", with_percentage.getvalue())
+
+    def test_plot_va_vs_s_steady_mean_percentage_matches_absolute(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_path = Path(temp_dir)
+            write_series_csv(temp_path, "va.csv", self.STEPS, self.VALUES)
+
+            with_percentage = steady_mean(temp_path, "va.csv", "50%")
+            with_absolute = steady_mean(temp_path, "va.csv", 20)
+
+            self.assertEqual(with_absolute, with_percentage)
+            self.assertEqual((0.5, 0.0), with_percentage)
+
+    def test_plot_va_vs_eta_collect_percentage_matches_absolute(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_path = Path(temp_dir)
+            write_series_csv(temp_path, "va.csv", self.STEPS, self.VALUES)
+            runs_csv = temp_path / "runs.csv"
+            runs_csv.write_text("eta,va_csv\n0.5,va.csv\n", encoding="utf-8")
+
+            curves_percentage, _, _ = plot_va_vs_eta.collect([runs_csv], "50%", "auto")
+            curves_absolute, _, _ = plot_va_vs_eta.collect([runs_csv], 20, "auto")
+
+            self.assertEqual(curves_absolute, curves_percentage)
 
 
 if __name__ == "__main__":
