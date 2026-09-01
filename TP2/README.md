@@ -178,8 +178,10 @@ python3 TP2/scripts/plot_va_vs_eta.py generated/c_eta_rho*/runs.csv --group-by=d
 estándar vs. votante que pide el punto (f), y con `--group-by=n` el barrido de tamaño.
 Con `--group-by=auto` elige solo el campo que difiere entre las corridas.
 
-Cada punto es el promedio sobre las `--runs` semillas del promedio de la cola estacionaria
-de esa corrida, y la barra de error es el desvío muestral entre semillas.
+Cada punto junta los puntos crudos de la cola estacionaria de las `--runs` semillas en
+una sola bolsa de datos y calcula un único promedio y desvío muestral sobre esa bolsa
+(no el promedio de los promedios de cada corrida ni el desvío entre esos promedios: la
+cátedra marcó ese método como ambiguo/incorrecto porque subestima la dispersión real).
 
 ### Punto (f) — comparación con el modelo votante
 
