@@ -176,6 +176,9 @@ def render_animation(
     ax.set_xlim(0.0, header.l)
     ax.set_ylim(0.0, header.l)
     ax.set_aspect("equal", adjustable="box")
+    ax.set_xticks([])
+    ax.set_yticks([])
+    ax.set_title("Animación de Viseck")
     ax.set_xlabel("x")
     ax.set_ylabel("y")
     ax.grid(alpha=0.15)
@@ -208,6 +211,7 @@ def render_animation(
         frame_u, frame_v = velocity_components(frame, header.v0)
         arrows.set_offsets(list(zip(frame_x, frame_y)))
         arrows.set_UVC(frame_u, frame_v, frame_angles)
+        return arrows,
         ax.set_title(title_for(frame))
         if highlight is None:
             return arrows,
@@ -225,7 +229,7 @@ def render_animation(
     writer = FFMpegWriter(
         fps=fps,
         codec="libx264",
-        metadata={"title": f"Vicsek {header.model}"},
+        metadata={"title": "Animación de Viseck"},
         extra_args=["-pix_fmt", "yuv420p", "-movflags", "+faststart"],
     )
     progress = ProgressBar(len(frames))
