@@ -25,7 +25,12 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Sequence
 
-from order_parameter import load_series, mean_and_stdev, tail_stats
+from order_parameter import (
+    load_named_series,
+    mean_and_stdev,
+    resolve_transient,
+    tail_stats,
+)
 from simulation_io import SimulationFormatError, SimulationHeader
 
 
@@ -80,18 +85,24 @@ def read_index(path: Path) -> list[dict[str, str]]:
     return rows
 
 
-def collect(indexes: Sequence[Path], transient: int,
-            group_by: str) -> tuple[list[Curve], str]:
+def collect(indexes: Sequence[Path], transient: str | int, group_by: str,
+            column: str = "va_csv") -> tuple[list[Curve], str, str]:
     """Lee todos los indices y arma una curva <v_a> vs eta por cada grupo."""
     per_run: list[tuple[SimulationHeader, float, float]] = []
+    observables: set[str] = set()
     for index_path in indexes:
         for row in read_index(index_path):
-            series_path = Path(row["va_csv"])
+            if column not in row or not row[column]:
+                raise SimulationFormatError(
+                    f"{index_path}: la corrida no tiene la columna '{column}' "
+                    f"(¿falta correr 'sweep.py clusters' sobre este indice?)")
+            series_path = Path(row[column])
             if not series_path.is_absolute():
                 series_path = index_path.parent / series_path
-            header, steps, values = load_series(series_path)
-            run_mean, _ = tail_stats(steps, values, transient)
+            header, steps, values, observable = load_named_series(series_path)
+            run_mean, _ = tail_stats(steps, values, resolve_transient(transient, steps[-1]))
             per_run.append((header, float(row["eta"]), run_mean))
+            observables.add(observable)
 
     field = differing_field([header for header, _, _ in per_run]) if group_by == "auto" else group_by
 
@@ -111,10 +122,18 @@ def collect(indexes: Sequence[Path], transient: int,
             stdevs.append(stdev)
             counts.append(len(per_eta[eta]))
         curves.append(Curve(label=label, etas=etas, means=means, stdevs=stdevs, counts=counts))
-    return curves, field
+    return curves, field, observables.pop() if len(observables) == 1 else "va"
 
 
-def plot(curves: Sequence[Curve], title: str | None, transient: int):
+OBSERVABLE_LABELS = {
+    "va": ("Parámetro de orden estacionario $\\overline{v}_a$",
+           "Parámetro de orden estacionario vs. ruido"),
+    "S": ("Fracción en la componente gigante $\\overline{S}$",
+          "Componente gigante estacionaria vs. ruido"),
+}
+
+
+def plot(curves: Sequence[Curve], title: str | None, transient: int, observable: str = "va"):
     import matplotlib.pyplot as plt
 
     fig, ax = plt.subplots(figsize=(9, 6))
@@ -124,11 +143,11 @@ def plot(curves: Sequence[Curve], title: str | None, transient: int):
                     color=PALETTE[index % len(PALETTE)], capsize=3, linewidth=1.4,
                     markersize=5, label=curve.label)
     ax.set_xlabel("Ruido $\\eta$")
-    ax.set_ylabel("Parámetro de orden estacionario $\\overline{v}_a$")
+    ylabel, default_title = OBSERVABLE_LABELS.get(observable, (observable, observable + " vs. ruido"))
+    ax.set_ylabel(ylabel)
     ax.set_ylim(0.0, 1.02)
     ax.set_title(title if title is not None
-                 else f"Parámetro de orden estacionario vs. ruido "
-                      f"(promedio para $t \\geq {transient}$)")
+                 else f"{default_title} (transitorio descartado: {transient})")
     ax.grid(alpha=0.3)
     ax.legend(fontsize=9)
     fig.tight_layout()
@@ -141,12 +160,16 @@ def build_argument_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("indexes", nargs="+", type=Path,
                         help="uno o mas runs.csv generados por sweep.py")
-    parser.add_argument("--transient", type=int, default=None,
-                        help="primer paso del estado estacionario (elegido a ojo con plot_va.py)")
+    parser.add_argument("--transient", default=None,
+                        help="primer paso del estado estacionario, en pasos (500) o como "
+                             "porcentaje del largo de cada corrida (40%%). El porcentaje "
+                             "permite mezclar corridas de distinto largo")
     parser.add_argument("--out", type=Path, default=None,
                         help="archivo de salida (.pdf/.png); sin este flag abre una ventana")
     parser.add_argument("--group-by", choices=GROUP_FIELDS + ("auto",), default="auto",
                         help="una curva por cada valor de este campo (default: auto)")
+    parser.add_argument("--observable", default="va_csv",
+                        help="columna del indice con la serie a promediar: va_csv (default) o s_csv")
     parser.add_argument("--title", default=None, help="titulo del grafico")
     parser.add_argument("--dpi", type=int, default=150, help="resolucion de salida (default: 150)")
     return parser
@@ -161,17 +184,18 @@ def main(argv: Sequence[str] | None = None) -> int:
               file=sys.stderr)
 
     try:
-        curves, field = collect(args.indexes, transient, args.group_by)
+        curves, field, observable = collect(args.indexes, transient, args.group_by,
+                                            args.observable)
         print(f"Curvas agrupadas por: {field}   (transitorio: t >= {transient})")
         for curve in curves:
             print(f"\n{curve.label}")
             for eta, mean, stdev, count in zip(curve.etas, curve.means,
                                                curve.stdevs, curve.counts):
-                print(f"  eta={eta:<6g} <v_a>={mean:.4f} +/- {stdev:.4f}  (M={count})")
+                print(f"  eta={eta:<6g} <{observable}>={mean:.4f} +/- {stdev:.4f}  (M={count})")
         if args.out is not None:
             import matplotlib
             matplotlib.use("Agg")
-        fig = plot(curves, args.title, transient)
+        fig = plot(curves, args.title, transient, observable)
     except (OSError, SimulationFormatError, ValueError) as exc:
         print(f"Error: {exc}")
         return 1

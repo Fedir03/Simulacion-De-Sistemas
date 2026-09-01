@@ -32,6 +32,19 @@ del repo).
   los archivos de A y B, arma animaciones y gráficos finales. No es código
   Java.
 
+**Dónde quedó el parámetro de orden `v_a`**: en Paquete C (Python,
+`TP2/scripts/order_parameter.py`), no en el `analysis` de Java. Se decidió así
+porque `v_a` es una cuenta de una línea sobre los ángulos de cada bloque de
+tiempo y quien lo consume son los gráficos. El paquete `analysis` de Java sigue
+vacío y reservado para lo que sí necesita al CIM: clusters por BFS, detección de
+estado estacionario y benchmarking.
+
+El único cambio que Paquete C forzó en el motor es el flag `--theta0`: para
+comparar dos corridas que arrancan del mismo estado y difieren sólo en los
+ángulos iniciales, `InitialConditionGenerator` consume el `nextDouble()` del
+ángulo aunque lo descarte, de modo que las posiciones quedan idénticas para un
+mismo `--seedIC`.
+
 Los 3 paquetes se comunican solo a través de los archivos de texto que
 escribe A y luego B — no hay código Java compartido entre ellos.
 

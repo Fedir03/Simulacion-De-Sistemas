@@ -1,5 +1,6 @@
 package ar.edu.itba.sds.tp2;
 
+import ar.edu.itba.sds.tp2.command.ClustersCommand;
 import ar.edu.itba.sds.tp2.command.Command;
 import ar.edu.itba.sds.tp2.command.SimulateCommand;
 
@@ -9,7 +10,8 @@ import java.util.Map;
 
 public final class Main {
     private static final Map<String, Command> COMMANDS = Map.of(
-            "simulate", new SimulateCommand()
+            "simulate", new SimulateCommand(),
+            "clusters", new ClustersCommand()
     );
 
     private Main() {
@@ -49,5 +51,7 @@ public final class Main {
         System.err.println("  simulate --model=voter|standard --n=<int> --eta=<double> --steps=<int> --out=<archivo>");
         System.err.println("           --seedIC=<long|auto> --seedLoop=<long|auto>");
         System.err.println("           [--l=10.0] [--rc=1.0] [--dt=1.0] [--v0=0.03] [--periodic=true|false]");
+        System.err.println("           [--theta0=random|<radianes>]");
+        System.err.println("  clusters --in=<corrida.txt> --out=<S.csv> [--stride=1]");
     }
 }
