@@ -132,7 +132,7 @@ def panel_key(header: SimulationHeader, field: str) -> tuple[float, str]:
 
 
 def draw_axes(ax, series, labels, transient, logy, ticker, show_ylabel: bool,
-              ylabel: str) -> None:
+              ylabel: str, ylim: tuple[float, float] | None = None) -> None:
     """Dibuja un conjunto de curvas v_a(t) sobre unos ejes ya creados."""
     headers = [header for header, _, _ in series]
     for index, ((header, steps, values), label) in enumerate(zip(series, labels)):
@@ -153,7 +153,9 @@ def draw_axes(ax, series, labels, transient, logy, ticker, show_ylabel: bool,
     ax.set_xlabel(time_axis_label(headers))
     if show_ylabel:
         ax.set_ylabel(ylabel)
-    if logy:
+    if ylim is not None:
+        ax.set_ylim(*ylim)
+    elif logy:
         # en escala log el 0 no existe: se deja que Matplotlib elija el piso segun los datos
         ax.set_yscale("log")
         ax.set_ylim(top=1.3)
@@ -176,7 +178,8 @@ def report_tail(series, labels, transient: int | None, prefix: str = "",
 
 def plot(paths: Sequence[Path], label_by: str, transient: int | None, title: str | None,
          logy: bool = False, panels_by: str | None = None,
-         figsize: tuple[float, float] = (9.0, 6.0), ylabel: str | None = None):
+         figsize: tuple[float, float] = (9.0, 6.0), ylabel: str | None = None,
+         ylim: tuple[float, float] | None = None):
     import matplotlib.pyplot as plt
     from matplotlib import ticker
 
@@ -195,7 +198,7 @@ def plot(paths: Sequence[Path], label_by: str, transient: int | None, title: str
     if panels_by is None:
         fig, ax = plt.subplots(figsize=figsize)
         draw_axes(ax, series, labels, transient, logy, ticker, show_ylabel=True,
-                  ylabel=axis_label)
+                  ylabel=axis_label, ylim=ylim)
         ax.set_title(title if title is not None else build_title(headers, observable))
         report_tail(series, labels, transient, observable=observable)
         fig.tight_layout()
@@ -215,7 +218,7 @@ def plot(paths: Sequence[Path], label_by: str, transient: int | None, title: str
         panel_series = [series[i] for i in indices]
         panel_labels = [labels[i] for i in indices]
         draw_axes(ax, panel_series, panel_labels, transient, logy, ticker,
-                  show_ylabel=position == 0, ylabel=axis_label)
+                  show_ylabel=position == 0, ylabel=axis_label, ylim=ylim)
         ax.set_title(key[1])
         print(f"\n{key[1]}")
         report_tail(panel_series, panel_labels, transient, prefix="  ",
@@ -246,6 +249,9 @@ def build_argument_parser() -> argparse.ArgumentParser:
                         help="partir en un panel por cada valor de este campo")
     parser.add_argument("--logy", action="store_true",
                         help="escala logaritmica en el eje vertical (v_a)")
+    parser.add_argument("--ylim", type=lambda v: tuple(float(x) for x in v.split(",")),
+                        default=None,
+                        help="rango del eje y como 'min,max' (default: 0,1.02). Sirve para hacer zoom cuando el observable se mueve poco")
     parser.add_argument("--ylabel", default=None,
                         help="etiqueta del eje y (default: segun el observable del CSV)")
     parser.add_argument("--title", default=None, help="titulo del grafico")
@@ -260,7 +266,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             import matplotlib
             matplotlib.use("Agg")  # sin ventana: solo se guarda el archivo
         fig = plot(args.inputs, args.label_by, args.transient, args.title,
-                   args.logy, args.panels_by, (args.width, args.height), args.ylabel)
+                   args.logy, args.panels_by, (args.width, args.height), args.ylabel,
+                   args.ylim)
     except (OSError, SimulationFormatError, ValueError) as exc:
         print(f"Error: {exc}")
         return 1
