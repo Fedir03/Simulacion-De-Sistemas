@@ -50,6 +50,12 @@
 \institute{Instituto Tecnológico de Buenos Aires}
 \date{2026 2C --- Grupo N.º 02}
 
+% URLs de las animaciones usadas en las diapositivas 15--17.
+% Reemplazar los placeholders cuando estén disponibles los demás videos.
+\newcommand{\animacionUnoURL}{https://youtu.be/uDM1vM-vQmU}
+\newcommand{\animacionDosURL}{https://youtu.be/cWIolHgR9X0}
+\newcommand{\animacionTresURL}{https://youtu.be/0Q1m41YXags}
+
 % Si existe logo_itba.png o logo_itba.pdf junto al .tex, se inserta.
 \newcommand{\institutionlogo}{%
   \IfFileExists{logo_itba.pdf}{\includegraphics[height=0.75cm]{logo_itba.pdf}}{%
@@ -62,7 +68,7 @@
 % ---------- Barra superior por sección ----------
 % Rangos de diapositivas del template:
 % Introducción 2--4 | Implementación 5--8 | Simulaciones 9--13
-% Resultados 14--24 | Conclusiones 25--27
+% Resultados 14--25 | Conclusiones 26--28
 \newcommand{\navblock}[4]{%
   % #1 ancho, #2 nombre, #3 inicio, #4 fin
   \makebox[#1\paperwidth][c]{%
@@ -89,8 +95,8 @@
       \navblock{0.20}{Introducción}{2}{4}%
       \navblock{0.22}{Implementación}{5}{8}%
       \navblock{0.20}{Simulaciones}{9}{13}%
-      \navblock{0.23}{Resultados}{14}{24}%
-      \navblock{0.15}{Conclusiones}{25}{27}%
+      \navblock{0.23}{Resultados}{14}{25}%
+      \navblock{0.15}{Conclusiones}{26}{28}%
     }%
   \end{beamercolorbox}%
   \par\nointerlineskip
@@ -141,6 +147,22 @@
   \IfFileExists{#1}{\includegraphics[width=\linewidth,height=#2,keepaspectratio]{#1}}{%
     \placeholder[#2]{#3\\[2mm]\nolinkurl{#1}}%
   }%
+}
+
+% Ambas versiones muestran debajo un enlace visible a YouTube.
+% En la versión YouTube, además, la propia imagen funciona como enlace.
+\newcommand{\videooimagen}[4]{%
+  \begin{minipage}{\linewidth}
+    \centering
+    \ifdefined\versionyoutube
+      \href{#3}{\maybeimage{#1}{#2}{#4}}%
+    \else
+      \maybeimage{#1}{#2}{#4}%
+    \fi
+    \par\vspace{1mm}
+    \href{#3}{{\color{TPBlue}\scriptsize
+      $\blacktriangleright$ Ver video en YouTube}}%
+  \end{minipage}%
 }
 
 \newenvironment{databox}[1]{%
@@ -334,15 +356,15 @@
 \begin{frame}{Animaciones del Sistema}
   \begin{columns}[c,onlytextwidth]
     \begin{column}{0.68\textwidth}
-      \maybeimage{figuras/animacion-1.png}{4.9cm}{Insertar captura o enlace visual a la animación}
+      \videooimagen{figuras/animacion-1.png}{4.9cm}{\animacionUnoURL}{Animación del sistema}
     \end{column}
     \begin{column}{0.29\textwidth}
       \begin{databox}{Datos del Sistema}
         \begin{itemize}
-          \item $N=[\ ]$
-          \item $L=[\ ]$
-          \item $T=[\ ]$
-          \item $\eta=[\ ]$
+          \item $N=200$
+          \item $L=10$
+          \item $T=1000$
+          \item $\eta=0.5$
         \end{itemize}
       \end{databox}
     \end{column}
@@ -352,15 +374,15 @@
 \begin{frame}{Animaciones del Sistema}
   \begin{columns}[c,onlytextwidth]
     \begin{column}{0.68\textwidth}
-      \maybeimage{figuras/animacion-2.png}{4.9cm}{Insertar segunda captura o animación}
+      \videooimagen{figuras/animacion-2.png}{4.9cm}{\animacionDosURL}{Animación del sistema}
     \end{column}
     \begin{column}{0.29\textwidth}
       \begin{databox}{Datos del Sistema}
         \begin{itemize}
-          \item $N=[\ ]$
-          \item $L=[\ ]$
-          \item $T=[\ ]$
-          \item $\eta=[\ ]$
+          \item $N=400$
+          \item $L=10$
+          \item $T=1000$
+          \item $\eta=0.5$
         \end{itemize}
       \end{databox}
     \end{column}
@@ -370,15 +392,15 @@
 \begin{frame}{Animaciones del Sistema}
   \begin{columns}[c,onlytextwidth]
     \begin{column}{0.68\textwidth}
-      \maybeimage{figuras/animacion-3.png}{4.9cm}{Insertar tercera captura o animación}
+      \videooimagen{figuras/animacion-3.png}{4.9cm}{\animacionTresURL}{Animación del sistema}
     \end{column}
     \begin{column}{0.29\textwidth}
       \begin{databox}{Datos del Sistema}
         \begin{itemize}
-          \item $N=[\ ]$
-          \item $L=[\ ]$
-          \item $T=[\ ]$
-          \item $\eta=[\ ]$
+          \item $N=800$
+          \item $L=10$
+          \item $T=1000$
+          \item $\eta=0.5$
         \end{itemize}
       \end{databox}
     \end{column}
@@ -408,7 +430,7 @@
     $[\text{variable}]\in\{[\text{valores estudiados}]\}$}}
 \end{frame}
 
-% 21--22. Variante de interacción: resultados visuales
+% 21--23. Variante de interacción: resultados visuales
 \begin{frame}{Interacción [Nombre de la Variante]}
   \begin{columns}[c,onlytextwidth]
     \begin{column}{0.68\textwidth}
@@ -445,7 +467,15 @@
   \end{columns}
 \end{frame}
 
-% 23--24. Gráficos finales de la variante
+\begin{frame}{Interacción [Nombre de la Variante]}
+  \centering
+  \begin{minipage}{10cm}
+    \placeholder[5.625cm]{VIDEO 16:9\\[2mm]
+      Reemplazar este espacio por el video de la variante}
+  \end{minipage}
+\end{frame}
+
+% 24--25. Gráficos finales de la variante
 \begin{frame}{Interacción [Nombre de la Variante]}
   \centering
   \maybeimage{figuras/evolucion-variante.pdf}{5.6cm}{Insertar evolución temporal de la variante}
