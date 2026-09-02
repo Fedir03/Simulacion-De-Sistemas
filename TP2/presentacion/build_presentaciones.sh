@@ -10,7 +10,7 @@ cleanup() {
 }
 trap cleanup EXIT
 
-for dependency in latexmk pdftoppm python3 libreoffice; do
+for dependency in latexmk pdfinfo pdftoppm python3 libreoffice; do
   if ! command -v "$dependency" >/dev/null 2>&1; then
     echo "Error: falta la dependencia '$dependency'." >&2
     exit 1
@@ -33,12 +33,20 @@ latexmk \
   -outdir="$BUILD_DIR/latex" \
   presentacion_imagen.tex
 
-echo "[2/4] Renderizando las 28 diapositivas para Google Slides..."
+PAGE_COUNT="$(pdfinfo "$BUILD_DIR/latex/presentacion_imagen.pdf" \
+  | awk '/^Pages:/ {print $2}')"
+
+if [[ ! "$PAGE_COUNT" =~ ^[1-9][0-9]*$ ]]; then
+  echo "Error: no se pudo determinar la cantidad de diapositivas del PDF." >&2
+  exit 1
+fi
+
+echo "[2/4] Renderizando las $PAGE_COUNT diapositivas para Google Slides..."
 pdftoppm \
   -png \
-  -r 144 \
+  -r 384 \
   -f 1 \
-  -l 28 \
+  -l "$PAGE_COUNT" \
   "$BUILD_DIR/latex/presentacion_imagen.pdf" \
   "$BUILD_DIR/rendered/slide" \
   >/dev/null 2>&1
@@ -46,7 +54,8 @@ pdftoppm \
 echo "[3/4] Generando PPTX importable en Google Slides..."
 python3 "$SCRIPT_DIR/create_google_slides_sources.py" \
   --renders "$BUILD_DIR/rendered" \
-  --outdir "$BUILD_DIR/pptx"
+  --outdir "$BUILD_DIR/pptx" \
+  --expected-slides "$PAGE_COUNT"
 
 install -m 0644 \
   "$BUILD_DIR/latex/presentacion_imagen.pdf" \

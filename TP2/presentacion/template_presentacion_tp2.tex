@@ -52,9 +52,12 @@
 
 % URLs de las animaciones usadas en las diapositivas 15--17.
 % Reemplazar los placeholders cuando estén disponibles los demás videos.
-\newcommand{\animacionUnoURL}{https://youtu.be/uDM1vM-vQmU}
-\newcommand{\animacionDosURL}{https://youtu.be/cWIolHgR9X0}
-\newcommand{\animacionTresURL}{https://youtu.be/0Q1m41YXags}
+\newcommand{\animacionStandarUnoURL}{https://youtu.be/uDM1vM-vQmU}
+\newcommand{\animacionStandarDosURL}{https://youtu.be/cWIolHgR9X0}
+\newcommand{\animacionStandarTresURL}{https://youtu.be/0Q1m41YXags}
+\newcommand{\animacionVotanteUnoURL}{https://youtu.be/uDM1vM-vQmU}
+\newcommand{\animacionVotanteDosURL}{https://youtu.be/cWIolHgR9X0}
+\newcommand{\animacionVotanteTresURL}{https://youtu.be/0Q1m41YXags}
 
 % Si existe logo_itba.png o logo_itba.pdf junto al .tex, se inserta.
 \newcommand{\institutionlogo}{%
@@ -67,40 +70,70 @@
 
 % ---------- Barra superior por sección ----------
 % Rangos de diapositivas del template:
-% Introducción 2--4 | Implementación 5--8 | Simulaciones 9--13
-% Resultados 14--25 | Conclusiones 26--28
+% Introducción 2--4 | Implementación 5--8 | Simulaciones 9--12
+% Resultados 13--24 | Conclusiones 25--27
+\newcount\TPNavDot
+
+% Dibuja un punto por diapositiva de la sección. Solamente el punto de la
+% diapositiva actual se muestra lleno; todos los demás quedan huecos.
+\newcommand{\navdots}[2]{%
+  \begingroup
+    \TPNavDot=#1\relax
+    \loop
+      \ifnum\insertframenumber=\TPNavDot
+        \raisebox{0.45mm}{{\color{white}\fontsize{6}{6}\selectfont$\bullet$}}%
+      \else
+        \raisebox{0.45mm}{{\color{TPNavGray}\fontsize{7}{7}\selectfont$\circ$}}%
+      \fi
+      \ifnum\TPNavDot<#2\relax
+        \kern0.60mm
+        \advance\TPNavDot by 1\relax
+    \repeat
+  \endgroup
+}
+
 \newcommand{\navblock}[4]{%
   % #1 ancho, #2 nombre, #3 inicio, #4 fin
   \makebox[#1\paperwidth][c]{%
-    \ifnum\insertframenumber>1
-      \ifnum\insertframenumber<#3
-        {\color{TPNavGray}\scriptsize\strut #2}%
-      \else
-        \ifnum\insertframenumber>#4
+    \parbox[c][0.62cm][c]{#1\paperwidth}{%
+      \centering
+      \ifnum\insertframenumber>1
+        \ifnum\insertframenumber<#3
           {\color{TPNavGray}\scriptsize\strut #2}%
         \else
-          {\color{white}\scriptsize\strut #2}%
+          \ifnum\insertframenumber>#4
+            {\color{TPNavGray}\scriptsize\strut #2}%
+          \else
+            {\color{white}\scriptsize\strut #2}%
+          \fi
         \fi
+      \else
+        {\color{TPNavGray}\scriptsize\strut #2}%
       \fi
-    \else
-      {\color{TPNavGray}\scriptsize\strut #2}%
-    \fi
+      \par\vspace{-0.55mm}
+      \navdots{#3}{#4}%
+    }%
   }%
 }
 
 \setbeamertemplate{headline}{%
   \leavevmode
-  \begin{beamercolorbox}[wd=\paperwidth,ht=0.50cm,dp=0.20cm]{headline navigation}%
+  \begin{beamercolorbox}[wd=\paperwidth,ht=0.50cm,dp=0.28cm]{headline navigation}%
     \makebox[\paperwidth][l]{%
       \navblock{0.20}{Introducción}{2}{4}%
       \navblock{0.22}{Implementación}{5}{8}%
-      \navblock{0.20}{Simulaciones}{9}{13}%
-      \navblock{0.23}{Resultados}{14}{25}%
-      \navblock{0.15}{Conclusiones}{26}{28}%
+      \navblock{0.20}{Simulaciones}{9}{12}%
+      \navblock{0.23}{Resultados}{13}{24}%
+      \navblock{0.15}{Conclusiones}{25}{27}%
     }%
   \end{beamercolorbox}%
-  \par\nointerlineskip
-  \begin{beamercolorbox}[wd=\paperwidth,ht=0.05cm,dp=0cm]{frametitle}\end{beamercolorbox}%
+  % La línea azul solo hace falta cuando la diapositiva no tiene título.
+  % Si hay título, su propia caja azul continúa directamente desde la barra
+  % y así se evita una costura clara entre dos superficies azules.
+  \ifdefempty{\insertframetitle}{%
+    \par\nointerlineskip
+    \begin{beamercolorbox}[wd=\paperwidth,ht=0.05cm,dp=0cm]{frametitle}\end{beamercolorbox}%
+  }{}%
 }
 
 \setbeamertemplate{frametitle}{%
@@ -323,19 +356,6 @@
   [Explicar combinaciones de parámetros, cantidad de corridas y criterio de comparación.]
 \end{frame}
 
-% 12. Dispersión / barras de error
-\begin{frame}{Desvío Estándar}
-  [Indicar cómo se calcularon las barras de error.]
-  \begin{equation*}
-    \overline{v}_a=\frac{1}{M}\sum_{j=1}^{M}v_a^{(j)},
-  \end{equation*}
-  \begin{equation*}
-    \sigma_{v_a}=\sqrt{\frac{1}{M-1}\sum_{j=1}^{M}
-    \left(v_a^{(j)}-\overline{v}_a\right)^2}.
-  \end{equation*}
-  [Aclarar qué representa $M$ y qué parte de la serie temporal se utiliza.]
-\end{frame}
-
 % 13. Regla o variante adicional
 \begin{frame}{Interacción [Nombre de la Variante]}
   [Describir la modificación de la regla de interacción.]
@@ -356,7 +376,7 @@
 \begin{frame}{Animaciones del Sistema}
   \begin{columns}[c,onlytextwidth]
     \begin{column}{0.68\textwidth}
-      \videooimagen{figuras/animacion-1.png}{4.9cm}{\animacionUnoURL}{Animación del sistema}
+      \videooimagen{figuras/animacion-standar-1.png}{4.9cm}{\animacionStandarUnoURL}{Animación del sistema}
     \end{column}
     \begin{column}{0.29\textwidth}
       \begin{databox}{Datos del Sistema}
@@ -364,7 +384,7 @@
           \item $N=200$
           \item $L=10$
           \item $T=1000$
-          \item $\eta=0.5$
+          \item $\eta=0.8$
         \end{itemize}
       \end{databox}
     \end{column}
@@ -374,7 +394,7 @@
 \begin{frame}{Animaciones del Sistema}
   \begin{columns}[c,onlytextwidth]
     \begin{column}{0.68\textwidth}
-      \videooimagen{figuras/animacion-2.png}{4.9cm}{\animacionDosURL}{Animación del sistema}
+      \videooimagen{figuras/animacion-standar-2.png}{4.9cm}{\animacionStandarDosURL}{Animación del sistema}
     \end{column}
     \begin{column}{0.29\textwidth}
       \begin{databox}{Datos del Sistema}
@@ -382,7 +402,7 @@
           \item $N=400$
           \item $L=10$
           \item $T=1000$
-          \item $\eta=0.5$
+          \item $\eta=0.4$
         \end{itemize}
       \end{databox}
     \end{column}
@@ -392,7 +412,7 @@
 \begin{frame}{Animaciones del Sistema}
   \begin{columns}[c,onlytextwidth]
     \begin{column}{0.68\textwidth}
-      \videooimagen{figuras/animacion-3.png}{4.9cm}{\animacionTresURL}{Animación del sistema}
+      \videooimagen{figuras/animacion-standar-3.png}{4.9cm}{\animacionStandarTresURL}{Animación del sistema}
     \end{column}
     \begin{column}{0.29\textwidth}
       \begin{databox}{Datos del Sistema}
@@ -400,7 +420,7 @@
           \item $N=800$
           \item $L=10$
           \item $T=1000$
-          \item $\eta=0.5$
+          \item $\eta=0.8$
         \end{itemize}
       \end{databox}
     \end{column}
@@ -431,48 +451,58 @@
 \end{frame}
 
 % 21--23. Variante de interacción: resultados visuales
-\begin{frame}{Interacción [Nombre de la Variante]}
+\begin{frame}{Interacción Votante}
   \begin{columns}[c,onlytextwidth]
     \begin{column}{0.68\textwidth}
-      \maybeimage{figuras/variante-1.png}{4.9cm}{Insertar resultado visual de la variante}
+      \videooimagen{figuras/animacion-votante-1.png}{4.9cm}{\animacionVotanteUnoURL}{Animación del sistema}
     \end{column}
     \begin{column}{0.29\textwidth}
       \begin{databox}{Datos del Sistema}
         \begin{itemize}
-          \item $N=[\ ]$
-          \item $L=[\ ]$
-          \item $T=[\ ]$
-          \item $\eta=[\ ]$
+          \item $N=200$
+          \item $L=10$
+          \item $T=1000$
+          \item $\eta=0.8$
         \end{itemize}
       \end{databox}
     \end{column}
   \end{columns}
 \end{frame}
 
-\begin{frame}{Interacción [Nombre de la Variante]}
+\begin{frame}{Interacción Votante}
   \begin{columns}[c,onlytextwidth]
     \begin{column}{0.68\textwidth}
-      \maybeimage{figuras/variante-2.png}{4.9cm}{Insertar segundo resultado visual de la variante}
+      \videooimagen{figuras/animacion-votante-2.png}{4.9cm}{\animacionVotanteDosURL}{Animación del sistema}
     \end{column}
     \begin{column}{0.29\textwidth}
       \begin{databox}{Datos del Sistema}
         \begin{itemize}
-          \item $N=[\ ]$
-          \item $L=[\ ]$
-          \item $T=[\ ]$
-          \item $\eta=[\ ]$
+          \item $N=400$
+          \item $L=10$
+          \item $T=1000$
+          \item $\eta=0.4$
         \end{itemize}
       \end{databox}
     \end{column}
   \end{columns}
 \end{frame}
 
-\begin{frame}{Interacción [Nombre de la Variante]}
-  \centering
-  \begin{minipage}{10cm}
-    \placeholder[5.625cm]{VIDEO 16:9\\[2mm]
-      Reemplazar este espacio por el video de la variante}
-  \end{minipage}
+\begin{frame}{Interacción Votante}
+  \begin{columns}[c,onlytextwidth]
+    \begin{column}{0.68\textwidth}
+      \videooimagen{figuras/animacion-votante-3.png}{4.9cm}{\animacionVotanteTresURL}{Animación del sistema}
+    \end{column}
+    \begin{column}{0.29\textwidth}
+      \begin{databox}{Datos del Sistema}
+        \begin{itemize}
+          \item $N=800$
+          \item $L=10$
+          \item $T=1000$
+          \item $\eta=0.8$
+        \end{itemize}
+      \end{databox}
+    \end{column}
+  \end{columns}
 \end{frame}
 
 % 24--25. Gráficos finales de la variante

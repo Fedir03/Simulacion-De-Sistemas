@@ -2,8 +2,8 @@
 """Genera dos PPTX importables en Google Slides a partir del Beamer renderizado.
 
 La versión imagen conserva las capturas de las animaciones. La versión video
-agrega, en las diapositivas 15--17, placeholders editables para insertar luego
-los videos de YouTube en Google Slides, y en la diapositiva 23 un placeholder
+agrega, en las diapositivas 14--16, placeholders editables para insertar luego
+los videos de YouTube en Google Slides, y en la diapositiva 22 un placeholder
 16:9 para el video de la variante de interacción.
 """
 
@@ -23,11 +23,11 @@ from com.sun.star.beans import PropertyValue
 PAGE_WIDTH = 25_400
 PAGE_HEIGHT = 19_050
 ANIMATION_SLIDES = {
-    15: ("ρ = 2", "https://www.youtube.com/watch?v=yNQh6aFtVFk"),
-    16: ("ρ = 4", "https://youtu.be/REEMPLAZAR-RHO4"),
-    17: ("ρ = 8", "https://youtu.be/REEMPLAZAR-RHO8"),
+    14: ("ρ = 2", "https://www.youtube.com/watch?v=yNQh6aFtVFk"),
+    15: ("ρ = 4", "https://youtu.be/REEMPLAZAR-RHO4"),
+    16: ("ρ = 8", "https://youtu.be/REEMPLAZAR-RHO8"),
 }
-VARIANT_VIDEO_SLIDE = 23
+VARIANT_VIDEO_SLIDE = 22
 
 
 def property_value(name: str, value) -> PropertyValue:
@@ -180,11 +180,15 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--renders", type=Path, required=True)
     parser.add_argument("--outdir", type=Path, required=True)
+    parser.add_argument("--expected-slides", type=int, required=True)
     args = parser.parse_args()
 
     images = sorted(args.renders.glob("slide-*.png"))
-    if len(images) != 28:
-        raise SystemExit(f"Se esperaban 28 diapositivas renderizadas; se encontraron {len(images)}")
+    if len(images) != args.expected_slides:
+        raise SystemExit(
+            f"Se esperaban {args.expected_slides} diapositivas renderizadas; "
+            f"se encontraron {len(images)}"
+        )
 
     with tempfile.TemporaryDirectory(prefix="tp2-lo-profile-") as profile_dir:
         process, desktop = connect_to_libreoffice(Path(profile_dir))
