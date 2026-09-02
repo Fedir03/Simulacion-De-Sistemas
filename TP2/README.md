@@ -284,11 +284,11 @@ Para corridas largas, `--stride=5` toma un cuadro cada cinco pasos (y conserva
 siempre el último). También se pueden ajustar `--fps=30` y `--dpi=150`.
 
 La animación usa ejes fijos `[0,L] x [0,L]`, representa la velocidad con un
-vector y colorea cada vector según su ángulo. El título informa modelo,
-densidad, ruido y tiempo físico. Durante la codificación se muestra una barra
-de progreso con el porcentaje y la cantidad de cuadros procesados. Los MP4 no
-deben embeberse en el PDF de la presentación: hay que subirlos por separado y
-agregar links explícitos.
+vector y colorea cada vector según su ángulo. La visualización no muestra ejes,
+parámetros ni barra de colores y usa el título fijo `Animación de Viseck`.
+Durante la codificación se muestra una barra de progreso con el porcentaje y la
+cantidad de cuadros procesados. Los MP4 no deben embeberse en el PDF de la
+presentación: hay que subirlos por separado y agregar links explícitos.
 
 ---
 

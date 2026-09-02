@@ -48,6 +48,7 @@ __all__ = [
     "render_animation",
     "select_frames",
     "stream_simulation",
+    "validate_cluster_members",
     "velocity_components",
 ]
 
@@ -88,13 +89,51 @@ def parse_cluster_members(path: str | Path) -> dict[int, set[int]]:
             continue
         parts = line.split()
         try:
-            members[int(parts[0])] = {int(token) for token in parts[1:]}
+            step = int(parts[0])
+            particle_ids = [int(token) for token in parts[1:]]
         except ValueError as exc:
             raise SimulationFormatError(
                 f"{path}:{line_number}: se esperaba '<paso> <id> <id> ...'") from exc
+        if step < 0:
+            raise SimulationFormatError(f"{path}:{line_number}: el paso no puede ser negativo")
+        if step in members:
+            raise SimulationFormatError(f"{path}:{line_number}: paso {step} duplicado")
+        if not particle_ids:
+            raise SimulationFormatError(
+                f"{path}:{line_number}: el cluster mas grande no puede estar vacio"
+            )
+        if len(set(particle_ids)) != len(particle_ids):
+            raise SimulationFormatError(
+                f"{path}:{line_number}: hay ids de particula duplicados"
+            )
+        members[step] = set(particle_ids)
     if not members:
         raise SimulationFormatError(f"{path}: no hay cuadros con miembros")
     return members
+
+
+def validate_cluster_members(
+    frames: Sequence[Frame], cluster_members: dict[int, set[int]]
+) -> None:
+    """Comprueba que haya miembros validos para cada cuadro que se va a renderizar."""
+    missing_steps = [frame.step for frame in frames if frame.step not in cluster_members]
+    if missing_steps:
+        shown = ", ".join(str(step) for step in missing_steps[:5])
+        suffix = "..." if len(missing_steps) > 5 else ""
+        raise SimulationFormatError(
+            "el archivo de clusters no contiene los pasos renderizados: " + shown + suffix
+        )
+
+    for frame in frames:
+        frame_ids = {particle.particle_id for particle in frame.particles}
+        unknown_ids = cluster_members[frame.step] - frame_ids
+        if unknown_ids:
+            shown = ", ".join(str(particle_id) for particle_id in sorted(unknown_ids)[:5])
+            suffix = "..." if len(unknown_ids) > 5 else ""
+            raise SimulationFormatError(
+                f"paso {frame.step}: el archivo de clusters contiene ids inexistentes: "
+                + shown + suffix
+            )
 
 
 def select_frames(frames: Sequence[Frame], stride: int) -> tuple[Frame, ...]:
@@ -131,6 +170,11 @@ def render_animation(
     if output_path.suffix.lower() != ".mp4":
         raise ValueError("--out debe tener extension .mp4")
 
+    frames = select_frames(data.frames, stride)
+    header = data.header
+    if cluster_members is not None:
+        validate_cluster_members(frames, cluster_members)
+
     try:
         import matplotlib
         matplotlib.use("Agg")
@@ -145,8 +189,6 @@ def render_animation(
     if not FFMpegWriter.isAvailable():
         raise RuntimeError("FFmpeg no esta disponible en PATH; es necesario para exportar MP4")
 
-    frames = select_frames(data.frames, stride)
-    header = data.header
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
     fig, ax = plt.subplots(figsize=(8, 8))
@@ -157,49 +199,42 @@ def render_animation(
     angles = [p.theta % TWO_PI for p in first.particles]
     u, v = velocity_components(first, header.v0)
 
-    target_length = min(0.04 * header.l, 0.7 * header.l / math.sqrt(header.n))
+    target_length = 0.85 * min(0.04 * header.l, 0.7 * header.l / math.sqrt(header.n))
     quiver_scale = header.v0 / target_length
     arrows = ax.quiver(
         x, y, u, v, angles,
         angles="xy", scale_units="xy", scale=quiver_scale,
         cmap="hsv", norm=norm, pivot="tail", width=0.003,
     )
-    # capa de resaltado del cluster mas grande: un anillo detras de cada particula miembro
-    highlight = ax.scatter([], [], s=90, facecolors="none", edgecolors="#111111",
-                           linewidths=0.9, zorder=1) if cluster_members is not None else None
-
-    colorbar = fig.colorbar(arrows, ax=ax, pad=0.02)
-    colorbar.set_label("Angulo de velocidad θ [rad]")
-    colorbar.set_ticks([0, math.pi / 2, math.pi, 3 * math.pi / 2, TWO_PI])
-    colorbar.set_ticklabels(["0", "π/2", "π", "3π/2", "2π"])
+    # Un anillo alrededor de cada particula permite ver el cluster sin tapar su direccion.
+    highlight = (
+        ax.scatter(
+            [], [], s=90, facecolors="none", edgecolors="#111111", linewidths=0.9,
+            zorder=2,
+        )
+        if cluster_members is not None
+        else None
+    )
 
     ax.set_xlim(0.0, header.l)
     ax.set_ylim(0.0, header.l)
     ax.set_aspect("equal", adjustable="box")
+    axis_ticks = [header.l * index / 5 for index in range(6)]
+    ax.set_xticks(axis_ticks)
+    ax.set_yticks(axis_ticks)
+    ax.set_title("Animación de Vicsek")
     ax.set_xlabel("x")
     ax.set_ylabel("y")
     ax.grid(alpha=0.15)
 
     def members_of(frame: Frame) -> list[tuple[float, float]]:
-        ids = cluster_members.get(frame.step)
-        if ids is None:
+        if cluster_members is None:
             return []
+        ids = cluster_members[frame.step]
         return [(p.x, p.y) for p in frame.particles if p.particle_id in ids]
 
-    def title_for(frame: Frame) -> str:
-        base = (
-            f"Modelo {header.model} | ρ={header.density:g} | η={header.eta:g} | "
-            f"t={frame.step * header.dt:g}"
-        )
-        if cluster_members is None:
-            return base
-        ids = cluster_members.get(frame.step)
-        s_value = len(ids) / header.n if ids is not None else float("nan")
-        return base + f" | S={s_value:.2f}"
-
-    ax.set_title(title_for(first))
     if highlight is not None:
-        highlight.set_offsets(members_of(first) or [(float("nan"), float("nan"))])
+        highlight.set_offsets(members_of(first))
 
     def update(frame: Frame):
         frame_x = [p.x for p in frame.particles]
@@ -208,10 +243,9 @@ def render_animation(
         frame_u, frame_v = velocity_components(frame, header.v0)
         arrows.set_offsets(list(zip(frame_x, frame_y)))
         arrows.set_UVC(frame_u, frame_v, frame_angles)
-        ax.set_title(title_for(frame))
         if highlight is None:
             return arrows,
-        highlight.set_offsets(members_of(frame) or [(float("nan"), float("nan"))])
+        highlight.set_offsets(members_of(frame))
         return arrows, highlight
 
     animation = FuncAnimation(
@@ -225,7 +259,7 @@ def render_animation(
     writer = FFMpegWriter(
         fps=fps,
         codec="libx264",
-        metadata={"title": f"Vicsek {header.model}"},
+        metadata={"title": "Animación de Vicsek"},
         extra_args=["-pix_fmt", "yuv420p", "-movflags", "+faststart"],
     )
     progress = ProgressBar(len(frames))
