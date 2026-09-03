@@ -2,9 +2,8 @@
 """Genera dos PPTX importables en Google Slides a partir del Beamer renderizado.
 
 La versión imagen conserva las capturas de las animaciones. La versión video
-agrega, en las diapositivas 14--16, placeholders editables para insertar luego
-los videos de YouTube en Google Slides, y en la diapositiva 22 un placeholder
-16:9 para el video de la variante de interacción.
+agrega, en las diapositivas 14--16 y 20--22, dos placeholders editables para
+insertar los videos de YouTube en Google Slides.
 """
 
 from __future__ import annotations
@@ -23,11 +22,36 @@ from com.sun.star.beans import PropertyValue
 PAGE_WIDTH = 25_400
 PAGE_HEIGHT = 19_050
 ANIMATION_SLIDES = {
-    14: ("ρ = 2", "https://www.youtube.com/watch?v=yNQh6aFtVFk"),
-    15: ("ρ = 4", "https://youtu.be/REEMPLAZAR-RHO4"),
-    16: ("ρ = 8", "https://youtu.be/REEMPLAZAR-RHO8"),
+    14: (
+        ("η = 1", "https://youtu.be/REEMPLAZAR-STANDARD-RHO2-ETA1"),
+        ("η = 2", "https://youtu.be/REEMPLAZAR-STANDARD-RHO2-ETA2"),
+    ),
+    15: (
+        ("η = 1", "https://youtu.be/REEMPLAZAR-STANDARD-RHO4-ETA1"),
+        ("η = 2", "https://youtu.be/REEMPLAZAR-STANDARD-RHO4-ETA2"),
+    ),
+    16: (
+        ("η = 1", "https://youtu.be/REEMPLAZAR-STANDARD-RHO8-ETA1"),
+        ("η = 2", "https://youtu.be/REEMPLAZAR-STANDARD-RHO8-ETA2"),
+    ),
+    20: (
+        ("η = 1", "https://youtu.be/REEMPLAZAR-VOTER-RHO2-ETA1"),
+        ("η = 2", "https://youtu.be/REEMPLAZAR-VOTER-RHO2-ETA2"),
+    ),
+    21: (
+        ("η = 1", "https://youtu.be/REEMPLAZAR-VOTER-RHO4-ETA1"),
+        ("η = 2", "https://youtu.be/REEMPLAZAR-VOTER-RHO4-ETA2"),
+    ),
+    22: (
+        ("η = 1", "https://youtu.be/REEMPLAZAR-VOTER-RHO8-ETA1"),
+        ("η = 2", "https://youtu.be/REEMPLAZAR-VOTER-RHO8-ETA2"),
+    ),
 }
-VARIANT_VIDEO_SLIDE = 22
+
+VIDEO_COLUMNS = (
+    (1_500, 1_500),
+    (13_300, 13_300),
+)
 
 
 def property_value(name: str, value) -> PropertyValue:
@@ -91,15 +115,19 @@ def add_background(document, page, image_path: Path) -> None:
     page.add(shape)
 
 
-def add_link(document, page, url: str) -> None:
+def add_link(document, page, url: str, x: int) -> None:
     shape = document.createInstance("com.sun.star.drawing.TextShape")
-    shape.Position = point(1_700, 16_850)
-    shape.Size = size(14_600, 650)
+    shape.Position = point(x, 15_750)
+    shape.Size = size(10_600, 650)
     shape.FillTransparence = 100
     shape.LineTransparence = 100
     page.add(shape)
     shape.ZOrder = 101
-    shape.String = "▶ Ver video en YouTube"
+    url_field = document.createInstance("com.sun.star.text.textfield.URL")
+    url_field.URL = url
+    url_field.Representation = "▶ Ver video en YouTube"
+    url_field.TargetFrame = "_blank"
+    shape.Text.insertTextContent(shape.Text.createTextCursor(), url_field, False)
     cursor = shape.Text.createTextCursor()
     cursor.gotoEnd(True)
     cursor.CharFontName = "Liberation Sans"
@@ -109,10 +137,10 @@ def add_link(document, page, url: str) -> None:
     cursor.ParaAdjust = 3
 
 
-def add_video_placeholder(document, page, density: str, url: str) -> None:
+def add_video_placeholder(document, page, label: str, url: str, x: int) -> None:
     box = document.createInstance("com.sun.star.drawing.TextShape")
-    box.Position = point(1_250, 4_100)
-    box.Size = size(15_400, 11_750)
+    box.Position = point(x, 7_050)
+    box.Size = size(10_600, 5_963)
     box.FillColor = 0x11112A
     box.FillTransparence = 8
     box.LineColor = 0x3939B5
@@ -121,32 +149,17 @@ def add_video_placeholder(document, page, density: str, url: str) -> None:
     box.ZOrder = 100
     box.String = (
         "VIDEO DE YOUTUBE\n\n"
-        f"Animación para {density}\n\n"
+        f"Animación con {label}\n\n"
         "En Google Slides: Insertar → Video → YouTube\n"
-        f"Reemplazar usando:\n{url}"
+        f"Reemplazar usando: {url}"
     )
     cursor = box.Text.createTextCursor()
     cursor.gotoEnd(True)
     cursor.CharFontName = "Liberation Sans"
-    cursor.CharHeight = 15.0
+    cursor.CharHeight = 10.0
     cursor.CharColor = 0xFFFFFF
     cursor.ParaAdjust = 3
     cursor.ParaTopMargin = 400
-
-
-def add_variant_video_placeholder(document, page) -> None:
-    """Agrega un marco editable transparente con relación exacta 16:9."""
-    box = document.createInstance("com.sun.star.drawing.TextShape")
-    box.Position = point(2_700, 4_250)
-    box.Size = size(20_000, 11_250)
-    box.FillColor = 0xF4F4F7
-    box.FillTransparence = 100
-    box.LineColor = 0x858585
-    box.LineWidth = 45
-    page.add(box)
-    box.ZOrder = 100
-    box.String = ""
-
 
 def build_deck(desktop, images: list[Path], output: Path, video_mode: bool) -> None:
     document = desktop.loadComponentFromURL("private:factory/simpress", "_blank", 0, ())
@@ -161,12 +174,12 @@ def build_deck(desktop, images: list[Path], output: Path, video_mode: bool) -> N
         add_background(document, page, image_path)
         slide_number = index + 1
         if slide_number in ANIMATION_SLIDES:
-            density, url = ANIMATION_SLIDES[slide_number]
-            if video_mode:
-                add_video_placeholder(document, page, density, url)
-            add_link(document, page, url)
-        elif video_mode and slide_number == VARIANT_VIDEO_SLIDE:
-            add_variant_video_placeholder(document, page)
+            for (label, url), (placeholder_x, link_x) in zip(
+                ANIMATION_SLIDES[slide_number], VIDEO_COLUMNS, strict=True
+            ):
+                if video_mode:
+                    add_video_placeholder(document, page, label, url, placeholder_x)
+                add_link(document, page, url, link_x)
 
     output.parent.mkdir(parents=True, exist_ok=True)
     document.storeAsURL(

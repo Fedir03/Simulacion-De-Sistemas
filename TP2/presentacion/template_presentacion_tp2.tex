@@ -50,14 +50,20 @@
 \institute{Instituto Tecnológico de Buenos Aires}
 \date{2026 2C --- Grupo N.º 02}
 
-% URLs de las animaciones usadas en las diapositivas 15--17.
-% Reemplazar los placeholders cuando estén disponibles los demás videos.
-\newcommand{\animacionStandarUnoURL}{https://youtu.be/uDM1vM-vQmU}
-\newcommand{\animacionStandarDosURL}{https://youtu.be/cWIolHgR9X0}
-\newcommand{\animacionStandarTresURL}{https://youtu.be/0Q1m41YXags}
-\newcommand{\animacionVotanteUnoURL}{https://youtu.be/uDM1vM-vQmU}
-\newcommand{\animacionVotanteDosURL}{https://youtu.be/cWIolHgR9X0}
-\newcommand{\animacionVotanteTresURL}{https://youtu.be/0Q1m41YXags}
+% URLs de las animaciones usadas en las diapositivas 14--16 y 20--22.
+% Reemplazar cada placeholder cuando el video correspondiente esté disponible.
+\newcommand{\animacionStandardRhoDosEtaUnoURL}{https://youtu.be/REEMPLAZAR-STANDARD-RHO2-ETA1}
+\newcommand{\animacionStandardRhoDosEtaDosURL}{https://youtu.be/REEMPLAZAR-STANDARD-RHO2-ETA2}
+\newcommand{\animacionStandardRhoCuatroEtaUnoURL}{https://youtu.be/REEMPLAZAR-STANDARD-RHO4-ETA1}
+\newcommand{\animacionStandardRhoCuatroEtaDosURL}{https://youtu.be/REEMPLAZAR-STANDARD-RHO4-ETA2}
+\newcommand{\animacionStandardRhoOchoEtaUnoURL}{https://youtu.be/REEMPLAZAR-STANDARD-RHO8-ETA1}
+\newcommand{\animacionStandardRhoOchoEtaDosURL}{https://youtu.be/REEMPLAZAR-STANDARD-RHO8-ETA2}
+\newcommand{\animacionVoterRhoDosEtaUnoURL}{https://youtu.be/REEMPLAZAR-VOTER-RHO2-ETA1}
+\newcommand{\animacionVoterRhoDosEtaDosURL}{https://youtu.be/REEMPLAZAR-VOTER-RHO2-ETA2}
+\newcommand{\animacionVoterRhoCuatroEtaUnoURL}{https://youtu.be/REEMPLAZAR-VOTER-RHO4-ETA1}
+\newcommand{\animacionVoterRhoCuatroEtaDosURL}{https://youtu.be/REEMPLAZAR-VOTER-RHO4-ETA2}
+\newcommand{\animacionVoterRhoOchoEtaUnoURL}{https://youtu.be/REEMPLAZAR-VOTER-RHO8-ETA1}
+\newcommand{\animacionVoterRhoOchoEtaDosURL}{https://youtu.be/REEMPLAZAR-VOTER-RHO8-ETA2}
 
 % Si existe logo_itba.png o logo_itba.pdf junto al .tex, se inserta.
 \newcommand{\institutionlogo}{%
@@ -196,6 +202,29 @@
     \href{#3}{{\color{TPBlue}\scriptsize
       $\blacktriangleright$ Ver video en YouTube}}%
   \end{minipage}%
+}
+
+% Compara dos niveles de ruido manteniendo visibles los parámetros comunes.
+% #1 N, #2 L, #3 T, #4 imagen eta=1, #5 URL eta=1,
+% #6 imagen eta=2, #7 URL eta=2.
+\newcommand{\dobleanimacion}[7]{%
+  \begin{center}
+    \colorbox{TPLight}{\parbox[c][0.54cm][c]{0.94\linewidth}{\centering
+      $N=#1$\hfill$L=#2$\hfill$T=#3$}}
+  \end{center}
+  \vspace{-0.08cm}
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.485\textwidth}
+      \centering
+      {\color{TPBlueDark}\large $\eta=1$}\par\vspace{0.08cm}
+      \videooimagen{#4}{4.75cm}{#5}{Animación con $\eta=1$}
+    \end{column}
+    \begin{column}{0.485\textwidth}
+      \centering
+      {\color{TPBlueDark}\large $\eta=2$}\par\vspace{0.08cm}
+      \videooimagen{#6}{4.75cm}{#7}{Animación con $\eta=2$}
+    \end{column}
+  \end{columns}
 }
 
 \newenvironment{databox}[1]{%
@@ -372,59 +401,23 @@
 % 14
 \sectiondivider{Resultados}
 
-% 15--17. Resultados visuales / animaciones
-\begin{frame}{Animaciones del Sistema}
-  \begin{columns}[c,onlytextwidth]
-    \begin{column}{0.68\textwidth}
-      \videooimagen{figuras/animacion-standar-1.png}{4.9cm}{\animacionStandarUnoURL}{Animación del sistema}
-    \end{column}
-    \begin{column}{0.29\textwidth}
-      \begin{databox}{Datos del Sistema}
-        \begin{itemize}
-          \item $N=200$
-          \item $L=10$
-          \item $T=1000$
-          \item $\eta=0.8$
-        \end{itemize}
-      \end{databox}
-    \end{column}
-  \end{columns}
+% 14--16. Resultados visuales / animaciones del modelo estándar
+\begin{frame}{Modelo Estándar --- Densidad $\rho=2$}
+  \dobleanimacion{200}{10}{1000}
+    {figuras/standard_rho2_eta1_mid.png}{\animacionStandardRhoDosEtaUnoURL}
+    {figuras/standard_rho2_eta2_mid.png}{\animacionStandardRhoDosEtaDosURL}
 \end{frame}
 
-\begin{frame}{Animaciones del Sistema}
-  \begin{columns}[c,onlytextwidth]
-    \begin{column}{0.68\textwidth}
-      \videooimagen{figuras/animacion-standar-2.png}{4.9cm}{\animacionStandarDosURL}{Animación del sistema}
-    \end{column}
-    \begin{column}{0.29\textwidth}
-      \begin{databox}{Datos del Sistema}
-        \begin{itemize}
-          \item $N=400$
-          \item $L=10$
-          \item $T=1000$
-          \item $\eta=0.4$
-        \end{itemize}
-      \end{databox}
-    \end{column}
-  \end{columns}
+\begin{frame}{Modelo Estándar --- Densidad $\rho=4$}
+  \dobleanimacion{400}{10}{1000}
+    {figuras/standard_rho4_eta1_mid.png}{\animacionStandardRhoCuatroEtaUnoURL}
+    {figuras/standard_rho4_eta2_mid.png}{\animacionStandardRhoCuatroEtaDosURL}
 \end{frame}
 
-\begin{frame}{Animaciones del Sistema}
-  \begin{columns}[c,onlytextwidth]
-    \begin{column}{0.68\textwidth}
-      \videooimagen{figuras/animacion-standar-3.png}{4.9cm}{\animacionStandarTresURL}{Animación del sistema}
-    \end{column}
-    \begin{column}{0.29\textwidth}
-      \begin{databox}{Datos del Sistema}
-        \begin{itemize}
-          \item $N=800$
-          \item $L=10$
-          \item $T=1000$
-          \item $\eta=0.8$
-        \end{itemize}
-      \end{databox}
-    \end{column}
-  \end{columns}
+\begin{frame}{Modelo Estándar --- Densidad $\rho=8$}
+  \dobleanimacion{800}{10}{1000}
+    {figuras/standard_rho8_eta1_mid.png}{\animacionStandardRhoOchoEtaUnoURL}
+    {figuras/standard_rho8_eta2_mid.png}{\animacionStandardRhoOchoEtaDosURL}
 \end{frame}
 
 % 18. Serie temporal
@@ -450,59 +443,23 @@
     $[\text{variable}]\in\{[\text{valores estudiados}]\}$}}
 \end{frame}
 
-% 21--23. Variante de interacción: resultados visuales
-\begin{frame}{Interacción Votante}
-  \begin{columns}[c,onlytextwidth]
-    \begin{column}{0.68\textwidth}
-      \videooimagen{figuras/animacion-votante-1.png}{4.9cm}{\animacionVotanteUnoURL}{Animación del sistema}
-    \end{column}
-    \begin{column}{0.29\textwidth}
-      \begin{databox}{Datos del Sistema}
-        \begin{itemize}
-          \item $N=200$
-          \item $L=10$
-          \item $T=1000$
-          \item $\eta=0.8$
-        \end{itemize}
-      \end{databox}
-    \end{column}
-  \end{columns}
+% 20--22. Resultados visuales del modelo votante
+\begin{frame}{Modelo Votante --- Densidad $\rho=2$}
+  \dobleanimacion{200}{10}{1000}
+    {figuras/voter_rho2_eta1_mid.png}{\animacionVoterRhoDosEtaUnoURL}
+    {figuras/voter_rho2_eta2_mid.png}{\animacionVoterRhoDosEtaDosURL}
 \end{frame}
 
-\begin{frame}{Interacción Votante}
-  \begin{columns}[c,onlytextwidth]
-    \begin{column}{0.68\textwidth}
-      \videooimagen{figuras/animacion-votante-2.png}{4.9cm}{\animacionVotanteDosURL}{Animación del sistema}
-    \end{column}
-    \begin{column}{0.29\textwidth}
-      \begin{databox}{Datos del Sistema}
-        \begin{itemize}
-          \item $N=400$
-          \item $L=10$
-          \item $T=1000$
-          \item $\eta=0.4$
-        \end{itemize}
-      \end{databox}
-    \end{column}
-  \end{columns}
+\begin{frame}{Modelo Votante --- Densidad $\rho=4$}
+  \dobleanimacion{400}{10}{1000}
+    {figuras/voter_rho4_eta1_mid.png}{\animacionVoterRhoCuatroEtaUnoURL}
+    {figuras/voter_rho4_eta2_mid.png}{\animacionVoterRhoCuatroEtaDosURL}
 \end{frame}
 
-\begin{frame}{Interacción Votante}
-  \begin{columns}[c,onlytextwidth]
-    \begin{column}{0.68\textwidth}
-      \videooimagen{figuras/animacion-votante-3.png}{4.9cm}{\animacionVotanteTresURL}{Animación del sistema}
-    \end{column}
-    \begin{column}{0.29\textwidth}
-      \begin{databox}{Datos del Sistema}
-        \begin{itemize}
-          \item $N=800$
-          \item $L=10$
-          \item $T=1000$
-          \item $\eta=0.8$
-        \end{itemize}
-      \end{databox}
-    \end{column}
-  \end{columns}
+\begin{frame}{Modelo Votante --- Densidad $\rho=8$}
+  \dobleanimacion{800}{10}{1000}
+    {figuras/voter_rho8_eta1_mid.png}{\animacionVoterRhoOchoEtaUnoURL}
+    {figuras/voter_rho8_eta2_mid.png}{\animacionVoterRhoOchoEtaDosURL}
 \end{frame}
 
 % 24--25. Gráficos finales de la variante
