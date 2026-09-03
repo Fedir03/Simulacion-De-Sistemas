@@ -188,7 +188,8 @@ def plot(paths: Sequence[Path], label_by: str, transient: str | int | None, titl
         fig, ax = plt.subplots(figsize=figsize)
         draw_axes(ax, series, labels, transient, logy, ticker, show_ylabel=True,
                   ylabel=axis_label, ylim=ylim)
-        ax.set_title(title if title is not None else build_title(headers, observable))
+        if title is not None:
+            ax.set_title(title)
         report_tail(series, labels, transient, observable=observable)
         fig.tight_layout()
         return fig

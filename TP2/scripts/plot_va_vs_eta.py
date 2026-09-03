@@ -48,9 +48,9 @@ GROUP_FIELDS = ("density", "n", "model", "l", "theta0")
 def group_key(header: SimulationHeader, field: str) -> tuple[float, str]:
     """Devuelve (orden, etiqueta) del grupo al que pertenece una corrida."""
     if field == "density":
-        return header.density, f"ρ = {header.density:g} (N = {header.n}, L = {header.l:g})"
+        return header.density, f"ρ = {header.density_label} (N = {header.n}, L = {header.l:g})"
     if field == "n":
-        return float(header.n), f"N = {header.n} (L = {header.l:g}, ρ = {header.density:g})"
+        return float(header.n), f"N = {header.n} (L = {header.l:g}, ρ = {header.density_label})"
     if field == "l":
         return header.l, f"L = {header.l:g} (N = {header.n})"
     if field == "model":
@@ -72,7 +72,7 @@ def differing_field(headers: Sequence[SimulationHeader]) -> str:
 @dataclass(frozen=True)
 class Curve:
     label: str
-    etas: list[float]
+    xs: list[float]
     means: list[float]
     stdevs: list[float]
     counts: list[int]
@@ -131,23 +131,23 @@ def collect(indexes: Sequence[Path], transient: str | int, group_by: str,
         lambda: defaultdict(list))
     run_counts: dict[tuple[float, str], dict[float, int]] = defaultdict(
         lambda: defaultdict(int))
-    for header, eta, tail, run_mean in per_run:
+    for header, eta, tail in per_run:
         key = group_key(header, field) if x_field == "eta" else (eta, f"η = {eta:g}")
-        grouped[key][x_value(header, eta, x_field)].append(run_mean)
-        pooled[key][eta].extend(tail)
-        run_counts[key][eta] += 1
+        x = x_value(header, eta, x_field)
+        pooled[key][x].extend(tail)
+        run_counts[key][x] += 1
 
     curves: list[Curve] = []
     for (order, label) in sorted(pooled, key=lambda key: (key[0], key[1])):
-        per_eta = pooled[(order, label)]
-        etas = sorted(per_eta)
+        per_x = pooled[(order, label)]
+        xs = sorted(per_x)
         means, stdevs, counts = [], [], []
-        for eta in etas:
-            mean, stdev = mean_and_stdev(per_eta[eta])
+        for x in xs:
+            mean, stdev = mean_and_stdev(per_x[x])
             means.append(mean)
             stdevs.append(stdev)
-            counts.append(run_counts[(order, label)][eta])
-        curves.append(Curve(label=label, etas=etas, means=means, stdevs=stdevs, counts=counts))
+            counts.append(run_counts[(order, label)][x])
+        curves.append(Curve(label=label, xs=xs, means=means, stdevs=stdevs, counts=counts))
     return curves, field, observables.pop() if len(observables) == 1 else "va"
 
 
@@ -163,12 +163,12 @@ def plot(curves: Sequence[Curve], title: str | None, transient: int, observable:
 
     fig, ax = plt.subplots(figsize=(9, 6))
     for index, curve in enumerate(curves):
-        ax.errorbar(curve.etas, curve.means, yerr=curve.stdevs,
+        ax.errorbar(curve.xs, curve.means, yerr=curve.stdevs,
                     fmt=MARKERS[index % len(MARKERS)] + "-",
                     color=PALETTE[index % len(PALETTE)], capsize=3, linewidth=1.4,
                     markersize=5, label=curve.label)
     ax.set_xlabel(X_LABELS.get(x_field, x_field))
-    ylabel, default_title = OBSERVABLE_LABELS.get(observable, (observable, observable + " vs. ruido"))
+    ylabel = OBSERVABLE_LABELS.get(observable, observable)
     ax.set_ylabel(ylabel)
     ax.set_ylim(0.0, 1.02)
     if title is not None:
@@ -219,9 +219,9 @@ def main(argv: Sequence[str] | None = None) -> int:
         print(f"Curvas agrupadas por: {field}   (transitorio: t >= {transient})")
         for curve in curves:
             print(f"\n{curve.label}")
-            for eta, mean, stdev, count in zip(curve.etas, curve.means,
-                                               curve.stdevs, curve.counts):
-                print(f"  eta={eta:<6g} <{observable}>={mean:.4f} +/- {stdev:.4f}  (M={count})")
+            for x, mean, stdev, count in zip(curve.xs, curve.means,
+                                             curve.stdevs, curve.counts):
+                print(f"  {args.x}={x:<6g} <{observable}>={mean:.4f} +/- {stdev:.4f}  (M={count})")
         if args.out is not None:
             import matplotlib
             matplotlib.use("Agg")
