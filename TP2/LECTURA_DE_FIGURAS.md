@@ -141,8 +141,11 @@ duplica el orden sólo por densificar.
 
 ## (d) Clusters: fracción en la componente gigante `S`
 
-**Figuras**: `clusters-temporal.pdf` (densidades bajas), `clusters-temporal-enunciado.pdf`
-(ρ=2,4,8), `clusters-vs-eta.pdf` (las seis densidades)
+**Figuras**: `clusters-temporal.pdf` (densidades bajas), `clusters-vs-eta.pdf` (las seis
+densidades)
+
+La evolución temporal se muestra sólo en las densidades bajas: en ρ = 2, 4 y 8 el sistema
+está percolado y S ≈ 1 en todo momento, así que la curva no aporta nada.
 
 Un cluster es una **componente conexa del grafo de vecinos**: partículas unidas por cadenas
 de saltos entre partículas a distancia menor que `rc`. `S` es la fracción de partículas en el
@@ -173,13 +176,6 @@ Verificación de que el código detecta la fragmentación: bajando la densidad, 
 Las seis curvas cuentan **dos historias opuestas en el mismo eje**: las tres del enunciado
 pegadas en 1.0 y las tres del anuncio cayendo de 0.93 a 0.01. Esa separación *es* el
 resultado: muestra de un vistazo el efecto del umbral de percolación.
-
-### `clusters-temporal-enunciado.pdf` — el eje y va con zoom
-
-Con el rango completo [0,1] es una recta plana inútil. Acotado a [0.84, 1.005] aparece el
-gradiente: **ρ=2 fluctúa permanentemente entre 0.87 y 1.0** (pierde y recupera partículas
-sueltas), **ρ=4 casi siempre en 1.0 con caídas esporádicas a 0.97**, y **ρ=8 es una recta
-perfecta en 1.0**, ninguna partícula se despega jamás.
 
 ### El transitorio de `S` es mucho más largo que el de `v_a`
 
