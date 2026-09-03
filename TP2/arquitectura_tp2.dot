@@ -1,0 +1,128 @@
+digraph ArquitecturaTP2 {
+  graph [
+    rankdir=TB,
+    bgcolor="white",
+    pad=0.35,
+    nodesep=0.48,
+    ranksep=0.7,
+    splines=ortho,
+    fontname="Arial",
+    label="Arquitectura del TP2 — Modelo de Vicsek",
+    labelloc="t",
+    fontsize=22
+  ];
+
+  node [
+    fontname="Arial",
+    fontsize=13,
+    color="#253238",
+    penwidth=1.4,
+    margin="0.18,0.12"
+  ];
+  edge [
+    fontname="Arial",
+    fontsize=10,
+    color="#56636a",
+    fontcolor="#56636a",
+    penwidth=1.2,
+    arrowsize=0.75
+  ];
+
+  usuario [
+    label="Usuario",
+    shape=ellipse,
+    style="filled",
+    fillcolor="#eaf2fb"
+  ];
+
+  entrada [
+    label="Ejecución\nMain / Commands\nsweep.py / batch",
+    shape=box,
+    style="rounded,filled",
+    fillcolor="#dcf3dd"
+  ];
+
+  motor [
+    label="Motor de simulación\nVicsekSimulation\nStandardModel / VoterModel",
+    shape=box,
+    style="rounded,filled",
+    fillcolor="#dcf3dd"
+  ];
+
+  cim [
+    label="Búsqueda de vecinos\nNeighborLookup\nCell Index Method de TP1",
+    shape=box,
+    style="rounded,filled",
+    fillcolor="#dcf3dd"
+  ];
+
+  trayectorias [
+    label="Trayectorias de simulación\n.txt: id, x, y, theta por paso",
+    shape=folder,
+    style="filled",
+    fillcolor="#fff8c9",
+    color="#5b5732"
+  ];
+
+  procesamiento [
+    label="Procesamiento de resultados\nJava: SimulationReader / clusters\nPython: simulation_io / order_parameter",
+    shape=box,
+    style="rounded,filled",
+    fillcolor="#dcf3dd"
+  ];
+
+  datos [
+    label="Datos procesados\nva.csv · S.csv · runs.csv",
+    shape=folder,
+    style="filled",
+    fillcolor="#fff8c9",
+    color="#5b5732"
+  ];
+
+  animador [
+    label="animate.py",
+    shape=box,
+    style="rounded,filled",
+    fillcolor="#dcf3dd"
+  ];
+
+  graficador [
+    label="plot_*.py",
+    shape=box,
+    style="rounded,filled",
+    fillcolor="#dcf3dd"
+  ];
+
+  animaciones [
+    label="Animaciones MP4",
+    shape=ellipse,
+    style="filled",
+    fillcolor="#fff2d9"
+  ];
+
+  graficos [
+    label="Gráficos PDF / PNG",
+    shape=ellipse,
+    style="filled",
+    fillcolor="#fff2d9"
+  ];
+
+  usuario -> entrada;
+  entrada -> motor [dir=both, label="configura y ejecuta"];
+  motor -> cim [dir=both, label="grafo de vecinos"];
+  motor -> trayectorias [label="escribe"];
+
+  trayectorias -> procesamiento [label="lee en streaming"];
+  procesamiento -> cim [label="recalcula vecinos"];
+  procesamiento -> datos;
+
+  trayectorias -> animador;
+  animador -> animaciones;
+  datos -> graficador;
+  graficador -> graficos;
+
+  { rank=same; entrada; motor; cim; }
+  { rank=same; trayectorias; procesamiento; }
+  { rank=same; animador; datos; graficador; }
+  { rank=same; animaciones; graficos; }
+}
