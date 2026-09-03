@@ -109,6 +109,19 @@ class GroupingTest(unittest.TestCase):
         headers = [header(model="standard", n=200), header(model="voter", n=400)]
         self.assertEqual("model", differing_field(headers))
 
+    def test_combined_group_by_joins_order_and_label(self):
+        order, label = group_key(header(model="voter", n=800, l=10.0), "density,model")
+        self.assertEqual((8.0, 0.0), order)
+        self.assertIn("ρ = 8", label)
+        self.assertIn("modelo voter", label)
+
+    def test_combined_group_by_gives_a_distinct_key_per_model_at_the_same_density(self):
+        standard = group_key(header(model="standard", n=200), "density,model")
+        voter = group_key(header(model="voter", n=200), "density,model")
+
+        self.assertNotEqual(standard, voter)
+        self.assertEqual(standard[0], voter[0])
+
     def test_density_wins_when_the_model_is_shared(self):
         headers = [header(n=200), header(n=800)]
         self.assertEqual("density", differing_field(headers))

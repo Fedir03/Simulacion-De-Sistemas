@@ -45,8 +45,8 @@ X_LABELS = {
 GROUP_FIELDS = ("density", "n", "model", "l", "theta0")
 
 
-def group_key(header: SimulationHeader, field: str) -> tuple[float, str]:
-    """Devuelve (orden, etiqueta) del grupo al que pertenece una corrida."""
+def _group_key_single(header: SimulationHeader, field: str) -> tuple[float, str]:
+    """Devuelve (orden, etiqueta) del grupo al que pertenece una corrida, para un solo campo."""
     if field == "density":
         return header.density, f"ρ = {header.density_label} (N = {header.n}, L = {header.l:g})"
     if field == "n":
@@ -55,7 +55,23 @@ def group_key(header: SimulationHeader, field: str) -> tuple[float, str]:
         return header.l, f"L = {header.l:g} (N = {header.n})"
     if field == "model":
         return 0.0, f"modelo {header.model}"
-    return 0.0, header.theta0_label
+    if field == "theta0":
+        return 0.0, header.theta0_label
+    raise SimulationFormatError(f"campo de agrupamiento desconocido: '{field}'")
+
+
+def group_key(header: SimulationHeader, field: str) -> tuple[float | tuple, str]:
+    """Devuelve (orden, etiqueta) del grupo al que pertenece una corrida.
+
+    `field` puede ser un solo campo (density) o varios separados por coma
+    (density,model) para una curva por cada combinacion, ej. la comparacion
+    estandar vs. votante en varias densidades a la vez.
+    """
+    fields = field.split(",")
+    if len(fields) == 1:
+        return _group_key_single(header, fields[0])
+    orders, labels = zip(*(_group_key_single(header, f) for f in fields))
+    return tuple(orders), " — ".join(labels)
 
 
 def differing_field(headers: Sequence[SimulationHeader]) -> str:
@@ -191,8 +207,11 @@ def build_argument_parser() -> argparse.ArgumentParser:
                              "permite mezclar corridas de distinto largo")
     parser.add_argument("--out", type=Path, default=None,
                         help="archivo de salida (.pdf/.png); sin este flag abre una ventana")
-    parser.add_argument("--group-by", choices=GROUP_FIELDS + ("auto",), default="auto",
-                        help="una curva por cada valor de este campo (default: auto)")
+    parser.add_argument("--group-by", default="auto",
+                        help="una curva por cada valor de este campo, entre "
+                             f"{', '.join(GROUP_FIELDS)} (default: auto). Acepta varios "
+                             "campos separados por coma (ej. density,model) para una "
+                             "curva por cada combinacion")
     parser.add_argument("--etas", type=lambda v: [float(x) for x in v.split(",")], default=None,
                         help="graficar solo estos valores de eta, separados por coma")
     parser.add_argument("--x", choices=("eta", "density", "n"), default="eta",
