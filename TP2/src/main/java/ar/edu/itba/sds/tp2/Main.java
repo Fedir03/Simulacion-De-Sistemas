@@ -14,7 +14,7 @@ public final class Main {
     private static final Map<String, Command> COMMANDS = Map.of(
             "simulate", new SimulateCommand(),
             "clusters", new ClustersCommand(),
-            "generate-ic", new GenerateIcCommand()
+            "generate-ic", new GenerateIcCommand(),
             "benchmark-cim", new BenchmarkCimCommand()
     );
 
