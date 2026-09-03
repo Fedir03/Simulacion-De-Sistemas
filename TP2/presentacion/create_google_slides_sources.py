@@ -23,28 +23,28 @@ PAGE_WIDTH = 25_400
 PAGE_HEIGHT = 19_050
 ANIMATION_SLIDES = {
     14: (
-        ("η = 1", "https://youtu.be/mRAaHnXSnb0"),
-        ("η = 2", "https://youtu.be/MukUz-tTahg"),
+        ("η = 0.5", "https://youtu.be/tjz83aO8iwQ"),
+        ("η = 2", "https://youtu.be/RP3dOs-_ELc"),
     ),
     15: (
-        ("η = 1", "https://youtu.be/reRM8mnPbuU"),
-        ("η = 2", "https://youtu.be/A-tdHbqojPY"),
+        ("η = 0.5", "https://youtu.be/ngE39u-xCEI"),
+        ("η = 2", "https://youtu.be/rkuXh_qFMdY"),
     ),
     16: (
-        ("η = 1", "https://youtu.be/hn91K8besVg"),
-        ("η = 2", "https://youtu.be/7QzRlKkZmnU"),
+        ("η = 0.5", "https://youtu.be/gbwHo-AOQGQ"),
+        ("η = 2", "https://youtu.be/w-pdjDPP4RM"),
     ),
     20: (
-        ("η = 1", "https://youtu.be/rROFMMLBNys"),
-        ("η = 2", "https://youtu.be/E76-Cjm9AB8"),
+        ("η = 0.5", "https://youtu.be/8RyfFk5Yj8Y"),
+        ("η = 2", "https://youtu.be/z1xa2CueQdE"),
     ),
     21: (
-        ("η = 1", "https://youtu.be/pXnl53frNz4"),
-        ("η = 2", "https://youtu.be/Nyy6OVckoXk"),
+        ("η = 0.5", "https://youtu.be/kPLsJwJBRlY"),
+        ("η = 2", "https://youtu.be/jrqbFW_8UeE"),
     ),
     22: (
-        ("η = 1", "https://youtu.be/D8dfmXZDJHs"),
-        ("η = 2", "https://youtu.be/QcYZ2piEkwg"),
+        ("η = 0.5", "https://youtu.be/hr4IxYUil08"),
+        ("η = 2", "https://youtu.be/YiQn1nXZoMQ"),
     ),
 }
 

@@ -52,18 +52,18 @@
 
 % URLs de las animaciones usadas en las diapositivas 14--16 y 20--22.
 % Reemplazar cada placeholder cuando el video correspondiente esté disponible.
-\newcommand{\animacionStandardRhoDosEtaUnoURL}{https://youtu.be/mRAaHnXSnb0}
-\newcommand{\animacionStandardRhoDosEtaDosURL}{https://youtu.be/MukUz-tTahg}
-\newcommand{\animacionStandardRhoCuatroEtaUnoURL}{https://youtu.be/reRM8mnPbuU}
-\newcommand{\animacionStandardRhoCuatroEtaDosURL}{https://youtu.be/A-tdHbqojPY}
-\newcommand{\animacionStandardRhoOchoEtaUnoURL}{https://youtu.be/hn91K8besVg}
-\newcommand{\animacionStandardRhoOchoEtaDosURL}{https://youtu.be/7QzRlKkZmnU}
-\newcommand{\animacionVoterRhoDosEtaUnoURL}{https://youtu.be/rROFMMLBNys}
-\newcommand{\animacionVoterRhoDosEtaDosURL}{https://youtu.be/E76-Cjm9AB8}
-\newcommand{\animacionVoterRhoCuatroEtaUnoURL}{https://youtu.be/pXnl53frNz4}
-\newcommand{\animacionVoterRhoCuatroEtaDosURL}{https://youtu.be/Nyy6OVckoXk}
-\newcommand{\animacionVoterRhoOchoEtaUnoURL}{https://youtu.be/D8dfmXZDJHs}
-\newcommand{\animacionVoterRhoOchoEtaDosURL}{https://youtu.be/QcYZ2piEkwg}
+\newcommand{\animacionStandardRhoDosEtaUnoURL}{https://youtu.be/tjz83aO8iwQ}
+\newcommand{\animacionStandardRhoDosEtaDosURL}{https://youtu.be/RP3dOs-_ELc"}
+\newcommand{\animacionStandardRhoCuatroEtaUnoURL}{https://youtu.be/ngE39u-xCEI}
+\newcommand{\animacionStandardRhoCuatroEtaDosURL}{https://youtu.be/rkuXh_qFMdY}
+\newcommand{\animacionStandardRhoOchoEtaUnoURL}{https://youtu.be/gbwHo-AOQGQ}
+\newcommand{\animacionStandardRhoOchoEtaDosURL}{https://youtu.be/w-pdjDPP4RM}
+\newcommand{\animacionVoterRhoDosEtaUnoURL}{https://youtu.be/8RyfFk5Yj8Y}
+\newcommand{\animacionVoterRhoDosEtaDosURL}{https://youtu.be/z1xa2CueQdE}
+\newcommand{\animacionVoterRhoCuatroEtaUnoURL}{https://youtu.be/kPLsJwJBRlY}
+\newcommand{\animacionVoterRhoCuatroEtaDosURL}{https://youtu.be/jrqbFW_8UeE}
+\newcommand{\animacionVoterRhoOchoEtaUnoURL}{https://youtu.be/hr4IxYUil08}
+\newcommand{\animacionVoterRhoOchoEtaDosURL}{https://youtu.be/YiQn1nXZoMQ}
 
 % Si existe logo_itba.png o logo_itba.pdf junto al .tex, se inserta.
 \newcommand{\institutionlogo}{%
@@ -77,7 +77,7 @@
 % ---------- Barra superior por sección ----------
 % Rangos de diapositivas del template:
 % Introducción 2--4 | Implementación 5--8 | Simulaciones 9--12
-% Resultados 13--24 | Conclusiones 25--27
+% Resultados 13--29 | Conclusiones 30--32
 \newcount\TPNavDot
 
 % Dibuja un punto por diapositiva de la sección. Solamente el punto de la
@@ -126,11 +126,11 @@
   \leavevmode
   \begin{beamercolorbox}[wd=\paperwidth,ht=0.50cm,dp=0.28cm]{headline navigation}%
     \makebox[\paperwidth][l]{%
-      \navblock{0.20}{Introducción}{2}{4}%
-      \navblock{0.22}{Implementación}{5}{8}%
-      \navblock{0.20}{Simulaciones}{9}{12}%
-      \navblock{0.23}{Resultados}{13}{24}%
-      \navblock{0.15}{Conclusiones}{25}{27}%
+      \navblock{0.17}{Introducción}{2}{4}%
+      \navblock{0.19}{Implementación}{5}{8}%
+      \navblock{0.17}{Simulaciones}{9}{12}%
+      \navblock{0.32}{Resultados}{13}{29}%
+      \navblock{0.15}{Conclusiones}{30}{32}%
     }%
   \end{beamercolorbox}%
   % La línea azul solo hace falta cuando la diapositiva no tiene título.
@@ -205,7 +205,7 @@
 }
 
 % Compara dos niveles de ruido manteniendo visibles los parámetros comunes.
-% #1 N, #2 L, #3 T, #4 imagen eta=1, #5 URL eta=1,
+% #1 N, #2 L, #3 T, #4 imagen eta=0.5, #5 URL eta=0.5,
 % #6 imagen eta=2, #7 URL eta=2.
 \newcommand{\dobleanimacion}[7]{%
   \begin{center}
@@ -216,8 +216,8 @@
   \begin{columns}[T,onlytextwidth]
     \begin{column}{0.485\textwidth}
       \centering
-      {\color{TPBlueDark}\large $\eta=1$}\par\vspace{0.08cm}
-      \videooimagen{#4}{4.75cm}{#5}{Animación con $\eta=1$}
+      {\color{TPBlueDark}\large $\eta=0.5$}\par\vspace{0.08cm}
+      \videooimagen{#4}{4.75cm}{#5}{Animación con $\eta=0.5$}
     \end{column}
     \begin{column}{0.485\textwidth}
       \centering
@@ -334,7 +334,7 @@
 % 7. Diagrama de arquitectura
 \begin{frame}{Diagrama de la Arquitectura}
   \centering
-  \maybeimage{figuras/arquitectura.pdf}{5.7cm}{Insertar diagrama de arquitectura}
+  \maybeimage{figuras/arquitectura_tp2.png}{5.7cm}{Insertar diagrama de arquitectura}
 \end{frame}
 
 % 8. Algoritmo implementado
@@ -364,9 +364,9 @@
   \end{itemize}
   Parámetros de entrada variables:
   \begin{itemize}
-    \item $N\in[\text{rango}]$ --- [cantidad de entidades]
-    \item $L\in[\text{rango}]$ --- [tamaño del dominio]
-    \item $T\in[\text{rango}]$ --- [cantidad de pasos]
+    \item $N\in[11, 800]$ --- Cantidad de entidades
+    \item $L=10$ --- Tamaño del dominio
+    \item $T\in[0, 10000]$ --- Cantidad de pasos
     \item $\eta\in[0, 2\pi]$ --- Ruido
   \end{itemize}
 \end{frame}
@@ -404,19 +404,19 @@
 % 14--16. Resultados visuales / animaciones del modelo estándar
 \begin{frame}{Modelo Estándar --- Densidad $\rho=2$}
   \dobleanimacion{200}{10}{1000}
-    {figuras/standard_rho2_eta1_mid.png}{\animacionStandardRhoDosEtaUnoURL}
+    {figuras/standard_rho2_eta0.5_mid.png}{\animacionStandardRhoDosEtaUnoURL}
     {figuras/standard_rho2_eta2_mid.png}{\animacionStandardRhoDosEtaDosURL}
 \end{frame}
 
 \begin{frame}{Modelo Estándar --- Densidad $\rho=4$}
   \dobleanimacion{400}{10}{1000}
-    {figuras/standard_rho4_eta1_mid.png}{\animacionStandardRhoCuatroEtaUnoURL}
+    {figuras/standard_rho4_eta0.5_mid.png}{\animacionStandardRhoCuatroEtaUnoURL}
     {figuras/standard_rho4_eta2_mid.png}{\animacionStandardRhoCuatroEtaDosURL}
 \end{frame}
 
 \begin{frame}{Modelo Estándar --- Densidad $\rho=8$}
   \dobleanimacion{800}{10}{1000}
-    {figuras/standard_rho8_eta1_mid.png}{\animacionStandardRhoOchoEtaUnoURL}
+    {figuras/standard_rho8_eta0.5_mid.png}{\animacionStandardRhoOchoEtaUnoURL}
     {figuras/standard_rho8_eta2_mid.png}{\animacionStandardRhoOchoEtaDosURL}
 \end{frame}
 
@@ -446,19 +446,19 @@
 % 20--22. Resultados visuales del modelo votante
 \begin{frame}{Modelo Votante --- Densidad $\rho=2$}
   \dobleanimacion{200}{10}{1000}
-    {figuras/voter_rho2_eta1_mid.png}{\animacionVoterRhoDosEtaUnoURL}
+    {figuras/voter_rho2_eta0.5_mid.png}{\animacionVoterRhoDosEtaUnoURL}
     {figuras/voter_rho2_eta2_mid.png}{\animacionVoterRhoDosEtaDosURL}
 \end{frame}
 
 \begin{frame}{Modelo Votante --- Densidad $\rho=4$}
   \dobleanimacion{400}{10}{1000}
-    {figuras/voter_rho4_eta1_mid.png}{\animacionVoterRhoCuatroEtaUnoURL}
+    {figuras/voter_rho4_eta0.5_mid.png}{\animacionVoterRhoCuatroEtaUnoURL}
     {figuras/voter_rho4_eta2_mid.png}{\animacionVoterRhoCuatroEtaDosURL}
 \end{frame}
 
 \begin{frame}{Modelo Votante --- Densidad $\rho=8$}
   \dobleanimacion{800}{10}{1000}
-    {figuras/voter_rho8_eta1_mid.png}{\animacionVoterRhoOchoEtaUnoURL}
+    {figuras/voter_rho8_eta0.5_mid.png}{\animacionVoterRhoOchoEtaUnoURL}
     {figuras/voter_rho8_eta2_mid.png}{\animacionVoterRhoOchoEtaDosURL}
 \end{frame}
 
@@ -493,13 +493,6 @@
 \begin{frame}{Interacción [Nombre de la Variante]}
   \centering
   \maybeimage{figuras/evolucion-variante.pdf}{5.6cm}{Insertar evolución temporal de la variante}
-\end{frame}
-
-\begin{frame}{Interacción [Nombre de la Variante]}
-  \centering
-  \maybeimage{figuras/resultado-final.pdf}{5.0cm}{Insertar gráfico final con barras de error}
-  \colorbox{TPLight}{\parbox[c][0.48cm][c]{0.90\linewidth}{\centering
-    $[\text{variable}]\in\{[\text{valores estudiados}]\}$}}
 \end{frame}
 
 \begin{frame}{Interacción Votante}
