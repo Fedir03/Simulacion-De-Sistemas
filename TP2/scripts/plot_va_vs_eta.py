@@ -130,10 +130,8 @@ def collect(indexes: Sequence[Path], transient: str | int, group_by: str,
 
 
 OBSERVABLE_LABELS = {
-    "va": ("Parámetro de orden estacionario $\\overline{v}_a$",
-           "Parámetro de orden estacionario vs. ruido"),
-    "S": ("Fracción en la componente gigante $\\overline{S}$",
-          "Componente gigante estacionaria vs. ruido"),
+    "va": "Parámetro de orden estacionario $\\overline{v}_a$",
+    "S": "Fracción en la componente gigante $\\overline{S}$",
 }
 
 
@@ -147,11 +145,11 @@ def plot(curves: Sequence[Curve], title: str | None, transient: int, observable:
                     color=PALETTE[index % len(PALETTE)], capsize=3, linewidth=1.4,
                     markersize=5, label=curve.label)
     ax.set_xlabel("Ruido $\\eta$")
-    ylabel, default_title = OBSERVABLE_LABELS.get(observable, (observable, observable + " vs. ruido"))
+    ylabel = OBSERVABLE_LABELS.get(observable, observable)
     ax.set_ylabel(ylabel)
     ax.set_ylim(0.0, 1.02)
-    ax.set_title(title if title is not None
-                 else f"{default_title} (transitorio descartado: {transient})")
+    if title is not None:
+        ax.set_title(title)
     ax.grid(alpha=0.3)
     ax.legend(fontsize=9)
     fig.tight_layout()

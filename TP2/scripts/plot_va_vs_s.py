@@ -25,6 +25,7 @@ from simulation_io import SimulationFormatError, SimulationHeader
 
 PALETTE = ["#2a9d8f", "#e63946", "#457b9d", "#f4a261", "#8e7dbe", "#264653"]
 MARKERS = ["o", "s", "^", "D", "v", "P"]
+ERRORBAR_ALPHA = 0.35
 
 
 @dataclass(frozen=True)
@@ -83,19 +84,23 @@ def plot(curves: dict[tuple[float, str], list[Point]], title: str | None, transi
     fig, ax = plt.subplots(figsize=(9, 6))
     for index, key in enumerate(sorted(curves)):
         points = curves[key]
-        ax.errorbar(
+        _, caplines, barlinecols = ax.errorbar(
             [p.s for p in points], [p.va for p in points],
             xerr=[p.s_error for p in points], yerr=[p.va_error for p in points],
             fmt=MARKERS[index % len(MARKERS)] + "-", color=PALETTE[index % len(PALETTE)],
-            capsize=3, linewidth=1.2, markersize=5, label=key[1],
+            capsize=1.5, linewidth=1.2, markersize=5, label=key[1],
         )
+        for cap in caplines:
+            cap.set_alpha(ERRORBAR_ALPHA)
+        for barlinecol in barlinecols:
+            barlinecol.set_alpha(ERRORBAR_ALPHA)
 
     ax.set_xlabel("Fracción en la componente gigante $\\overline{S}$")
     ax.set_ylabel("Parámetro de orden $\\overline{v}_a$")
     ax.set_xlim(0.0, 1.02)
     ax.set_ylim(0.0, 1.02)
-    ax.set_title(title if title is not None
-                 else f"Polarización vs. componente gigante (promedios para $t \\geq$ {transient})")
+    if title is not None:
+        ax.set_title(title)
     ax.grid(alpha=0.3)
     ax.legend(fontsize=9)
     fig.tight_layout()

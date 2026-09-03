@@ -107,19 +107,6 @@ def observable_label(observable: str) -> str:
     return OBSERVABLE_LABELS.get(observable, observable)
 
 
-def build_title(headers: Sequence[SimulationHeader], observable: str = "va") -> str:
-    """Los parametros que comparten todas las corridas van al titulo, no a la leyenda."""
-    reference = headers[0]
-    shared = [f"Modelo {reference.model}"] if all(h.model == reference.model for h in headers) else []
-    if all(h.n == reference.n and h.l == reference.l for h in headers):
-        shared.append(f"N={reference.n}")
-        shared.append(f"ρ={reference.density:g}")
-    if all(h.eta == reference.eta for h in headers):
-        shared.append(f"η={reference.eta:g}")
-    nombre = "Parámetro de orden $v_a$" if observable == "va" else observable_label(observable)
-    return f"{nombre} vs. tiempo" + (" — " + ", ".join(shared) if shared else "")
-
-
 def panel_key(header: SimulationHeader, field: str) -> tuple[float, str]:
     """Devuelve (orden, titulo) del panel al que va una corrida."""
     if field == "density":
@@ -198,7 +185,8 @@ def plot(paths: Sequence[Path], label_by: str, transient: str | int | None, titl
         fig, ax = plt.subplots(figsize=figsize)
         draw_axes(ax, series, labels, transient, logy, ticker, show_ylabel=True,
                   ylabel=axis_label)
-        ax.set_title(title if title is not None else build_title(headers, observable))
+        if title is not None:
+            ax.set_title(title)
         report_tail(series, labels, transient, observable=observable)
         fig.tight_layout()
         return fig
@@ -222,7 +210,8 @@ def plot(paths: Sequence[Path], label_by: str, transient: str | int | None, titl
         print(f"\n{key[1]}")
         report_tail(panel_series, panel_labels, transient, prefix="  ",
                     observable=observable)
-    fig.suptitle(title if title is not None else build_title(headers, observable))
+    if title is not None:
+        fig.suptitle(title)
     fig.tight_layout()
     return fig
 
