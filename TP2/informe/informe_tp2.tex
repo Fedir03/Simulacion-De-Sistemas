@@ -18,6 +18,8 @@
 \usepackage{sectsty}
 \usepackage{caption}
 \usepackage{hyperref}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,calc}
 \hypersetup{colorlinks=true, linkcolor=black, citecolor=black, urlcolor=blue, pdftitle={TP2 - Modelo de Vicsek}}
 
 % ---------- Colores (mismo acento que la presentación) ----------
@@ -244,9 +246,77 @@ de forma que el resto del motor (generación de condición inicial, contorno
 periódico, búsqueda de vecinos, escritura de resultados) es idéntico para
 ambos modelos.
 
-\faltafigura{uml_placeholder}{Diagrama UML de la arquitectura del motor de simulación.}{fig:uml}
-% TODO: reemplazar por el diagrama UML real de la arquitectura del motor
-% (paquete A) cuando esté disponible.
+\begin{figure}[H]
+  \centering
+  \resizebox{0.95\linewidth}{!}{%
+  \begin{tikzpicture}[
+      class/.style={rectangle, rounded corners=2pt, draw=TPBlue, thick,
+        fill=TPPlaceholder, align=center, minimum height=1.1cm,
+        font=\small, inner sep=4pt},
+      interfacebox/.style={rectangle, rounded corners=2pt, draw=TPBlue,
+        thick, align=center, minimum height=1.1cm, font=\small, inner sep=4pt},
+      external/.style={rectangle, rounded corners=2pt, draw=TPNavGray,
+        dashed, align=center, minimum height=1.1cm, font=\small, inner sep=4pt},
+      groupbox/.style={rectangle, draw=TPNavGray, dotted, rounded corners=2pt},
+      usa/.style={-{Latex[length=2.2mm]}, draw=TPBlue, thick},
+      compone/.style={{Diamond[length=2.2mm]}-, draw=TPBlue, thick},
+      impl/.style={-{Triangle[open,length=2.5mm]}, draw=TPNavGray, dashed, thick},
+      flujo/.style={-{Latex[length=3mm]}, draw=TPNavGray, very thick},
+    ]
+
+    % --- grupo condición inicial ---
+    \node[groupbox, minimum width=5.6cm, minimum height=3.1cm] (icgroup) at (2.3,10.75) {};
+    \node[TPNavGray, font=\footnotesize\itshape, anchor=north west] at ($(icgroup.north west)+(0.15,-0.1)$) {condición inicial};
+    \node[class, minimum width=4.6cm] (icgen) at (2.3,11.2) {\textbf{InitialConditionGenerator}\\[1pt]{\footnotesize\itshape generate(n, L, random, $\theta_0$)}};
+    \node[class, minimum width=4.2cm] (icfile) at (2.3,10.0) {\textbf{InitialConditionFile}\\[1pt]{\footnotesize\itshape write(...) / read(...)}};
+
+    % --- composition root ---
+    \node[class, minimum width=4.2cm] (cmd) at (11.5,11.2) {\textbf{SimulateCommand}\\[1pt]{\footnotesize\itshape orquestador CLI}};
+
+    % --- grupo engine ---
+    \node[groupbox, minimum width=15.5cm, minimum height=7.8cm] (enginegroup) at (11.8,5) {};
+    \node[TPNavGray, font=\footnotesize\itshape, anchor=north west] at ($(enginegroup.north west)+(0.15,-0.1)$) {engine};
+
+    \node[class, minimum width=5.8cm] (sim) at (11.8,7.6) {\textbf{VicsekSimulation}\\[1pt]{\footnotesize\itshape orquesta el loop de simulación}};
+    \node[class, minimum width=5.0cm] (lookup) at (7.6,5.2) {\textbf{NeighborLookup}\\[1pt]{\footnotesize\itshape adapta VicsekParticle $\leftrightarrow$ Particle (TP1)}};
+    \node[interfacebox, minimum width=4.8cm] (strategy) at (16.4,5.2) {{\footnotesize\itshape «interface»}\\\textbf{DirectionUpdateStrategy}};
+    \node[class, minimum width=3.6cm] (standard) at (14.6,2.4) {\textbf{StandardModel}\\[1pt]{\footnotesize\itshape promedio vectorial}};
+    \node[class, minimum width=3.4cm] (voter) at (18.4,2.4) {\textbf{VoterModel}\\[1pt]{\footnotesize\itshape copia al azar}};
+    \node[class, minimum width=4.4cm] (boundary) at (10.5,2.4) {\textbf{PeriodicBoundary}\\[1pt]{\footnotesize\itshape estática -- wrap(coord, L)}};
+
+    % --- externo TP1 ---
+    \node[external, minimum width=4.0cm] (finder) at (2.3,5.2) {\textbf{NeighborFinder} (TP1)\\[1pt]{\footnotesize\itshape CellIndexMethod / BruteForce}};
+
+    % --- flechas ---
+    \draw[usa] (cmd.south) -- (sim.north);
+    \draw[usa] (cmd.west) to[bend right=20] node[midway, above, font=\tiny, text width=3.2cm, align=center] {crea (con CellIndexMethod de TP1)} (lookup.north east);
+    \draw[usa] (cmd.east) to[bend left=20] node[midway, above, font=\tiny, text width=2.6cm, align=center] {instancia según --model} (strategy.north west);
+
+    \draw[compone] (sim.south west) -- (lookup.north east);
+    \draw[compone] (sim.south east) -- (strategy.north west);
+    \draw[usa] (sim.south) -- (boundary.north);
+
+    \draw[usa] (lookup.west) -- (finder.east);
+
+    \draw[impl] (standard.north) -- (strategy.south east);
+    \draw[impl] (voter.north) -- (strategy.south);
+
+    \draw[flujo] (icgroup.east) -- node[midway, above, font=\tiny] {flujo general} (cmd.west);
+
+  \end{tikzpicture}%
+  }
+
+  \vspace{2mm}
+  {\footnotesize
+    \tikz{\draw[-{Latex[length=2.2mm]}, draw=TPBlue, thick] (0,0) -- (0.6,0);}~usa/crea \quad
+    \tikz{\draw[{Diamond[length=2.2mm]}-, draw=TPBlue, thick] (0,0) -- (0.6,0);}~composición \quad
+    \tikz{\draw[-{Triangle[open,length=2.5mm]}, draw=TPNavGray, dashed, thick] (0,0) -- (0.6,0);}~implementa \quad
+    \tikz{\draw[-{Latex[length=3mm]}, draw=TPNavGray, very thick] (0,0) -- (0.6,0);}~flujo general
+  }
+
+  \caption{Diagrama UML de la arquitectura del motor de simulación.}
+  \label{fig:uml}
+\end{figure}
 
 \subsection{Orden del paso de simulación}
 
@@ -329,8 +399,47 @@ t1
 
 \subsection{Geometría del sistema}
 
-\faltafigura{sistema_placeholder}{Esquema del dominio de simulación: caja periódica de lado $L$, con el radio de interacción $r_c$ marcado sobre una partícula de ejemplo.}{fig:sistema}
-% TODO: dibujo de la caja L x L con condición de contorno periódica y rc marcado.
+\begin{figure}[H]
+  \centering
+  \resizebox{0.5\linewidth}{!}{%
+  \begin{tikzpicture}[
+      dim/.style={{Latex[length=1.8mm]}-{Latex[length=1.8mm]}, draw=TPNavGray, thin},
+    ]
+    % caja periódica
+    \draw[draw=TPBlue, thick] (0,0) rectangle (6,6);
+
+    % cota L, lado inferior
+    \draw[dim] (0,-0.7) -- (6,-0.7);
+    \draw[draw=TPNavGray, thin] (0,-0.55) -- (0,-0.85);
+    \draw[draw=TPNavGray, thin] (6,-0.55) -- (6,-0.85);
+    \node[TPNavGray] at (3,-1.15) {\small $L$};
+
+    % cota L, lado izquierdo
+    \draw[dim] (-0.7,0) -- (-0.7,6);
+    \draw[draw=TPNavGray, thin] (-0.55,0) -- (-0.85,0);
+    \draw[draw=TPNavGray, thin] (-0.55,6) -- (-0.85,6);
+    \node[TPNavGray] at (-1.15,3) {\small $L$};
+
+    % partículas comunes (posiciones fijas)
+    \foreach \p in {(1.0,5.0),(1.3,1.2),(2.0,4.3),(4.6,4.8),(5.2,1.5),(4.4,1.3),(1.4,3.0),(0.8,2.2)}
+      \fill[TPNavGray] \p circle (0.05);
+
+    % partícula dentro del radio de interacción (vecina)
+    \fill[TPNavGray] (3.6,3.4) circle (0.05);
+
+    % partícula destacada i
+    \fill[TPBlue] (3,3) circle (0.07);
+    \node[TPBlue, anchor=north] at (3.9,2.15) {\footnotesize partícula $i$};
+
+    % radio de interacción rc
+    \draw[draw=TPBlue, dashed, thin] (3,3) circle (0.9);
+    \draw[draw=TPBlue, dotted, thin] (3,3) -- (3.85,3.31);
+    \node[TPBlue] at (3.42,3.32) {\small $r_c$};
+  \end{tikzpicture}%
+  }
+  \caption{Esquema del dominio de simulación: caja periódica de lado $L$, con el radio de interacción $r_c$ marcado sobre una partícula de ejemplo.}
+  \label{fig:sistema}
+\end{figure}
 
 \subsection{Observables}
 \label{sec:observables}
@@ -463,11 +572,7 @@ modelos ``contamine'' al otro con la misma secuencia.
 
 % Alcance acotado según feedback de la cátedra en la pre-entrega del 31/08:
 % una figura resumen por densidad, no una comparación exhaustiva figura por figura.
-\faltafigura{figuras/comparacion-modelos-rho2.pdf}{Comparación entre el modelo estándar y el modelo votante, $\rho = 2$.}{fig:comparacion-rho2}
-
-\faltafigura{figuras/comparacion-modelos-rho4.pdf}{Comparación entre el modelo estándar y el modelo votante, $\rho = 4$.}{fig:comparacion-rho4}
-
-\faltafigura{figuras/comparacion-modelos-rho8.pdf}{Comparación entre el modelo estándar y el modelo votante, $\rho = 8$.}{fig:comparacion-rho8}
+\faltafigura{figuras/comparacion-modelos.pdf}{Comparación entre el modelo estándar y el modelo votante, para $\rho = 2, 4, 8$.}{fig:comparacion-modelos}
 
 \faltatexto
 
