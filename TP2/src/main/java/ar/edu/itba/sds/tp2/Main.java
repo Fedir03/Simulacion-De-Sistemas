@@ -1,5 +1,6 @@
 package ar.edu.itba.sds.tp2;
 
+import ar.edu.itba.sds.tp2.command.BenchmarkCimCommand;
 import ar.edu.itba.sds.tp2.command.ClustersCommand;
 import ar.edu.itba.sds.tp2.command.Command;
 import ar.edu.itba.sds.tp2.command.GenerateIcCommand;
@@ -14,6 +15,7 @@ public final class Main {
             "simulate", new SimulateCommand(),
             "clusters", new ClustersCommand(),
             "generate-ic", new GenerateIcCommand()
+            "benchmark-cim", new BenchmarkCimCommand()
     );
 
     private Main() {
@@ -56,5 +58,6 @@ public final class Main {
         System.err.println("           [--theta0=random|<radianes>]");
         System.err.println("  clusters --in=<corrida.txt> --out=<S.csv> [--stride=1]");
         System.err.println("  generate-ic --n=<int> --seedIC=<long|auto> --out=<archivo> [--l=10.0]");
+        System.err.println("  benchmark-cim --in=<a.txt,b.txt,...> --out=<csv> [--warmup=50]");
     }
 }
