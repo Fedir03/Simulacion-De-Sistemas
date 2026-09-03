@@ -36,6 +36,14 @@ class Point:
     s_error: float
 
 
+def header_of(index_dir: Path, row: dict[str, str]):
+    """Cabecera de la corrida, para poder etiquetar con density_label."""
+    path = Path(row["va_csv"])
+    if not path.is_absolute():
+        path = index_dir / path
+    return load_series(path)[0]
+
+
 def steady_mean(index_dir: Path, relative: str, transient: str | int) -> tuple[float, float]:
     path = Path(relative)
     if not path.is_absolute():
@@ -60,7 +68,8 @@ def collect(indexes: Sequence[Path], transient: str | int) -> dict[tuple[float, 
             va_mean, _ = steady_mean(index_path.parent, row["va_csv"], transient)
             s_mean, _ = steady_mean(index_path.parent, row["s_csv"], transient)
             density = int(row["n"]) / (float(row["l"]) ** 2)
-            key = (density, f"ρ = {density:.4g} (N = {row['n']}, L = {float(row['l']):.4g})")
+            key = (density, f"ρ = {header_of(index_path.parent, row).density_label} "
+                            f"(N = {row['n']}, L = {float(row['l']):.4g})")
             va_list, s_list = grouped[key][float(row["eta"])]
             va_list.append(va_mean)
             s_list.append(s_mean)

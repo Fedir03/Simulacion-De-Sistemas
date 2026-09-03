@@ -40,7 +40,7 @@ def label_for(header: SimulationHeader, path: Path, field: str) -> str:
     if field == "model":
         return f"modelo {header.model}"
     if field == "n":
-        return f"N = {header.n} (ρ = {header.density:g})"
+        return f"N = {header.n} (ρ = {header.density_label})"
     if field == "seedIC":
         return f"seedIC = {header.seed_ic}"
     return path.stem
@@ -120,10 +120,71 @@ def build_title(headers: Sequence[SimulationHeader], observable: str = "va") -> 
     return f"{nombre} vs. tiempo" + (" — " + ", ".join(shared) if shared else "")
 
 
+def parse_vlines(spec: str) -> list[tuple[float, float]]:
+    """Parsea '1/pi:2000,1/2pi:4300' o '0.318:2000' en pares (densidad, tiempo).
+
+    Sirve para marcar el inicio del estacionario cuando es distinto en cada densidad, que
+    es lo que pasa con S: el agrupamiento es mas lento cuanto mas diluido el sistema.
+    """
+    pares: list[tuple[float, float]] = []
+    for token in spec.split(","):
+        token = token.strip()
+        if not token:
+            continue
+        densidad, _, tiempo = token.rpartition(":")
+        pares.append((parse_density(densidad), float(tiempo)))
+    return pares
+
+
+def parse_density(texto: str) -> float:
+    """Acepta un decimal o la forma fraccionaria: '1/pi', '1/2pi', '1/(3pi)'."""
+    limpio = texto.strip().replace("(", "").replace(")", "").replace(" ", "")
+    if "pi" in limpio.lower():
+        numerador, _, denominador = limpio.lower().partition("/")
+        factor = denominador.replace("pi", "")
+        return float(numerador) / ((float(factor) if factor else 1.0) * math.pi)
+    return float(limpio)
+
+
+VLINE_COLORS = ["#0b6e2e", "#1f5fa8", "#b5651d", "#7b2cbf"]
+
+
+def vlines_for(density: float, vlines: Sequence[tuple[float, float]]) -> list[float]:
+    return [t for d, t in vlines if abs(d - density) < 1e-4]
+
+
+NAMED_COLORS = {"verde": "#0b6e2e", "azul": "#1f5fa8", "rojo": "#c1121f",
+                "naranja": "#b5651d", "violeta": "#7b2cbf", "gris": "#555555",
+                "mostaza": "#d4a017"}
+
+
+def vline_sets_for(density: float, sets) -> list[tuple[str, str, float]]:
+    """Para un panel, devuelve (color, etiqueta, tiempo) de cada conjunto que le aplica."""
+    aplican = []
+    for color, label, pares in sets:
+        for tiempo in vlines_for(density, pares):
+            aplican.append((color, label, tiempo))
+    return aplican
+
+
+def build_vline_sets(vlines, labels, colors) -> list:
+    """Empareja cada conjunto de --vlines con su etiqueta y su color."""
+    if not vlines:
+        return []
+    labels, colors = labels or [], colors or []
+    resueltos = []
+    for i, pares in enumerate(vlines):
+        color = colors[i] if i < len(colors) else VLINE_COLORS[i % len(VLINE_COLORS)]
+        resueltos.append((NAMED_COLORS.get(color.lower(), color),
+                          labels[i] if i < len(labels) else "inicio del estacionario",
+                          pares))
+    return resueltos
+
+
 def panel_key(header: SimulationHeader, field: str) -> tuple[float, str]:
     """Devuelve (orden, titulo) del panel al que va una corrida."""
     if field == "density":
-        return header.density, f"ρ = {header.density:g}  (N = {header.n}, L = {header.l:g})"
+        return header.density, f"ρ = {header.density_label}  (N = {header.n}, L = {header.l:g})"
     if field == "n":
         return float(header.n), f"N = {header.n}"
     if field == "eta":
@@ -132,7 +193,8 @@ def panel_key(header: SimulationHeader, field: str) -> tuple[float, str]:
 
 
 def draw_axes(ax, series, labels, transient, logy, ticker, show_ylabel: bool,
-              ylabel: str, ylim: tuple[float, float] | None = None) -> None:
+              ylabel: str, ylim: tuple[float, float] | None = None,
+              vlines: Sequence[tuple[str, str, float]] = ()) -> None:
     """Dibuja un conjunto de curvas v_a(t) sobre unos ejes ya creados."""
     headers = [header for header, _, _ in series]
     for index, ((header, steps, values), label) in enumerate(zip(series, labels)):
@@ -142,6 +204,9 @@ def draw_axes(ax, series, labels, transient, logy, ticker, show_ylabel: bool,
     if transient is not None:
         ax.axvline(transient * headers[0].dt, color="#555555", linestyle="--", alpha=0.7,
                    label=f"inicio del estacionario (t={transient})")
+    for color, etiqueta, tiempo in vlines:
+        ax.axvline(tiempo * headers[0].dt, color=color, linestyle="--", alpha=0.95,
+                   linewidth=1.4, label=f"{etiqueta} (t={tiempo:g})")
 
     last_time = max(steps[-1] * header.dt for header, steps, _ in series)
     major_step, minor_step = nice_tick_steps(last_time)
@@ -179,7 +244,8 @@ def report_tail(series, labels, transient: int | None, prefix: str = "",
 def plot(paths: Sequence[Path], label_by: str, transient: int | None, title: str | None,
          logy: bool = False, panels_by: str | None = None,
          figsize: tuple[float, float] = (9.0, 6.0), ylabel: str | None = None,
-         ylim: tuple[float, float] | None = None):
+         ylim: tuple[float, float] | None = None,
+         vlines=()):
     import matplotlib.pyplot as plt
     from matplotlib import ticker
 
@@ -198,7 +264,9 @@ def plot(paths: Sequence[Path], label_by: str, transient: int | None, title: str
     if panels_by is None:
         fig, ax = plt.subplots(figsize=figsize)
         draw_axes(ax, series, labels, transient, logy, ticker, show_ylabel=True,
-                  ylabel=axis_label, ylim=ylim)
+                  ylabel=axis_label, ylim=ylim,
+                  vlines=[(color, label, t)
+                          for color, label, pares in vlines for _, t in pares])
         ax.set_title(title if title is not None else build_title(headers, observable))
         report_tail(series, labels, transient, observable=observable)
         fig.tight_layout()
@@ -218,7 +286,8 @@ def plot(paths: Sequence[Path], label_by: str, transient: int | None, title: str
         panel_series = [series[i] for i in indices]
         panel_labels = [labels[i] for i in indices]
         draw_axes(ax, panel_series, panel_labels, transient, logy, ticker,
-                  show_ylabel=position == 0, ylabel=axis_label, ylim=ylim)
+                  show_ylabel=position == 0, ylabel=axis_label, ylim=ylim,
+                  vlines=vline_sets_for(panel_series[0][0].density, vlines))
         ax.set_title(key[1])
         print(f"\n{key[1]}")
         report_tail(panel_series, panel_labels, transient, prefix="  ",
@@ -249,6 +318,16 @@ def build_argument_parser() -> argparse.ArgumentParser:
                         help="partir en un panel por cada valor de este campo")
     parser.add_argument("--logy", action="store_true",
                         help="escala logaritmica en el eje vertical (v_a)")
+    parser.add_argument("--vlines", type=parse_vlines, action="append", default=None,
+                        help="lineas verticales por densidad, como '1/pi:2000,1/2pi:4300'. "
+                             "La densidad acepta forma fraccionaria de pi o decimal. Se puede "
+                             "repetir el flag para varios conjuntos; cada uno toma un color "
+                             "distinto (verde, azul, naranja, violeta)")
+    parser.add_argument("--vlines-label", action="append", default=None,
+                        help="etiqueta de leyenda de cada --vlines, en el mismo orden")
+    parser.add_argument("--vlines-color", action="append", default=None,
+                        help="color de cada --vlines: verde, azul, rojo, naranja, violeta, "
+                             "gris, o un color de Matplotlib. Por defecto se ciclan")
     parser.add_argument("--ylim", type=lambda v: tuple(float(x) for x in v.split(",")),
                         default=None,
                         help="rango del eje y como 'min,max' (default: 0,1.02). Sirve para hacer zoom cuando el observable se mueve poco")
@@ -267,7 +346,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             matplotlib.use("Agg")  # sin ventana: solo se guarda el archivo
         fig = plot(args.inputs, args.label_by, args.transient, args.title,
                    args.logy, args.panels_by, (args.width, args.height), args.ylabel,
-                   args.ylim)
+                   args.ylim, build_vline_sets(args.vlines, args.vlines_label,
+                                    args.vlines_color))
     except (OSError, SimulationFormatError, ValueError) as exc:
         print(f"Error: {exc}")
         return 1

@@ -48,9 +48,9 @@ GROUP_FIELDS = ("density", "n", "model", "l", "theta0")
 def group_key(header: SimulationHeader, field: str) -> tuple[float, str]:
     """Devuelve (orden, etiqueta) del grupo al que pertenece una corrida."""
     if field == "density":
-        return header.density, f"ρ = {header.density:g} (N = {header.n}, L = {header.l:g})"
+        return header.density, f"ρ = {header.density_label} (N = {header.n}, L = {header.l:g})"
     if field == "n":
-        return float(header.n), f"N = {header.n} (L = {header.l:g}, ρ = {header.density:g})"
+        return float(header.n), f"N = {header.n} (L = {header.l:g}, ρ = {header.density_label})"
     if field == "l":
         return header.l, f"L = {header.l:g} (N = {header.n})"
     if field == "model":
