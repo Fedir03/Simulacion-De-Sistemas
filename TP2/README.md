@@ -170,13 +170,28 @@ for pair in "200 2" "400 4" "800 8"; do set -- $pair
 done
 
 python3 TP2/scripts/plot_va_vs_eta.py generated/c_eta_rho*/runs.csv --group-by=density \
-    --transient=500 --out=TP2/presentacion/figuras/relacion-parametro-observable.pdf
+    --transient=500 --out=TP2/presentacion/figuras/relacion-parametro-observable-estandar.pdf
+```
+
+La misma curva para el modelo votante, con corridas independientes (sin compartir
+condición inicial con las de standard — eso es lo que hace el punto (f)):
+
+```bash
+for pair in "200 2" "400 4" "800 8"; do set -- $pair
+  python3 TP2/scripts/sweep.py eta --model=voter --n=$1 --l=10 --steps=3000 \
+      --etas=0,0.5,1.0,1.5,2.0,2.5,3.0,3.5,4.0,4.5,5.0 --runs=5 --no-keep-traj \
+      --outdir=generated/c_voter_eta_rho$2
+done
+
+python3 TP2/scripts/plot_va_vs_eta.py generated/c_voter_eta_rho*/runs.csv --group-by=density \
+    --transient=500 --out=TP2/presentacion/figuras/relacion-parametro-observable-votante.pdf
 ```
 
 `plot_va_vs_eta.py` acepta varios `runs.csv` y dibuja **una curva por grupo**: con
 `--group-by=density` sale una por densidad, con `--group-by=model` sale la comparación
-estándar vs. votante que pide el punto (f), y con `--group-by=n` el barrido de tamaño.
-Con `--group-by=auto` elige solo el campo que difiere entre las corridas.
+pareada estándar vs. votante que pide el punto (f) (misma condición inicial vía
+`--shared-ic-dir`), y con `--group-by=n` el barrido de tamaño. Con `--group-by=auto`
+elige solo el campo que difiere entre las corridas.
 
 Cada punto junta los puntos crudos de la cola estacionaria de las `--runs` semillas en
 una sola bolsa de datos y calcula un único promedio y desvío muestral sobre esa bolsa
