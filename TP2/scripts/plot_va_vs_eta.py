@@ -34,8 +34,14 @@ from order_parameter import (
 from simulation_io import SimulationFormatError, SimulationHeader
 
 
-PALETTE = ["#2a9d8f", "#e63946", "#457b9d", "#f4a261", "#8e7dbe", "#264653"]
-MARKERS = ["o", "s", "^", "D", "v", "P"]
+PALETTE = ["#2a9d8f", "#e63946", "#457b9d", "#f4a261", "#8e7dbe", "#264653",
+           "#b5179e", "#3a5a40", "#9c6644"]
+MARKERS = ["o", "s", "^", "D", "v", "P", "X", "*", "<"]
+X_LABELS = {
+    "eta": "Ruido $\\eta$",
+    "density": "Densidad $\\rho$",
+    "n": "Cantidad de partículas $N$",
+}
 GROUP_FIELDS = ("density", "n", "model", "l", "theta0")
 
 
@@ -85,13 +91,24 @@ def read_index(path: Path) -> list[dict[str, str]]:
     return rows
 
 
+def x_value(header: SimulationHeader, eta: float, x_field: str) -> float:
+    if x_field == "density":
+        return header.density
+    if x_field == "n":
+        return float(header.n)
+    return eta
+
+
 def collect(indexes: Sequence[Path], transient: str | int, group_by: str,
-            column: str = "va_csv") -> tuple[list[Curve], str, str]:
+            column: str = "va_csv", x_field: str = "eta",
+            etas: Sequence[float] | None = None) -> tuple[list[Curve], str, str]:
     """Lee todos los indices y arma una curva <v_a> vs eta por cada grupo."""
     per_run: list[tuple[SimulationHeader, float, float]] = []
     observables: set[str] = set()
     for index_path in indexes:
         for row in read_index(index_path):
+            if etas is not None and not any(abs(float(row["eta"]) - e) < 1e-9 for e in etas):
+                continue
             if column not in row or not row[column]:
                 raise SimulationFormatError(
                     f"{index_path}: la corrida no tiene la columna '{column}' "
@@ -104,12 +121,17 @@ def collect(indexes: Sequence[Path], transient: str | int, group_by: str,
             per_run.append((header, float(row["eta"]), run_mean))
             observables.add(observable)
 
-    field = differing_field([header for header, _, _ in per_run]) if group_by == "auto" else group_by
+    if x_field == "eta":
+        field = (differing_field([header for header, _, _ in per_run])
+                 if group_by == "auto" else group_by)
+    else:
+        field = "eta"  # transpuesto: una curva por valor de ruido
 
     grouped: dict[tuple[float, str], dict[float, list[float]]] = defaultdict(
         lambda: defaultdict(list))
     for header, eta, run_mean in per_run:
-        grouped[group_key(header, field)][eta].append(run_mean)
+        key = group_key(header, field) if x_field == "eta" else (eta, f"η = {eta:g}")
+        grouped[key][x_value(header, eta, x_field)].append(run_mean)
 
     curves: list[Curve] = []
     for (order, label) in sorted(grouped, key=lambda key: (key[0], key[1])):
@@ -133,7 +155,8 @@ OBSERVABLE_LABELS = {
 }
 
 
-def plot(curves: Sequence[Curve], title: str | None, transient: int, observable: str = "va"):
+def plot(curves: Sequence[Curve], title: str | None, transient: int, observable: str = "va",
+         x_field: str = "eta"):
     import matplotlib.pyplot as plt
 
     fig, ax = plt.subplots(figsize=(9, 6))
@@ -142,7 +165,7 @@ def plot(curves: Sequence[Curve], title: str | None, transient: int, observable:
                     fmt=MARKERS[index % len(MARKERS)] + "-",
                     color=PALETTE[index % len(PALETTE)], capsize=3, linewidth=1.4,
                     markersize=5, label=curve.label)
-    ax.set_xlabel("Ruido $\\eta$")
+    ax.set_xlabel(X_LABELS.get(x_field, x_field))
     ylabel, default_title = OBSERVABLE_LABELS.get(observable, (observable, observable + " vs. ruido"))
     ax.set_ylabel(ylabel)
     ax.set_ylim(0.0, 1.02)
@@ -168,6 +191,11 @@ def build_argument_parser() -> argparse.ArgumentParser:
                         help="archivo de salida (.pdf/.png); sin este flag abre una ventana")
     parser.add_argument("--group-by", choices=GROUP_FIELDS + ("auto",), default="auto",
                         help="una curva por cada valor de este campo (default: auto)")
+    parser.add_argument("--etas", type=lambda v: [float(x) for x in v.split(",")], default=None,
+                        help="graficar solo estos valores de eta, separados por coma")
+    parser.add_argument("--x", choices=("eta", "density", "n"), default="eta",
+                        help="que va en el eje x: eta (default), o density/n para transponer "
+                             "y hacer el barrido de densidad o tamano")
     parser.add_argument("--observable", default="va_csv",
                         help="columna del indice con la serie a promediar: va_csv (default) o s_csv")
     parser.add_argument("--title", default=None, help="titulo del grafico")
@@ -185,7 +213,7 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     try:
         curves, field, observable = collect(args.indexes, transient, args.group_by,
-                                            args.observable)
+                                            args.observable, args.x, args.etas)
         print(f"Curvas agrupadas por: {field}   (transitorio: t >= {transient})")
         for curve in curves:
             print(f"\n{curve.label}")
@@ -195,7 +223,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         if args.out is not None:
             import matplotlib
             matplotlib.use("Agg")
-        fig = plot(curves, args.title, transient, observable)
+        fig = plot(curves, args.title, transient, observable, args.x)
     except (OSError, SimulationFormatError, ValueError) as exc:
         print(f"Error: {exc}")
         return 1

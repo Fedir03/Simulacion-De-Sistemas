@@ -1,5 +1,6 @@
 package ar.edu.itba.sds.tp2;
 
+import ar.edu.itba.sds.tp2.command.BenchmarkCimCommand;
 import ar.edu.itba.sds.tp2.command.ClustersCommand;
 import ar.edu.itba.sds.tp2.command.Command;
 import ar.edu.itba.sds.tp2.command.SimulateCommand;
@@ -11,7 +12,8 @@ import java.util.Map;
 public final class Main {
     private static final Map<String, Command> COMMANDS = Map.of(
             "simulate", new SimulateCommand(),
-            "clusters", new ClustersCommand()
+            "clusters", new ClustersCommand(),
+            "benchmark-cim", new BenchmarkCimCommand()
     );
 
     private Main() {
@@ -52,6 +54,7 @@ public final class Main {
         System.err.println("           --seedIC=<long|auto> --seedLoop=<long|auto>");
         System.err.println("           [--l=10.0] [--rc=1.0] [--dt=1.0] [--v0=0.03] [--periodic=true|false]");
         System.err.println("           [--theta0=random|<radianes>]");
-        System.err.println("  clusters --in=<corrida.txt> --out=<S.csv> [--stride=1]");
+        System.err.println("  clusters --in=<corrida.txt> --out=<S.csv> [--stride=1] [--members=<archivo>]");
+        System.err.println("  benchmark-cim --in=<a.txt,b.txt,...> --out=<csv> [--warmup=50]");
     }
 }

@@ -23,28 +23,28 @@ PAGE_WIDTH = 25_400
 PAGE_HEIGHT = 19_050
 ANIMATION_SLIDES = {
     14: (
-        ("η = 1", "https://youtu.be/REEMPLAZAR-STANDARD-RHO2-ETA1"),
-        ("η = 2", "https://youtu.be/REEMPLAZAR-STANDARD-RHO2-ETA2"),
+        ("η = 1", "https://youtu.be/mRAaHnXSnb0"),
+        ("η = 2", "https://youtu.be/MukUz-tTahg"),
     ),
     15: (
-        ("η = 1", "https://youtu.be/REEMPLAZAR-STANDARD-RHO4-ETA1"),
-        ("η = 2", "https://youtu.be/REEMPLAZAR-STANDARD-RHO4-ETA2"),
+        ("η = 1", "https://youtu.be/reRM8mnPbuU"),
+        ("η = 2", "https://youtu.be/A-tdHbqojPY"),
     ),
     16: (
-        ("η = 1", "https://youtu.be/REEMPLAZAR-STANDARD-RHO8-ETA1"),
-        ("η = 2", "https://youtu.be/REEMPLAZAR-STANDARD-RHO8-ETA2"),
+        ("η = 1", "https://youtu.be/hn91K8besVg"),
+        ("η = 2", "https://youtu.be/7QzRlKkZmnU"),
     ),
     20: (
-        ("η = 1", "https://youtu.be/REEMPLAZAR-VOTER-RHO2-ETA1"),
-        ("η = 2", "https://youtu.be/REEMPLAZAR-VOTER-RHO2-ETA2"),
+        ("η = 1", "https://youtu.be/rROFMMLBNys"),
+        ("η = 2", "https://youtu.be/E76-Cjm9AB8"),
     ),
     21: (
-        ("η = 1", "https://youtu.be/REEMPLAZAR-VOTER-RHO4-ETA1"),
-        ("η = 2", "https://youtu.be/REEMPLAZAR-VOTER-RHO4-ETA2"),
+        ("η = 1", "https://youtu.be/pXnl53frNz4"),
+        ("η = 2", "https://youtu.be/Nyy6OVckoXk"),
     ),
     22: (
-        ("η = 1", "https://youtu.be/REEMPLAZAR-VOTER-RHO8-ETA1"),
-        ("η = 2", "https://youtu.be/REEMPLAZAR-VOTER-RHO8-ETA2"),
+        ("η = 1", "https://youtu.be/D8dfmXZDJHs"),
+        ("η = 2", "https://youtu.be/QcYZ2piEkwg"),
     ),
 }
 
