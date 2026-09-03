@@ -34,3 +34,7 @@ TP1/validacion.txt
 TP1/vecinos_final.txt
 TP2/dependency-reduced-pom.xml
 apunte_lolo.md
+TP2/informe/*.aux
+TP2/informe/*.log
+TP2/informe/*.out
+TP2/informe/*.toc
