@@ -220,9 +220,18 @@ Hay que volver a simular porque `S` se calcula desde las posiciones y las trayec
 borran con `--no-keep-traj`. Es reproducible al bit: las semillas están en el `runs.csv`.
 
 ```bash
-# S(t) - punto (d)
-python3 TP2/scripts/plot_va.py generated/d_eta_rho1pi/eta1_seed1_S.csv --transient=500 \
-    --width=16 --height=5 --out=TP2/presentacion/figuras/clusters-temporal.pdf
+# S(t) - punto (d): un panel por densidad, una curva por eta y su vertical de estacionario
+# cada --vlines es un eta (en el orden de las curvas) con el t donde arranca su estacionario
+python3 TP2/scripts/plot_va.py \
+    generated/d10k_rho{1pi,2pi,3pi}/eta{0,0.5,1,3}_seed1_S.csv \
+    --label-by=eta --panels-by=density --width=6 --height=5 \
+    --title="Evolución de la componente gigante (modelo estándar)" \
+    --vlines="1/pi:2000,1/2pi:4300,1/3pi:6000" \
+    --vlines="1/pi:3600,1/2pi:8700,1/3pi:6500" \
+    --vlines="1/pi:1850,1/2pi:2200,1/3pi:8000" \
+    --vlines="1/pi:100,1/2pi:100,1/3pi:100" \
+    --legend-loc="1/pi:lower right@0.06" \
+    --out=TP2/presentacion/figuras/clusters-temporal.pdf
 
 # <S> vs eta, una curva por densidad - punto (d)
 python3 TP2/scripts/plot_va_vs_eta.py generated/d_eta_rho*/runs.csv --group-by=density \

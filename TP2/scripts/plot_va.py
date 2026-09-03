@@ -120,6 +120,28 @@ def build_title(headers: Sequence[SimulationHeader], observable: str = "va") -> 
     return f"{nombre} vs. tiempo" + (" — " + ", ".join(shared) if shared else "")
 
 
+def parse_legend_locs(spec: str) -> list[tuple[float | None, str]]:
+    """'lower right' para todos, o '1/pi:lower right,1/2pi:best' por densidad."""
+    pares: list[tuple[float | None, str]] = []
+    for token in spec.split(","):
+        token = token.strip()
+        if not token:
+            continue
+        if ":" in token:
+            densidad, _, loc = token.rpartition(":")
+            pares.append((parse_density(densidad), loc.strip()))
+        else:
+            pares.append((None, token))
+    return pares
+
+
+def legend_loc_for(density: float, locs: Sequence[tuple[float | None, str]]) -> str | None:
+    for d, loc in locs:
+        if d is None or abs(d - density) < 1e-4:
+            return loc
+    return None
+
+
 def parse_vlines(spec: str) -> list[tuple[float, float]]:
     """Parsea '1/pi:2000,1/2pi:4300' o '0.318:2000' en pares (densidad, tiempo).
 
@@ -168,15 +190,19 @@ def vline_sets_for(density: float, sets) -> list[tuple[str, str, float]]:
 
 
 def build_vline_sets(vlines, labels, colors) -> list:
-    """Empareja cada conjunto de --vlines con su etiqueta y su color."""
+    """Empareja cada conjunto de --vlines con su etiqueta y su color.
+
+    Sin --vlines-color el color queda en None y lo resuelve `draw_axes`, que le da el de
+    la curva del mismo indice: la vertical punteada sale del color de su eta.
+    """
     if not vlines:
         return []
     labels, colors = labels or [], colors or []
     resueltos = []
     for i, pares in enumerate(vlines):
-        color = colors[i] if i < len(colors) else VLINE_COLORS[i % len(VLINE_COLORS)]
-        resueltos.append((NAMED_COLORS.get(color.lower(), color),
-                          labels[i] if i < len(labels) else "inicio del estacionario",
+        color = colors[i] if i < len(colors) else None
+        resueltos.append((NAMED_COLORS.get(color.lower(), color) if color else None,
+                          labels[i] if i < len(labels) else "estacionario",
                           pares))
     return resueltos
 
@@ -194,19 +220,28 @@ def panel_key(header: SimulationHeader, field: str) -> tuple[float, str]:
 
 def draw_axes(ax, series, labels, transient, logy, ticker, show_ylabel: bool,
               ylabel: str, ylim: tuple[float, float] | None = None,
-              vlines: Sequence[tuple[str, str, float]] = ()) -> None:
+              vlines: Sequence[tuple[str, str, float]] = (),
+              legend_loc: str | None = None) -> None:
     """Dibuja un conjunto de curvas v_a(t) sobre unos ejes ya creados."""
     headers = [header for header, _, _ in series]
+    curvas: list[tuple] = []
     for index, ((header, steps, values), label) in enumerate(zip(series, labels)):
         times = [step * header.dt for step in steps]
-        ax.plot(times, values, color=PALETTE[index % len(PALETTE)], linewidth=1.2, label=label)
+        color = PALETTE[index % len(PALETTE)]
+        linea, = ax.plot(times, values, color=color, linewidth=1.2, label=label)
+        curvas.append((linea, label, color))
 
     if transient is not None:
         ax.axvline(transient * headers[0].dt, color="#555555", linestyle="--", alpha=0.7,
-                   label=f"inicio del estacionario (t={transient})")
-    for color, etiqueta, tiempo in vlines:
-        ax.axvline(tiempo * headers[0].dt, color=color, linestyle="--", alpha=0.95,
-                   linewidth=1.4, label=f"{etiqueta} (t={tiempo:g})")
+                   label="inicio del estacionario")
+    verticales: list[tuple] = []
+    for indice, (color, etiqueta, tiempo) in enumerate(vlines):
+        # sin color explicito la vertical toma el de su curva: la leyenda queda "curva, punteada"
+        if color is None:
+            color = curvas[indice][2] if indice < len(curvas) else VLINE_COLORS[indice % len(VLINE_COLORS)]
+        linea = ax.axvline(tiempo * headers[0].dt, color=color, linestyle="--", alpha=0.95,
+                           linewidth=1.4)
+        verticales.append((linea, etiqueta, color, tiempo))
 
     last_time = max(steps[-1] * header.dt for header, steps, _ in series)
     major_step, minor_step = nice_tick_steps(last_time)
@@ -229,7 +264,34 @@ def draw_axes(ax, series, labels, transient, logy, ticker, show_ylabel: bool,
     ax.set_xlim(left=0.0)
     # la grilla acompana solo a las marcas con numero: las chicas quedan como marquita
     ax.grid(alpha=0.3, which="both" if logy else "major")
-    ax.legend(fontsize=8)
+    build_legend(ax, curvas, verticales, legend_loc)
+
+
+def build_legend(ax, curvas, verticales, loc) -> None:
+    """Un renglon por curva: "(linea) eta = x, (linea dashed) estacionario".
+
+    Empareja por posicion: el conjunto i de --vlines corresponde a la curva i, asi la
+    leyenda queda en cuatro renglones en vez de ocho. Se arma con dos columnas
+    (Matplotlib las llena de arriba hacia abajo) para que la muestra dashed caiga
+    despues de la coma y antes de su texto, y no amontonada con la de la curva. No se
+    repite el valor de t porque se lee del eje.
+    """
+    extra = {}
+    if len(verticales) == len(curvas) and curvas:
+        handles = [linea for linea, _, _ in curvas] + [linea for linea, _, _, _ in verticales]
+        labels = [f"{label}," for _, label, _ in curvas] + [etiqueta for _, etiqueta, _, _ in verticales]
+        extra = {"ncols": 2, "columnspacing": 1.1, "handletextpad": 0.5}
+    else:
+        handles = [linea for linea, _, _ in curvas] + [linea for linea, _, _, _ in verticales]
+        labels = ([label for _, label, _ in curvas]
+                  + [etiqueta for _, etiqueta, _, _ in verticales])
+
+    ubicacion, _, ancla = (loc or "best").partition("@")
+    if ancla:
+        # x en coordenadas de ejes, y en coordenadas de datos: arranca a esa altura
+        extra |= {"bbox_to_anchor": (1.0, float(ancla)),
+                  "bbox_transform": ax.get_yaxis_transform()}
+    ax.legend(handles, labels, fontsize=8, loc=ubicacion.strip(), **extra)
 
 
 def report_tail(series, labels, transient: int | None, prefix: str = "",
@@ -245,7 +307,7 @@ def plot(paths: Sequence[Path], label_by: str, transient: int | None, title: str
          logy: bool = False, panels_by: str | None = None,
          figsize: tuple[float, float] = (9.0, 6.0), ylabel: str | None = None,
          ylim: tuple[float, float] | None = None,
-         vlines=()):
+         vlines=(), legend_locs=()):
     import matplotlib.pyplot as plt
     from matplotlib import ticker
 
@@ -266,7 +328,8 @@ def plot(paths: Sequence[Path], label_by: str, transient: int | None, title: str
         draw_axes(ax, series, labels, transient, logy, ticker, show_ylabel=True,
                   ylabel=axis_label, ylim=ylim,
                   vlines=[(color, label, t)
-                          for color, label, pares in vlines for _, t in pares])
+                          for color, label, pares in vlines for _, t in pares],
+                  legend_loc=legend_loc_for(headers[0].density, legend_locs))
         ax.set_title(title if title is not None else build_title(headers, observable))
         report_tail(series, labels, transient, observable=observable)
         fig.tight_layout()
@@ -287,7 +350,8 @@ def plot(paths: Sequence[Path], label_by: str, transient: int | None, title: str
         panel_labels = [labels[i] for i in indices]
         draw_axes(ax, panel_series, panel_labels, transient, logy, ticker,
                   show_ylabel=position == 0, ylabel=axis_label, ylim=ylim,
-                  vlines=vline_sets_for(panel_series[0][0].density, vlines))
+                  vlines=vline_sets_for(panel_series[0][0].density, vlines),
+                  legend_loc=legend_loc_for(panel_series[0][0].density, legend_locs))
         ax.set_title(key[1])
         print(f"\n{key[1]}")
         report_tail(panel_series, panel_labels, transient, prefix="  ",
@@ -321,13 +385,18 @@ def build_argument_parser() -> argparse.ArgumentParser:
     parser.add_argument("--vlines", type=parse_vlines, action="append", default=None,
                         help="lineas verticales por densidad, como '1/pi:2000,1/2pi:4300'. "
                              "La densidad acepta forma fraccionaria de pi o decimal. Se puede "
-                             "repetir el flag para varios conjuntos; cada uno toma un color "
-                             "distinto (verde, azul, naranja, violeta)")
+                             "repetir el flag para varios conjuntos; el conjunto i se "
+                             "empareja con la curva i y toma su color")
     parser.add_argument("--vlines-label", action="append", default=None,
                         help="etiqueta de leyenda de cada --vlines, en el mismo orden")
+    parser.add_argument("--legend-loc", type=parse_legend_locs, default=(),
+                        help="ubicacion de la leyenda: 'lower right' para todos los paneles, "
+                             "o '1/pi:lower right' para fijarla solo en una densidad. Con "
+                             "'lower right@0.06' se ancla ademas a esa altura del eje y")
     parser.add_argument("--vlines-color", action="append", default=None,
                         help="color de cada --vlines: verde, azul, rojo, naranja, violeta, "
-                             "gris, o un color de Matplotlib. Por defecto se ciclan")
+                             "gris, o un color de Matplotlib. Por defecto cada vertical "
+                             "toma el color de la curva que le corresponde")
     parser.add_argument("--ylim", type=lambda v: tuple(float(x) for x in v.split(",")),
                         default=None,
                         help="rango del eje y como 'min,max' (default: 0,1.02). Sirve para hacer zoom cuando el observable se mueve poco")
@@ -347,7 +416,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         fig = plot(args.inputs, args.label_by, args.transient, args.title,
                    args.logy, args.panels_by, (args.width, args.height), args.ylabel,
                    args.ylim, build_vline_sets(args.vlines, args.vlines_label,
-                                    args.vlines_color))
+                                    args.vlines_color), args.legend_loc)
     except (OSError, SimulationFormatError, ValueError) as exc:
         print(f"Error: {exc}")
         return 1
