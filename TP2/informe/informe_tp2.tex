@@ -1,0 +1,501 @@
+\documentclass[a4paper,11pt]{article}
+
+% ================================================================
+% Esqueleto del informe de TP2 (modelo de Vicsek, 72.25).
+% Compilar con: latexmk -pdf informe_tp2.tex
+% ================================================================
+
+\usepackage[T1]{fontenc}
+% "provide=*" permite compilar también en instalaciones mínimas de TeX Live.
+\usepackage[provide=*,spanish]{babel}
+\usepackage{lmodern}
+\usepackage{amsmath,amssymb,bm}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{sectsty}
+\usepackage{caption}
+\usepackage{hyperref}
+\hypersetup{colorlinks=true, linkcolor=black, citecolor=black, urlcolor=blue, pdftitle={TP2 - Modelo de Vicsek}}
+
+% ---------- Colores (mismo acento que la presentación) ----------
+\definecolor{TPBlue}{HTML}{3939B5}
+\definecolor{TPNavGray}{HTML}{858585}
+\definecolor{TPPlaceholder}{HTML}{F4F4F7}
+\sectionfont{\color{TPBlue}}
+\subsectionfont{\color{TPBlue}}
+
+% ---------- Logo institucional (reusado de TP2/presentacion/) ----------
+\newcommand{\institutionlogo}{%
+  \IfFileExists{../presentacion/logo_itba.pdf}{\includegraphics[height=3.5cm]{../presentacion/logo_itba.pdf}}{%
+    \IfFileExists{../presentacion/logo_itba.png}{\includegraphics[height=3.5cm]{../presentacion/logo_itba.png}}{%
+      \fbox{\scriptsize LOGO DE LA INSTITUCIÓN}%
+    }%
+  }%
+}
+
+% ---------- Placeholders ----------
+% #1 = ruta esperada de la figura, #2 = texto del caption, #3 = label
+\newcommand{\faltafigura}[3]{%
+  \begin{figure}[H]
+    \centering
+    \IfFileExists{#1}{%
+      \includegraphics[width=0.75\linewidth]{#1}%
+    }{%
+      \begingroup
+        \setlength{\fboxsep}{0pt}%
+        \setlength{\fboxrule}{0.6pt}%
+        \fcolorbox{TPNavGray}{TPPlaceholder}{%
+          \parbox[c][4cm][c]{0.75\linewidth}{%
+            \centering\color{TPNavGray}\small
+            FIGURA PENDIENTE\\[2mm]\nolinkurl{#1}%
+          }%
+        }%
+      \endgroup
+    }%
+    \caption{#2}
+    \label{#3}
+  \end{figure}%
+}
+
+% Texto placeholder pedido literalmente por la cátedra para no interpretar resultados.
+\newcommand{\faltatexto}{\textit{[completar con descripción cuantitativa de lo observado, sin interpretar]}}
+
+\title{Trabajo Práctico Nro.\,2: Autómatas Celulares}
+\author{}
+\date{}
+
+\begin{document}
+
+% ================================================================
+% PORTADA
+% ================================================================
+\begin{titlepage}
+  \centering
+  \vspace*{1cm}
+  \begin{center}
+	\institutionlogo
+  \end{center}
+  \vspace{1.2cm}
+  {\LARGE\bfseries Trabajo Práctico Nro.\,2: Autómatas Celulares\par}
+  \vspace{0.4cm}
+  {\Large 72.25 - Simulación de Sistemas\par}
+  \vspace{1.8cm}
+  {\large\bfseries Integrantes:\par}
+  \vspace{0.25cm}
+  {\large
+    Federico Ignacio Ruckauf (64356)\textsuperscript{1}\\[1.5mm]
+    Federico Spivak Fontaiña (60538)\textsuperscript{2}\\[1.5mm]
+    Lorenzo Chiossone (64359)\textsuperscript{3}\par}
+  \vspace{0.4cm}
+  {\small
+    \textsuperscript{1}\href{mailto:fruckauf@itba.edu.ar}{fruckauf@itba.edu.ar}\\[0.5mm]
+    \textsuperscript{2}\href{mailto:fespivak@itba.edu.ar}{fespivak@itba.edu.ar}\\[0.5mm]
+    \textsuperscript{3}\href{mailto:lchiossone@itba.edu.ar}{lchiossone@itba.edu.ar}\par}
+  \vspace{1.5cm}
+  {\large Instituto Tecnológico de Buenos Aires\par}
+  \vspace{0.4cm}
+  {\large Fecha de Entrega: 4 de septiembre de 2026\par}
+  \vspace{0.4cm}
+  {\large 2026 2C --- Grupo N.º 02\par}
+  \vfill
+\end{titlepage}
+
+\newpage
+\tableofcontents
+\newpage
+
+% ================================================================
+% RESUMEN
+% ================================================================
+\section*{Resumen}
+
+En este trabajo se implementa el modelo de Vicsek para partículas
+autopropulsadas, en su variante estándar (actualización de orientación por
+promedio vectorial de los vecinos) y en una variante de tipo votante
+(actualización por copia de la orientación de un vecino elegido al azar).
+Se estudia la transición orden-desorden del sistema variando la amplitud de
+ruido angular $\eta$ y la densidad de partículas $\rho$, caracterizada
+mediante el parámetro de orden $v_a$, y se estudia además la formación de
+clusters mediante el observable $S$, en particular en el régimen de
+densidades bajas cercano al umbral de percolación.
+
+% ================================================================
+% 1. INTRODUCCIÓN
+% ================================================================
+\section{Introducción}
+
+% TODO: contexto general — sistemas de partículas autopropulsadas (self-driven
+% particles) y transiciones de fase en el orden colectivo. Sin ecuaciones acá
+% (van en la sección Modelo) ni geometría/parámetros concretos (van en Simulaciones).
+
+[Completar: motivación del estudio de sistemas de partículas autopropulsadas
+y transiciones de fase orden-desorden en el comportamiento colectivo.
+Introducido originalmente por Vicsek et al.~\cite{ref:vicsek1995}. En este
+trabajo se estudian dos variantes del modelo, cuya formulación abstracta se
+desarrolla en la Sección~\ref{sec:modelo}: el modelo estándar de
+Vicsek~\cite{ref:vicsek1995} y una variante de tipo votante, basada en
+Loscar, Baglietto y Vazquez~\cite{ref:loscar2021} y en su antecedente,
+Baglietto y Vazquez~\cite{ref:baglietto2016}.]
+
+[Completar: objetivo general del trabajo práctico y organización del resto
+del documento.]
+
+% ================================================================
+% 2. MODELO
+% ================================================================
+\section{Modelo}
+\label{sec:modelo}
+
+% Nota de formato: esta sección es SOLO las ecuaciones abstractas de ambos
+% modelos. Cero geometría, cero parámetros numéricos concretos, cero nombres
+% de clases/código — eso va en Implementación y Simulaciones.
+
+\subsection{Modelo estándar de Vicsek}
+\label{sec:modelo-estandar}
+
+Cada partícula $i$ se mueve a rapidez constante $v_0$ en la dirección dada
+por su ángulo $\theta_i$. En cada paso de tiempo, la posición se actualiza
+según
+
+\begin{equation}
+  \bm{r}_i(t+\Delta t) = \bm{r}_i(t) + \bm{v}_i(t)\,\Delta t,
+  \qquad
+  \bm{v}_i(t) = v_0\left(\cos\theta_i(t),\ \sin\theta_i(t)\right).
+  \label{eq:vicsek-posicion}
+\end{equation}
+
+El ángulo se actualiza como el promedio vectorial de los ángulos de las
+partículas vecinas (incluyendo a la propia partícula $i$) dentro de un radio
+de interacción, más un término de ruido:
+
+\begin{equation}
+  \theta_i(t+\Delta t) = \left\langle \theta_j(t) \right\rangle_{j \in \mathcal{V}_i(t)} + \Delta\theta_i(t),
+  \label{eq:vicsek-angulo}
+\end{equation}
+
+donde $\mathcal{V}_i(t)$ es el conjunto de vecinos de $i$ (partícula $i$
+incluida) y el promedio vectorial se define, para evitar la discontinuidad
+del ángulo en $0/2\pi$, como
+
+\begin{equation}
+  \left\langle \theta_j(t) \right\rangle_{j \in \mathcal{V}_i(t)}
+  = \operatorname{atan2}\!\left(\sum_{j \in \mathcal{V}_i(t)} \sin\theta_j(t),\ \sum_{j \in \mathcal{V}_i(t)} \cos\theta_j(t)\right).
+  \label{eq:vicsek-promedio-vectorial}
+\end{equation}
+
+El término de ruido $\Delta\theta_i(t)$ se sortea, en cada paso de tiempo y
+para cada partícula, de forma independiente con distribución uniforme
+
+\begin{equation}
+  \Delta\theta_i(t) \sim \mathcal{U}\!\left(-\tfrac{\eta}{2},\ \tfrac{\eta}{2}\right),
+  \label{eq:vicsek-ruido}
+\end{equation}
+
+con $\eta$ la amplitud de ruido angular del sistema.
+
+\subsection{Modelo votante}
+\label{sec:modelo-votante}
+
+En la variante de tipo votante~\cite{ref:loscar2021,ref:baglietto2016}, la
+posición se actualiza con la misma ecuación~\eqref{eq:vicsek-posicion}, pero
+el ángulo no se promedia: se copia el de un único vecino elegido al azar de
+forma uniforme entre los vecinos de $i$, más ruido:
+
+\begin{equation}
+  \theta_i(t+\Delta t) =
+  \begin{cases}
+    \theta_{j}(t) + \Delta\theta_i(t), & \mathcal{V}_i(t) \setminus \{i\} \neq \emptyset,\ \ j \sim \mathcal{U}\left(\mathcal{V}_i(t) \setminus \{i\}\right), \\[1mm]
+    \theta_i(t) + \Delta\theta_i(t), & \mathcal{V}_i(t) \setminus \{i\} = \emptyset,
+  \end{cases}
+  \label{eq:votante-angulo}
+\end{equation}
+
+con $\Delta\theta_i(t)$ definido igual que en la ecuación~\eqref{eq:vicsek-ruido}.
+Es decir: si la partícula no tiene vecinos, su actualización es únicamente
+ruido sobre su dirección actual.
+
+% ================================================================
+% 3. IMPLEMENTACIÓN
+% ================================================================
+\section{Implementación}
+
+[Completar: lenguaje y entorno de ejecución (Java 21 + Maven), estructura de
+paquetes del motor.]
+
+\subsection{Reuso del motor de búsqueda de vecinos de TP1}
+
+La búsqueda de vecinos reutiliza, sin modificar, el Cell Index Method (CIM)
+implementado en TP1 (ver informe de TP1 para el detalle del algoritmo, no se
+repite aquí). El criterio de vecindad de TP1 —distancia borde-a-borde entre
+partículas con radio— se reduce exactamente al criterio de vecindad puntual
+de Vicsek al instanciar las partículas con radio $=0$: no es una
+aproximación, es la misma fórmula evaluada en el caso particular correcto.
+
+\subsection{Arquitectura del motor}
+
+[Completar: diagrama de paquetes/clases principales.]
+
+Los dos modelos de actualización angular (Secciones~\ref{sec:modelo-estandar}
+y~\ref{sec:modelo-votante}) se implementan detrás de una única interfaz común,
+de forma que el resto del motor (generación de condición inicial, contorno
+periódico, búsqueda de vecinos, escritura de resultados) es idéntico para
+ambos modelos.
+
+\faltafigura{uml_placeholder}{Diagrama UML de la arquitectura del motor de simulación.}{fig:uml}
+% TODO: reemplazar por el diagrama UML real de la arquitectura del motor
+% (paquete A) cuando esté disponible.
+
+\subsection{Orden del paso de simulación}
+
+Cada paso de tiempo se ejecuta en el siguiente orden, sobre el estado
+completo del sistema en $t-1$ (actualización sincrónica, nunca partículas ya
+actualizadas dentro del mismo paso):
+
+\begin{enumerate}
+  \item Se calcula la posición nueva de cada partícula usando su ángulo
+    \emph{viejo} (ecuación~\eqref{eq:vicsek-posicion}).
+  \item Se buscan los vecinos de cada partícula (CIM) sobre las posiciones
+    \emph{nuevas} recién calculadas.
+  \item Se calcula el ángulo nuevo de cada partícula a partir de los ángulos
+    \emph{viejos} de sus vecinos más ruido (ecuación~\eqref{eq:vicsek-angulo}
+    o~\eqref{eq:votante-angulo} según el modelo).
+  \item Se ensambla el estado completo nuevo del sistema.
+\end{enumerate}
+
+Las partículas se representan como registros inmutables: cada paso genera
+una lista nueva en lugar de mutar la existente, lo que hace del doble buffer
+(leer el estado viejo mientras se escribe el nuevo) un resultado automático
+de la representación, y no un mecanismo que haya que programar a mano.
+
+\subsection{Formato del archivo de trayectoria}
+
+El archivo de salida del motor es autocontenido: nunca depende de su propio
+nombre para interpretarse. Una línea de cabecera declara todos los
+parámetros de la corrida, seguida de un bloque por paso de tiempo con una
+línea por partícula (identificador explícito, posición y ángulo):
+
+\begin{verbatim}
+model=estandar N=200 L=10 rc=1 dt=1 v0=0.03 eta=0.5 periodic=true seedIC=1 seedLoop=101
+t0
+id1 x1 y1 theta1
+id2 x2 y2 theta2
+...
+t1
+...
+\end{verbatim}
+
+[Completar si hace falta más detalle de formato o de los flags de CLI.]
+
+% ================================================================
+% 4. SIMULACIONES
+% ================================================================
+\section{Simulaciones}
+
+\subsection{Parámetros}
+
+\begin{table}[H]
+  \centering
+  \caption{Parámetros fijos de la simulación (modelo adimensional, sin unidades).}
+  \label{tab:parametros-fijos}
+  \begin{tabular}{cl}
+    \hline
+    Parámetro & Valor \\
+    \hline
+    $L$ & $10$ \\
+    $r_c$ & $1$ \\
+    $v_0$ & $0.03$ \\
+    $\Delta t$ & $1$ \\
+    \hline
+  \end{tabular}
+\end{table}
+
+\begin{table}[H]
+  \centering
+  \caption{Parámetros variables de la simulación.}
+  \label{tab:parametros-variables}
+  \begin{tabular}{cl}
+    \hline
+    Parámetro & Rango / valores \\
+    \hline
+    $\eta$ & $0,\ 0.5,\ 1.0,\ 1.5,\ 2.0,\ 2.5,\ 3.0,\ 3.5,\ 4.0,\ 4.5,\ 5.0$ \\
+    $\rho$ (todos los estudios) & $2,\ 4,\ 8$ \ ($N = 200,\ 400,\ 800$) \\
+    $\rho$ (solo estudio de clusters) & $\tfrac{1}{\pi},\ \tfrac{1}{2\pi},\ \tfrac{1}{3\pi}$ \ ($N = 32,\ 16,\ 11$) \\
+    \hline
+  \end{tabular}
+\end{table}
+
+\subsection{Geometría del sistema}
+
+\faltafigura{sistema_placeholder}{Esquema del dominio de simulación: caja periódica de lado $L$, con el radio de interacción $r_c$ marcado sobre una partícula de ejemplo.}{fig:sistema}
+% TODO: dibujo de la caja L x L con condición de contorno periódica y rc marcado.
+
+\subsection{Observables}
+\label{sec:observables}
+
+Se distinguen dos niveles de promediado, con notación distinta para cada
+uno: una barra para el promedio temporal dentro de una única corrida (en la
+ventana de tiempo en estado estacionario), y corchetes angulares para el
+promedio entre realizaciones independientes.
+
+\paragraph{Polarización $v_a$.} Mide el grado de alineamiento colectivo del
+sistema:
+
+\begin{equation}
+  v_a(t) = \frac{1}{N v_0}\left|\sum_{i=1}^{N}\bm{v}_i(t)\right|.
+  \label{eq:va}
+\end{equation}
+
+Dada una corrida con estado estacionario alcanzado a partir de $t_0$ y
+simulada hasta $t_f$, el promedio temporal de esa corrida es
+
+\begin{equation}
+  \overline{v_a} = \frac{1}{t_f - t_0 + 1}\sum_{t=t_0}^{t_f} v_a(t).
+  \label{eq:va-temporal}
+\end{equation}
+
+Y el promedio entre $M$ realizaciones independientes con la misma
+combinación de parámetros es
+
+\begin{equation}
+  \left\langle \overline{v_a} \right\rangle = \frac{1}{M}\sum_{k=1}^{M} \overline{v_a}^{(k)}.
+  \label{eq:va-realizaciones}
+\end{equation}
+
+\paragraph{Tamaño de cluster $S$.} A partir del grafo de vecinos (recalculado
+sobre las posiciones, con el mismo criterio de vecindad de radio $r_c$; el
+archivo de trayectoria no guarda el grafo, solo posición y ángulo), se
+identifican las componentes conexas del sistema y se define $S$ como la
+fracción de partículas que pertenece a la componente conexa más grande:
+
+\begin{equation}
+  S(t) = \frac{N_{\max}(t)}{N}.
+  \label{eq:s}
+\end{equation}
+
+Los promedios temporal y entre realizaciones de $S$ se definen de forma
+análoga a las ecuaciones~\eqref{eq:va-temporal} y~\eqref{eq:va-realizaciones}.
+
+\paragraph{Desvío estándar reportado.} El desvío estándar que acompaña a cada
+punto de las Figuras de la Sección~\ref{sec:resultados} no se calcula
+promediando los desvíos estándar de cada corrida por separado. Se calcula
+sobre la bolsa de todos los valores instantáneos del observable en estado
+estacionario, agrupando las $M$ realizaciones independientes en un único
+conjunto
+
+\begin{equation}
+  \mathcal{B} = \left\{ v_a^{(k)}(t) \ :\ k = 1,\dots,M;\ \ t = t_0,\dots,t_f \right\},
+\end{equation}
+
+y tomando el desvío estándar muestral de $\mathcal{B}$:
+
+\begin{equation}
+  \sigma = \sqrt{\frac{1}{|\mathcal{B}| - 1}\sum_{x \in \mathcal{B}} \left(x - \left\langle \overline{v_a} \right\rangle\right)^2}.
+  \label{eq:desvio}
+\end{equation}
+
+\subsection{Repeticiones y tiempos de simulación}
+
+Cada combinación de parámetros se repite $M = 5$ veces con corridas
+independientes. La duración de las corridas depende del estudio: $3000$
+pasos para los puntos (c) y (f) (densidades $\rho = 2, 4, 8$), y $10000$
+pasos para las densidades bajas del estudio de clusters del punto (d)
+($\rho = \tfrac{1}{\pi}, \tfrac{1}{2\pi}, \tfrac{1}{3\pi}$) --- con menos
+partículas el estado estacionario tarda más en alcanzarse.
+
+El inicio del estado estacionario $t_0$ se elige a ojo, sin test
+estadístico automático. Para el punto (c), donde todas las corridas
+comparten el mismo largo de $3000$ pasos, se usa un valor absoluto fijo
+($t_0 = 500$). Para los puntos (d), (e) y (f), que combinan corridas de
+$3000$ y $10000$ pasos, un mismo valor absoluto no sería proporcionalmente
+comparable entre ambos largos, así que $t_0$ se expresa como un porcentaje
+del largo de cada corrida ($40\%$).
+
+Para la comparación entre el modelo estándar y el modelo votante (punto f),
+ambos modelos parten de la misma condición inicial (posiciones y ángulos),
+generada una única vez y compartida entre las dos corridas vía archivo
+(comando \texttt{generate-ic} y flag \texttt{--icFile}): así, cualquier
+diferencia observada entre modelos se debe al modelo en sí y no a que
+hayan partido de configuraciones iniciales distintas. El ruido de cada
+modelo, en cambio, usa una semilla independiente --- nunca comparten la
+secuencia de números aleatorios del ruido, para que ninguno de los dos
+modelos ``contamine'' al otro con la misma secuencia.
+
+% ================================================================
+% 5. RESULTADOS
+% ================================================================
+\section{Resultados}
+\label{sec:resultados}
+
+% Nota de formato: en esta sección los resultados son solo descriptivos.
+% No se interpreta ni se explica el porqué de lo observado salvo que se haya
+% diseñado un observable específico para validar esa explicación.
+
+\subsection{Polarización $v_a$ vs.\ $\eta$ --- modelo estándar}
+
+\faltafigura{figuras/relacion-parametro-observable-estandar.pdf}{Polarización $\left\langle \overline{v_a} \right\rangle$ en función de $\eta$, modelo estándar, para $\rho = 2, 4, 8$.}{fig:va-eta-estandar}
+
+\faltatexto
+
+\subsection{Polarización $v_a$ vs.\ $\eta$ --- modelo votante}
+
+\faltafigura{figuras/relacion-parametro-observable-votante.pdf}{Polarización $\left\langle \overline{v_a} \right\rangle$ en función de $\eta$, modelo votante, para $\rho = 2, 4, 8$.}{fig:va-eta-votante}
+
+\faltatexto
+
+\subsection{Clusters $S$ vs.\ $\eta$}
+
+\faltafigura{figuras/clusters-temporal.pdf}{Evolución temporal $S(t)$ representativa, usada para justificar el criterio de estado estacionario del observable de clusters.}{fig:clusters-temporal}
+
+\faltafigura{figuras/clusters-vs-eta.pdf}{Tamaño relativo del cluster más grande $\left\langle \overline{S} \right\rangle$ en función de $\eta$, para $\rho = 2, 4, 8, \tfrac{1}{\pi}, \tfrac{1}{2\pi}, \tfrac{1}{3\pi}$.}{fig:clusters-eta}
+
+\faltatexto
+
+\subsection{Relación entre $v_a$ y $S$}
+
+\faltafigura{figuras/va-vs-s.pdf}{Relación entre la polarización $\overline{v_a}$ y el tamaño de cluster $\overline{S}$.}{fig:va-vs-s}
+
+\faltatexto
+
+\subsection{Comparación entre el modelo estándar y el modelo votante}
+
+% Alcance acotado según feedback de la cátedra en la pre-entrega del 31/08:
+% una figura resumen por densidad, no una comparación exhaustiva figura por figura.
+\faltafigura{figuras/comparacion-modelos-rho2.pdf}{Comparación entre el modelo estándar y el modelo votante, $\rho = 2$.}{fig:comparacion-rho2}
+
+\faltafigura{figuras/comparacion-modelos-rho4.pdf}{Comparación entre el modelo estándar y el modelo votante, $\rho = 4$.}{fig:comparacion-rho4}
+
+\faltafigura{figuras/comparacion-modelos-rho8.pdf}{Comparación entre el modelo estándar y el modelo votante, $\rho = 8$.}{fig:comparacion-rho8}
+
+\faltatexto
+
+% ================================================================
+% 6. CONCLUSIONES
+% ================================================================
+\section{Conclusiones}
+
+\textit{Recordatorio de formato: cada conclusión debe aclarar explícitamente
+a qué modelo se refiere (estándar o votante) --- nunca dejarlo ambiguo. Por
+ejemplo, aumentar $N$ a $L$ fijo favorece mayor orden colectivo en el modelo
+estándar, pero no necesariamente en el modelo votante; no debe darse por
+sentado que ambos modelos responden igual a un mismo cambio de parámetro.}
+
+[Completar con las conclusiones reales, basadas únicamente en los resultados
+mostrados en la Sección~\ref{sec:resultados}.]
+
+% ================================================================
+% REFERENCIAS
+% ================================================================
+% thebibliography imprime automáticamente el encabezado como sección sin
+% numerar y cada entrada con el formato "[n] ..." pedido por la guía, y
+% habilita \cite{} en el resto del documento.
+\renewcommand{\refname}{Referencias}
+\begin{thebibliography}{9}
+  \bibitem{ref:vicsek1995} T. Vicsek, A. Czirók, E. Ben-Jacob, I. Cohen, O. Shochet, ``Novel type of phase transition in a system of self-driven particles,'' Physical Review Letters, vol.~75, no.~6, pp.~1226 (1995).
+  \bibitem{ref:loscar2021} E. S. Loscar, G. Baglietto, F. Vazquez, ``Noisy multistate voter model for flocking in finite dimensions,'' Physical Review E, vol.~104, no.~3, p.~034111 (2021).
+  \bibitem{ref:baglietto2016} G. Baglietto, F. Vazquez, ``Flocking dynamics with voter-like interactions,'' arXiv:1608.08231 (2016).
+\end{thebibliography}
+
+\end{document}

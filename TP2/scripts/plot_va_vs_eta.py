@@ -29,7 +29,7 @@ from order_parameter import (
     load_named_series,
     mean_and_stdev,
     resolve_transient,
-    tail_stats,
+    tail_values,
 )
 from simulation_io import SimulationFormatError, SimulationHeader
 
@@ -72,7 +72,7 @@ def differing_field(headers: Sequence[SimulationHeader]) -> str:
 @dataclass(frozen=True)
 class Curve:
     label: str
-    etas: list[float]
+    xs: list[float]
     means: list[float]
     stdevs: list[float]
     counts: list[int]
@@ -103,7 +103,7 @@ def collect(indexes: Sequence[Path], transient: str | int, group_by: str,
             column: str = "va_csv", x_field: str = "eta",
             etas: Sequence[float] | None = None) -> tuple[list[Curve], str, str]:
     """Lee todos los indices y arma una curva <v_a> vs eta por cada grupo."""
-    per_run: list[tuple[SimulationHeader, float, float]] = []
+    per_run: list[tuple[SimulationHeader, float, list[float]]] = []
     observables: set[str] = set()
     for index_path in indexes:
         for row in read_index(index_path):
@@ -117,8 +117,8 @@ def collect(indexes: Sequence[Path], transient: str | int, group_by: str,
             if not series_path.is_absolute():
                 series_path = index_path.parent / series_path
             header, steps, values, observable = load_named_series(series_path)
-            run_mean, _ = tail_stats(steps, values, resolve_transient(transient, steps[-1]))
-            per_run.append((header, float(row["eta"]), run_mean))
+            tail = tail_values(steps, values, resolve_transient(transient, steps[-1]))
+            per_run.append((header, float(row["eta"]), tail))
             observables.add(observable)
 
     if x_field == "eta":
@@ -127,31 +127,33 @@ def collect(indexes: Sequence[Path], transient: str | int, group_by: str,
     else:
         field = "eta"  # transpuesto: una curva por valor de ruido
 
-    grouped: dict[tuple[float, str], dict[float, list[float]]] = defaultdict(
+    pooled: dict[tuple[float, str], dict[float, list[float]]] = defaultdict(
         lambda: defaultdict(list))
-    for header, eta, run_mean in per_run:
+    run_counts: dict[tuple[float, str], dict[float, int]] = defaultdict(
+        lambda: defaultdict(int))
+    for header, eta, tail in per_run:
         key = group_key(header, field) if x_field == "eta" else (eta, f"η = {eta:g}")
-        grouped[key][x_value(header, eta, x_field)].append(run_mean)
+        x = x_value(header, eta, x_field)
+        pooled[key][x].extend(tail)
+        run_counts[key][x] += 1
 
     curves: list[Curve] = []
-    for (order, label) in sorted(grouped, key=lambda key: (key[0], key[1])):
-        per_eta = grouped[(order, label)]
-        etas = sorted(per_eta)
+    for (order, label) in sorted(pooled, key=lambda key: (key[0], key[1])):
+        per_x = pooled[(order, label)]
+        xs = sorted(per_x)
         means, stdevs, counts = [], [], []
-        for eta in etas:
-            mean, stdev = mean_and_stdev(per_eta[eta])
+        for x in xs:
+            mean, stdev = mean_and_stdev(per_x[x])
             means.append(mean)
             stdevs.append(stdev)
-            counts.append(len(per_eta[eta]))
-        curves.append(Curve(label=label, etas=etas, means=means, stdevs=stdevs, counts=counts))
+            counts.append(run_counts[(order, label)][x])
+        curves.append(Curve(label=label, xs=xs, means=means, stdevs=stdevs, counts=counts))
     return curves, field, observables.pop() if len(observables) == 1 else "va"
 
 
 OBSERVABLE_LABELS = {
-    "va": ("Parámetro de orden estacionario $\\overline{v}_a$",
-           "Parámetro de orden estacionario vs. ruido"),
-    "S": ("Fracción en la componente gigante $\\overline{S}$",
-          "Componente gigante estacionaria vs. ruido"),
+    "va": "Parámetro de orden estacionario $\\overline{v}_a$",
+    "S": "Fracción en la componente gigante $\\overline{S}$",
 }
 
 
@@ -161,16 +163,16 @@ def plot(curves: Sequence[Curve], title: str | None, transient: int, observable:
 
     fig, ax = plt.subplots(figsize=(9, 6))
     for index, curve in enumerate(curves):
-        ax.errorbar(curve.etas, curve.means, yerr=curve.stdevs,
+        ax.errorbar(curve.xs, curve.means, yerr=curve.stdevs,
                     fmt=MARKERS[index % len(MARKERS)] + "-",
                     color=PALETTE[index % len(PALETTE)], capsize=3, linewidth=1.4,
                     markersize=5, label=curve.label)
     ax.set_xlabel(X_LABELS.get(x_field, x_field))
-    ylabel, default_title = OBSERVABLE_LABELS.get(observable, (observable, observable + " vs. ruido"))
+    ylabel = OBSERVABLE_LABELS.get(observable, observable)
     ax.set_ylabel(ylabel)
     ax.set_ylim(0.0, 1.02)
-    ax.set_title(title if title is not None
-                 else f"{default_title} (transitorio descartado: {transient})")
+    if title is not None:
+        ax.set_title(title)
     ax.grid(alpha=0.3)
     ax.legend(fontsize=9)
     fig.tight_layout()
@@ -217,9 +219,9 @@ def main(argv: Sequence[str] | None = None) -> int:
         print(f"Curvas agrupadas por: {field}   (transitorio: t >= {transient})")
         for curve in curves:
             print(f"\n{curve.label}")
-            for eta, mean, stdev, count in zip(curve.etas, curve.means,
-                                               curve.stdevs, curve.counts):
-                print(f"  eta={eta:<6g} <{observable}>={mean:.4f} +/- {stdev:.4f}  (M={count})")
+            for x, mean, stdev, count in zip(curve.xs, curve.means,
+                                             curve.stdevs, curve.counts):
+                print(f"  {args.x}={x:<6g} <{observable}>={mean:.4f} +/- {stdev:.4f}  (M={count})")
         if args.out is not None:
             import matplotlib
             matplotlib.use("Agg")

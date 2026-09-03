@@ -19,12 +19,13 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Sequence
 
-from order_parameter import load_series, mean_and_stdev, resolve_transient, tail_stats
+from order_parameter import load_series, mean_and_stdev, resolve_transient, tail_values
 from simulation_io import SimulationFormatError, SimulationHeader
 
 
 PALETTE = ["#2a9d8f", "#e63946", "#457b9d", "#f4a261", "#8e7dbe", "#264653"]
 MARKERS = ["o", "s", "^", "D", "v", "P"]
+ERRORBAR_ALPHA = 0.35
 
 
 @dataclass(frozen=True)
@@ -36,20 +37,12 @@ class Point:
     s_error: float
 
 
-def header_of(index_dir: Path, row: dict[str, str]):
-    """Cabecera de la corrida, para poder etiquetar con density_label."""
-    path = Path(row["va_csv"])
-    if not path.is_absolute():
-        path = index_dir / path
-    return load_series(path)[0]
-
-
-def steady_mean(index_dir: Path, relative: str, transient: str | int) -> tuple[float, float]:
+def steady_values(index_dir: Path, relative: str, transient: str | int) -> list[float]:
     path = Path(relative)
     if not path.is_absolute():
         path = index_dir / path
     _, steps, values = load_series(path)
-    return tail_stats(steps, values, resolve_transient(transient, steps[-1]))
+    return tail_values(steps, values, resolve_transient(transient, steps[-1]))
 
 
 def collect(indexes: Sequence[Path], transient: str | int) -> dict[tuple[float, str], list[Point]]:
@@ -65,14 +58,13 @@ def collect(indexes: Sequence[Path], transient: str | int) -> dict[tuple[float, 
                 raise SimulationFormatError(
                     f"{index_path}: falta la columna s_csv "
                     f"(correr antes: sweep.py clusters --index={index_path})")
-            va_mean, _ = steady_mean(index_path.parent, row["va_csv"], transient)
-            s_mean, _ = steady_mean(index_path.parent, row["s_csv"], transient)
+            va_tail = steady_values(index_path.parent, row["va_csv"], transient)
+            s_tail = steady_values(index_path.parent, row["s_csv"], transient)
             density = int(row["n"]) / (float(row["l"]) ** 2)
-            key = (density, f"ρ = {header_of(index_path.parent, row).density_label} "
-                            f"(N = {row['n']}, L = {float(row['l']):.4g})")
+            key = (density, f"ρ = {density:.4g} (N = {row['n']}, L = {float(row['l']):.4g})")
             va_list, s_list = grouped[key][float(row["eta"])]
-            va_list.append(va_mean)
-            s_list.append(s_mean)
+            va_list.extend(va_tail)
+            s_list.extend(s_tail)
 
     curves: dict[tuple[float, str], list[Point]] = {}
     for key, per_eta in grouped.items():
@@ -86,28 +78,29 @@ def collect(indexes: Sequence[Path], transient: str | int) -> dict[tuple[float, 
     return curves
 
 
-def plot(curves: dict[tuple[float, str], list[Point]], title: str | None,
-         transient: str | int):
+def plot(curves: dict[tuple[float, str], list[Point]], title: str | None, transient: str | int):
     import matplotlib.pyplot as plt
 
     fig, ax = plt.subplots(figsize=(9, 6))
     for index, key in enumerate(sorted(curves)):
         points = curves[key]
-        ax.errorbar(
+        _, caplines, barlinecols = ax.errorbar(
             [p.s for p in points], [p.va for p in points],
             xerr=[p.s_error for p in points], yerr=[p.va_error for p in points],
             fmt=MARKERS[index % len(MARKERS)] + "-", color=PALETTE[index % len(PALETTE)],
-            capsize=3, linewidth=1.2, markersize=5, label=key[1],
+            capsize=1.5, linewidth=1.2, markersize=5, label=key[1],
         )
+        for cap in caplines:
+            cap.set_alpha(ERRORBAR_ALPHA)
+        for barlinecol in barlinecols:
+            barlinecol.set_alpha(ERRORBAR_ALPHA)
 
     ax.set_xlabel("Fracción en la componente gigante $\\overline{S}$")
     ax.set_ylabel("Parámetro de orden $\\overline{v}_a$")
     ax.set_xlim(0.0, 1.02)
     ax.set_ylim(0.0, 1.02)
-    ax.set_title(title if title is not None
-                 # el transitorio va fuera del modo matematico: un '%' dentro de $...$ se pierde
-                 else f"Polarización vs. componente gigante "
-                      f"(transitorio descartado: {transient})")
+    if title is not None:
+        ax.set_title(title)
     ax.grid(alpha=0.3)
     ax.legend(fontsize=9)
     fig.tight_layout()
@@ -121,7 +114,8 @@ def build_argument_parser() -> argparse.ArgumentParser:
                         help="uno o mas runs.csv que ya tengan la columna s_csv")
     parser.add_argument("--transient", default=0,
                         help="primer paso del estado estacionario, en pasos (500) o como "
-                             "porcentaje del largo de cada corrida (40%%)")
+                             "porcentaje del largo de cada corrida (40%%). El porcentaje "
+                             "permite mezclar corridas de distinto largo")
     parser.add_argument("--out", type=Path, default=None,
                         help="archivo de salida; sin este flag abre una ventana")
     parser.add_argument("--title", default=None)
