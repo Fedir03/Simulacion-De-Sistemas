@@ -220,10 +220,10 @@ invierte.
 
 ## (e) Polarización en función de la componente gigante
 
-**Figuras**: `va-vs-s.pdf` (densidades bajas), `va-vs-s-enunciado.pdf` (ρ=2,4,8),
-`va-vs-s-votante.pdf`
+**Figuras**: `va-vs-s.pdf` (densidades bajas), `va-vs-s-votante.pdf`
 
-Van separadas a propósito: las escalas son incompatibles y juntas no se lee ninguna.
+Sólo con las densidades bajas: en ρ = 2, 4 y 8 el sistema está percolado, así que S = 1 para
+todo η y la curva degenera en una línea vertical sin información.
 
 ### `va-vs-s.pdf` — densidades bajas
 
@@ -234,21 +234,6 @@ más fuerte que el de cada densidad por separado.
 
 La lectura física: para alinearse hay que estar conectado, así que el orden no puede aparecer
 sin que antes exista un cúmulo que lo sostenga.
-
-### `va-vs-s-enunciado.pdf` — la vertical
-
-Las tres curvas son **líneas verticales en S ≈ 1**. No es un error del gráfico: como esas
-densidades están percoladas, al barrer η el v_a recorre de 0.06 a 1 **mientras S no se mueve**.
-
-El mensaje es el complemento del anterior: **S ≈ 1 es necesario pero no suficiente para el
-orden.** Estando todos conectados, el sistema igual puede estar completamente desordenado si
-el ruido es alto.
-
-Detalle fino: ρ=2 no es del todo vertical, se curva hacia la izquierda en el medio (S baja a
-0.96 cuando v_a ronda 0.2–0.4). Es la única de las tres que asoma por debajo de la
-saturación, coherente con ser la más cercana al umbral.
-
----
 
 ## (f) Comparación con el modelo de votante
 
