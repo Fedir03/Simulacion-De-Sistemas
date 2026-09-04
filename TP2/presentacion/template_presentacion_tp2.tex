@@ -76,8 +76,11 @@
 
 % ---------- Barra superior por sección ----------
 % Rangos de diapositivas del template:
-% Introducción 2--4 | Implementación 5--8 | Simulaciones 9--12
-% Resultados 13--34 | Conclusiones 35--37
+% Introducción 2--3 | Implementación 4--7 | Simulaciones 8--10
+% Resultados 11--27 | Conclusiones 28--30
+% Cada rango incluye el \sectiondivider correspondiente como primera
+% diapositiva del bloque (así se cuenta en \navblock más abajo). Si se
+% agregan o quitan diapositivas hay que renumerar estos rangos a mano.
 \newcount\TPNavDot
 
 % Dibuja un punto por diapositiva de la sección. Solamente el punto de la
@@ -126,11 +129,11 @@
   \leavevmode
   \begin{beamercolorbox}[wd=\paperwidth,ht=0.50cm,dp=0.28cm]{headline navigation}%
     \makebox[\paperwidth][l]{%
-      \navblock{0.17}{Introducción}{2}{4}%
-      \navblock{0.19}{Implementación}{5}{8}%
-      \navblock{0.17}{Simulaciones}{9}{12}%
-      \navblock{0.32}{Resultados}{13}{34}%
-      \navblock{0.15}{Conclusiones}{35}{37}%
+      \navblock{0.17}{Introducción}{2}{3}%
+      \navblock{0.19}{Implementación}{4}{7}%
+      \navblock{0.15}{Simulaciones}{8}{10}%
+      \navblock{0.34}{Resultados}{11}{27}%
+      \navblock{0.15}{Conclusiones}{28}{30}%
     }%
   \end{beamercolorbox}%
   % La línea azul solo hace falta cuando la diapositiva no tiene título.
@@ -206,6 +209,8 @@
 % Compara dos niveles de ruido manteniendo visibles los parámetros comunes.
 % #1 N, #2 T, #3 imagen eta=0.5, #4 URL eta=0.5,
 % #5 imagen eta=2, #6 URL eta=2.
+% La URL se muestra 100% explicita (https://...) debajo de cada imagen -- el
+% valor de eta ya esta arriba, asi que no se duplica como texto del link.
 \newcommand{\dobleanimacion}[6]{%
   \begin{center}
     \colorbox{TPLight}{\parbox[c][0.54cm][c]{0.94\linewidth}{\centering
@@ -277,25 +282,27 @@
 % 2
 \sectiondivider{Introducción}
 
-% 3. Fenómeno o sistema real
-\begin{frame}{Sistema Real}
-  \begin{columns}[T,onlytextwidth]
-    \begin{column}{0.54\textwidth}
-      Estudio de fenómenos colectivos presentes en la naturaleza
-      \begin{itemize}
-        \item Cardumenes
-        \item Bandadas de Aves
-        \item Colonias de Hormigas
-      \end{itemize}
-    \end{column}
-    \begin{column}{0.42\textwidth}
-      \maybeimage{figuras/enjambre.jpg}{3.7cm}{Insertar imagen del sistema real}
-    \end{column}
-  \end{columns}
-\end{frame}
+% Sistema Real: desactivado temporalmente (decisión del grupo del 2026-09-04,
+% puede reactivarse después). Descomentar todo el bloque para volver a
+% incluirlo; si se reactiva, hay que revertir la renumeración de más abajo.
+% \begin{frame}{Sistema Real}
+%   \begin{columns}[T,onlytextwidth]
+%     \begin{column}{0.54\textwidth}
+%       Estudio de fenómenos colectivos presentes en la naturaleza
+%       \begin{itemize}
+%         \item Cardumenes
+%         \item Bandadas de Aves
+%         \item Colonias de Hormigas
+%       \end{itemize}
+%     \end{column}
+%     \begin{column}{0.42\textwidth}
+%       \maybeimage{figuras/enjambre.jpg}{3.7cm}{Insertar imagen del sistema real}
+%     \end{column}
+%   \end{columns}
+% \end{frame}
 
-% 4. Fundamentos matemáticos
-\begin{frame}{Fundamentos}
+% 3.Modelos matemáticos
+\begin{frame}{Modelos}
   Posición y velocidad (común a los dos modelos):
   \begin{align*}
     \vec{r}_i(t+\Delta t) &= \vec{r}_i(t) + \vec{v}_i(t)\Delta t,\\
@@ -319,10 +326,10 @@
 \end{frame}
 
 % ---------------- IMPLEMENTACIÓN ----------------
-% 5
+% 4
 \sectiondivider{Implementación}
 
-% 6. Arquitectura general
+% 5. Arquitectura general
 \begin{frame}{Arquitectura}
   \small
   \begin{columns}[T,onlytextwidth]
@@ -339,7 +346,7 @@
       \begin{itemize}
         \item Motor Java
         \item Búsqueda de vecinos
-        \item Calculos y Análisis
+        \item Cálculos y Análisis
         \item Visualización
         \item Comunicación
       \end{itemize}
@@ -347,31 +354,31 @@
   \end{columns}
 \end{frame}
 
-% 7. Diagrama de arquitectura
-\begin{frame}{Diagrama de la Arquitectura}
+% 6. Diagrama de arquitectura
+\begin{frame}[c]{Diagrama de la Arquitectura}
   \centering
   \maybeimage{figuras/arquitectura_tp2.png}{5.7cm}{Insertar diagrama de arquitectura}
 \end{frame}
 
-% 8. Algoritmo implementado
+% 7. Algoritmo implementado
 \begin{frame}{Algoritmo Implementado}
   \begin{beamercolorbox}[wd=\linewidth,sep=2mm]{algorithm box}
     \textbf{Algoritmo:}\\[1mm]
     1. Inicializar variables y estado\\
-    2. Movimiento con condiciones periodicas\\
-    3. Busqueda de vecinos\\
-    4. Calculo de direccion promedio\\
-    5. Adicion de ruido\\
+    2. Movimiento con condiciones periódicas\\
+    3. Búsqueda de vecinos\\
+    4. Cálculo de dirección promedio\\
+    5. Adición de ruido\\
     6. Repetir hasta completar $T$ pasos.\\
     7. Guardar resultados.
   \end{beamercolorbox}
 \end{frame}
 
 % ---------------- SIMULACIONES ----------------
-% 9
+% 8
 \sectiondivider{Simulaciones}
 
-% 10. Parámetros
+% 9. Parámetros
 \begin{frame}{Simulaciones}
   Parámetros de entrada fijos:
   \begin{itemize}
@@ -383,11 +390,11 @@
     \item $N\in[11, 800]$ --- Cantidad de entidades
     \item $L=10$ --- Tamaño del dominio
     \item $T\in[0, 10000]$ --- Cantidad de pasos
-    \item $\eta\in[0, 2\pi]$ --- Ruido
+    \item $\eta\in[0, 5]$ --- Ruido
   \end{itemize}
 \end{frame}
 
-% 11. Observable principal
+% 10. Observable principal
 \begin{frame}{Observable Definido}
   \centering
   Parámetro de orden $v_a(t)$
@@ -395,43 +402,43 @@
     v_a=\frac{1}{N v_0}\left|\sum_{i=1}^{N}\bm{v}_i\right|
   \end{equation*}
   \begin{itemize}
-    \item Valor alto: [interpretación.]
-    \item Valor bajo: [interpretación.]
+    \item Valor alto: alineamiento colectivo (orden).
+    \item Valor bajo: movimiento desordenado, sin dirección preferencial.
   \end{itemize}
-  [Explicar combinaciones de parámetros, cantidad de corridas y criterio de comparación.]
+  Comparado entre modelos y densidades, promediando $M=5$ corridas en estado estacionario.
 \end{frame}
 
 % ---------------- RESULTADOS ----------------
-% 14
+% 11
 \sectiondivider{Resultados}
 
-% 14--16. Resultados visuales / animaciones del modelo estándar
-\begin{frame}{Modelo Estándar --- Densidad $\rho=2$}
+% 12--14. Resultados visuales / animaciones del modelo estándar
+\begin{frame}[c]{Modelo Estándar --- Densidad $\rho=2$}
   \dobleanimacion{200}{1000}
     {figuras/standard_rho2_eta0.5_mid.png}{\animacionStandardRhoDosEtaUnoURL}
     {figuras/standard_rho2_eta2_mid.png}{\animacionStandardRhoDosEtaDosURL}
 \end{frame}
 
-\begin{frame}{Modelo Estándar --- Densidad $\rho=4$}
+\begin{frame}[c]{Modelo Estándar --- Densidad $\rho=4$}
   \dobleanimacion{400}{1000}
     {figuras/standard_rho4_eta0.5_mid.png}{\animacionStandardRhoCuatroEtaUnoURL}
     {figuras/standard_rho4_eta2_mid.png}{\animacionStandardRhoCuatroEtaDosURL}
 \end{frame}
 
-\begin{frame}{Modelo Estándar --- Densidad $\rho=8$}
+\begin{frame}[c]{Modelo Estándar --- Densidad $\rho=8$}
   \dobleanimacion{800}{1000}
     {figuras/standard_rho8_eta0.5_mid.png}{\animacionStandardRhoOchoEtaUnoURL}
     {figuras/standard_rho8_eta2_mid.png}{\animacionStandardRhoOchoEtaDosURL}
 \end{frame}
 
-% 18. Serie temporal
-\begin{frame}{Evolución Temporal del Observable}
+% 15. Serie temporal
+\begin{frame}[c]{Evolución Temporal del Observable}
   \centering
   \maybeimage{figuras/evolucion-temporal.pdf}{5.6cm}{Insertar gráfico de evolución temporal}
 \end{frame}
 
-% 19. Relación entre parámetro y observable
-\begin{frame}{Relación entre $\eta$ y $v_a$ --- Modelo Estándar}
+% 16. Relación entre parámetro y observable
+\begin{frame}[c]{Relación entre $\eta$ y $v_a$ --- Modelo Estándar}
   \centering
   \maybeimage{figuras/relacion-parametro-observable-estandar.pdf}{4.65cm}{Insertar gráfico con barras de error}
   \vspace{0.08cm}
@@ -439,39 +446,39 @@
     $T=3000$\hfill$M=5$}}
 \end{frame}
 
-% 20. Barrido de tamaño o densidad
-\begin{frame}{Barrido de Densidad --- Modelo Estándar}
+% 17. Barrido de tamaño o densidad
+\begin{frame}[c]{Barrido de Densidad --- Modelo Estándar}
   \centering
   \maybeimage{figuras/barrido-variable.pdf}{5.0cm}{Insertar gráfico del barrido de parámetros}
   \colorbox{TPLight}{\parbox[c][0.48cm][c]{0.90\linewidth}{\centering
     $M=5$\hfill$T=3000$}}
 \end{frame}
 
-% 20--22. Resultados visuales del modelo votante
-\begin{frame}{Modelo Votante --- Densidad $\rho=2$}
+% 18--20. Resultados visuales del modelo votante
+\begin{frame}[c]{Modelo Votante --- Densidad $\rho=2$}
   \dobleanimacion{200}{1000}
     {figuras/voter_rho2_eta0.5_mid.png}{\animacionVoterRhoDosEtaUnoURL}
     {figuras/voter_rho2_eta2_mid.png}{\animacionVoterRhoDosEtaDosURL}
 \end{frame}
 
-\begin{frame}{Modelo Votante --- Densidad $\rho=4$}
+\begin{frame}[c]{Modelo Votante --- Densidad $\rho=4$}
   \dobleanimacion{400}{1000}
     {figuras/voter_rho4_eta0.5_mid.png}{\animacionVoterRhoCuatroEtaUnoURL}
     {figuras/voter_rho4_eta2_mid.png}{\animacionVoterRhoCuatroEtaDosURL}
 \end{frame}
 
-\begin{frame}{Modelo Votante --- Densidad $\rho=8$}
+\begin{frame}[c]{Modelo Votante --- Densidad $\rho=8$}
   \dobleanimacion{800}{1000}
     {figuras/voter_rho8_eta0.5_mid.png}{\animacionVoterRhoOchoEtaUnoURL}
     {figuras/voter_rho8_eta2_mid.png}{\animacionVoterRhoOchoEtaDosURL}
 \end{frame}
 
-\begin{frame}{Evolución Temporal del Observable}
+\begin{frame}[c]{Evolución Temporal del Observable}
   \centering
   \maybeimage{figuras/evolucion-variante.pdf}{5.6cm}{Insertar evolución temporal de la variante}
 \end{frame}
 
-\begin{frame}{Relación entre $\eta$ y $v_a$ --- Modelo Votante}
+\begin{frame}[c]{Relación entre $\eta$ y $v_a$ --- Modelo Votante}
   \centering
   \maybeimage{figuras/relacion-parametro-observable-votante.pdf}{4.65cm}{Insertar gráfico con barras de error}
   \vspace{0.08cm}
@@ -479,9 +486,9 @@
     $T=3000$\hfill$M=5$}}
 \end{frame}
 
-% 21--23. Variante de interacción: resultados visuales
+% 23--25. Variante de interacción: resultados visuales
 % --- Clusters: evolucion temporal de S ---
-\begin{frame}{Evolución Temporal de la Componente Gigante}
+\begin{frame}[c]{Evolución Temporal de la Componente Gigante}
   \centering
   \maybeimage{figuras/clusters-temporal.pdf}{4.9cm}{Insertar evolución temporal de $S$}
   \colorbox{TPLight}{\parbox[c][0.48cm][c]{0.90\linewidth}{\centering
@@ -489,7 +496,7 @@
 \end{frame}
 
 % --- Clusters: S estacionario vs ruido ---
-\begin{frame}{Relación entre $\eta$ y $S$}
+\begin{frame}[c]{Relación entre $\eta$ y $S$}
   \centering
   \maybeimage{figuras/clusters-vs-eta.pdf}{4.65cm}{Insertar gráfico con barras de error}
   \vspace{0.08cm}
@@ -498,7 +505,7 @@
 \end{frame}
 
 % --- Clusters: polarizacion vs componente gigante ---
-\begin{frame}{Relación entre $S$ y $v_a$}
+\begin{frame}[c]{Relación entre $S$ y $v_a$}
   \centering
   \maybeimage{figuras/va-vs-s.pdf}{4.65cm}{Insertar gráfico de $v_a$ en función de $S$}
   \vspace{0.08cm}
@@ -506,11 +513,11 @@
     $T=10000$\hfill$M=5$}}
 \end{frame}
 
-% 24--25. Gráficos finales de la variante
+% 26--27. Gráficos finales de la variante
 
 
 % --- Comparación final: estándar vs. votante ---
-\begin{frame}{Comparación entre el Modelo Estándar y el Modelo Votante}
+\begin{frame}[c]{Comparación entre el Modelo Estándar y el Modelo Votante}
   \centering
   \maybeimage{figuras/comparacion-modelos.pdf}{4.65cm}{Insertar comparación de modelos}
   \vspace{0.08cm}
@@ -519,7 +526,7 @@
 \end{frame}
 
 % --- Punto (g): tiempos del CIM ---
-\begin{frame}{Tiempos de Ejecución del Cell Index Method}
+\begin{frame}[c]{Tiempos de Ejecución del Cell Index Method}
   \centering
   \maybeimage{figuras/tiempos-cim.pdf}{5.0cm}{Insertar comparación de tiempos con TP1}
   \colorbox{TPLight}{\parbox[c][0.48cm][c]{0.90\linewidth}{\centering
@@ -527,10 +534,10 @@
 \end{frame}
 
 % ---------------- CONCLUSIONES ----------------
-% 25
+% 28
 \sectiondivider{Conclusiones}
 
-% 26
+% 29
 \begin{frame}{Conclusiones}
   Principales conclusiones obtenidas:
   \begin{itemize}
@@ -541,7 +548,7 @@
   \end{itemize}
 \end{frame}
 
-% 27. Cierre
+% 30. Cierre
 \begin{frame}
   \vfill
   \begin{beamercolorbox}[wd=0.86\paperwidth,ht=0.72cm,dp=0.20cm,center]{frametitle}
