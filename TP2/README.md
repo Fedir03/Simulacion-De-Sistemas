@@ -300,10 +300,13 @@ python3 TP2/scripts/plot_va.py \
     --vlines-label="inicio del estacionario" --vlines-color=gris \
     --out=TP2/presentacion/figuras/clusters-temporal.pdf
 
-# <S> vs eta, una curva por densidad - punto (d). --transient=40% (no 500: el largo de la
-# corrida es 10000 pasos aca, no 3000 como en (c), asi que el corte absoluto seria distinto)
-python3 TP2/scripts/plot_va_vs_eta.py generated/d_eta_rho*/runs.csv --group-by=density \
-    --observable=s_csv --transient=40% \
+# <S> vs eta, una curva por densidad - punto (d). Lleva las 6 densidades (las 3 bajas de
+# (d) + las 3 del enunciado de (c), igual que va-vs-s.pdf mas abajo): el texto del informe
+# compara S en las 6, no solo en las bajas -- ojo con globar solo d_eta_rho* aca.
+# --transient=40% (no 500: el largo de la corrida es 10000 pasos aca, no 3000 como en (c),
+# asi que el corte absoluto seria distinto)
+python3 TP2/scripts/plot_va_vs_eta.py generated/d_eta_rho*/runs.csv generated/c_eta_rho*/runs.csv \
+    --group-by=density --observable=s_csv --transient=40% \
     --out=TP2/presentacion/figuras/clusters-vs-eta.pdf
 
 # v_a vs S - punto (e). Lleva las 6 densidades (las 3 bajas de (d) + las 3 del enunciado de
