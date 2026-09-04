@@ -65,8 +65,8 @@ def plot(specs: Sequence[str], log: bool, title: str | None):
         ax.set_yscale("log")
     else:
         ax.set_ylim(bottom=0.0)
-    ax.set_title(title if title is not None
-                 else "Tiempo de ejecución del Cell Index Method")
+    if title is not None:
+        ax.set_title(title)
     ax.grid(alpha=0.3, which="both")
     ax.legend(fontsize=9)
     fig.tight_layout()
