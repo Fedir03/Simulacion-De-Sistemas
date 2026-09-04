@@ -43,6 +43,7 @@ X_LABELS = {
     "n": "Cantidad de partículas $N$",
 }
 GROUP_FIELDS = ("density", "n", "model", "l", "theta0")
+MODEL_LABELS = {"standard": "estándar", "voter": "votante"}
 
 
 def _group_key_single(header: SimulationHeader, field: str) -> tuple[float, str]:
@@ -54,7 +55,7 @@ def _group_key_single(header: SimulationHeader, field: str) -> tuple[float, str]
     if field == "l":
         return header.l, f"L = {header.l:g} (N = {header.n})"
     if field == "model":
-        return 0.0, f"modelo {header.model}"
+        return 0.0, f"modelo {MODEL_LABELS.get(header.model, header.model)}"
     if field == "theta0":
         return 0.0, header.theta0_label
     raise SimulationFormatError(f"campo de agrupamiento desconocido: '{field}'")
