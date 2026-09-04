@@ -218,25 +218,33 @@ python3 TP2/scripts/sweep.py eta --model=voter --n=400 --l=10 --steps=3000 \
     --etas=0,0.5,1.0,1.5,2.0,2.5,3.0,3.5,4.0,4.5,5.0 --runs=5 --seed=1 --seedLoopBase=1001 \
     --shared-ic-dir=generated/f_shared_ic --no-keep-traj --outdir=generated/f_voter_rho4
 
-python3 TP2/scripts/plot_va_vs_eta.py generated/f_standard_rho4/runs.csv generated/f_voter_rho4/runs.csv \
-    --group-by=model --transient=500 --out=TP2/presentacion/figuras/comparacion-modelos.pdf
+python3 TP2/scripts/plot_va_vs_eta.py \
+    generated/f_standard_rho2/runs.csv generated/f_voter_rho2/runs.csv \
+    generated/f_standard_rho4/runs.csv generated/f_voter_rho4/runs.csv \
+    generated/f_standard_rho8/runs.csv generated/f_voter_rho8/runs.csv \
+    --group-by=density,model --transient=500 --out=TP2/presentacion/figuras/comparacion-modelos.pdf
 ```
 
-### Extra — barrido de tamaño a densidad fija
+`comparacion-modelos.pdf` junta las tres densidades en una sola figura: por eso son las
+seis corridas (standard+voter × ρ=2,4,8), no solo ρ=4. El orden del `--group-by` importa
+para que la leyenda quede agrupada por densidad primero (con `model,density` sale
+agrupada por modelo, que es una figura distinta).
 
-No lo pide el enunciado (que fija `L = 10`), pero es la figura 2(a) del paper de Vicsek y
-sirve para el slide 21 del template ("Barrido de tamaño o densidad"): se mantiene `ρ` fija
-y se varía `L`, de modo que `N = ρ·L²`.
+### `barrido-variable.pdf` — v_a vs. densidad
+
+No es una corrida nueva: son los mismos datos del punto (c) (`generated/c_eta_rho*/runs.csv`)
+transpuestos con `--x=density`, para leer `v_a` en función de `ρ` con una curva por `η` en vez
+de una curva por `ρ` con `η` en el eje x. Se muestra un subconjunto de los `η` barridos en (c)
+para no saturar la figura:
 
 ```bash
-# ejemplo para rho = 4: L = 5, 10, 20  ->  N = 100, 400, 1600
-python3 TP2/scripts/sweep.py eta --model=standard --n=100 --l=5  --steps=3000 ... --outdir=generated/size_rho4_L5
-python3 TP2/scripts/sweep.py eta --model=standard --n=400 --l=10 --steps=3000 ... --outdir=generated/size_rho4_L10
-python3 TP2/scripts/sweep.py eta --model=standard --n=1600 --l=20 --steps=3000 ... --outdir=generated/size_rho4_L20
-
-python3 TP2/scripts/plot_va_vs_eta.py generated/size_rho4_L*/runs.csv --group-by=n \
-    --transient=500 --out=TP2/presentacion/figuras/barrido-variable.pdf
+python3 TP2/scripts/plot_va_vs_eta.py generated/c_eta_rho2/runs.csv generated/c_eta_rho4/runs.csv \
+    generated/c_eta_rho8/runs.csv --x=density --etas=0.5,1.5,2.5,3.5,4.5 --transient=500 \
+    --out=TP2/presentacion/figuras/barrido-variable.pdf
 ```
+
+(El barrido de tamaño a densidad fija de la figura 2(a) del paper de Vicsek, con `N=ρ·L²`
+variando `L`, es un experimento distinto que no está detrás de esta figura actualmente.)
 
 ### Puntos (d) y (e) — clusters y componente gigante
 
@@ -261,11 +269,15 @@ sin cambios (la etiqueta del eje sale del nombre de la columna).
 `π·rc²·ρ`, o sea **1, ½ y ⅓** — muy por debajo del umbral de percolación en 2D (~4.5 vecinos,
 `ρ_c ≈ 1.44`). Las densidades 2, 4 y 8 del enunciado están todas percoladas y ahí `S ≈ 1`
 para todo `η`. Como esas densidades dan un `N` no entero con `L = 10` (31.8, 15.9 y 10.6),
-se fija **N = 400** y se despeja `L = √(N/ρ)` → 35.449, 50.133 y 61.400.
+`clusters-temporal.pdf`, `clusters-vs-eta.pdf` y `va-vs-s.pdf` mantienen **`L = 10` fijo y
+redondean `N`** a 32, 16 y 11 respectivamente (`ρ = 1/π, 1/(2π), 1/(3π)` quedan en
+0.32/0.16/0.11). Es una convención distinta de la que usan las figuras de comparación
+estándar-vs-votante en baja densidad (`N = 400` fijo, `L` despejada) — no mezclar los
+`generated/d_eta_rho*pi` de esta seccion con esas.
 
 ```bash
 # barrido de las densidades bajas
-python3 TP2/scripts/sweep.py eta --model=standard --n=400 --l=35.449077 --steps=3000 \
+python3 TP2/scripts/sweep.py eta --model=standard --n=32 --l=10 --steps=3000 \
     --etas=0,0.5,1.0,1.5,2.0,2.5,3.0,3.5,4.0,4.5,5.0 --runs=5 --no-keep-traj \
     --outdir=generated/d_eta_rho1pi
 
@@ -277,27 +289,49 @@ Hay que volver a simular porque `S` se calcula desde las posiciones y las trayec
 borran con `--no-keep-traj`. Es reproducible al bit: las semillas están en el `runs.csv`.
 
 ```bash
-# S(t) - punto (d): un panel por densidad, una curva por eta y su vertical de estacionario
-# cada --vlines es un eta (en el orden de las curvas) con el t donde arranca su estacionario
+# S(t) - punto (d): un panel por densidad, una curva por eta y su vertical de estacionario.
+# --vlines toma pares "densidad:tiempo" (un valor de t por panel, no por curva): la densidad
+# tiene que ir en decimal (0.32/0.16/0.11), no como fraccion de pi -- la fraccion "1/pi" no
+# matchea contra la densidad real redondeada (0.3183... vs 0.32) por la tolerancia del parser.
 python3 TP2/scripts/plot_va.py \
     generated/d10k_rho{1pi,2pi,3pi}/eta{0,0.5,1,3}_seed1_S.csv \
     --label-by=eta --panels-by=density --width=6 --height=5 \
-    --title="Evolución de la componente gigante (modelo estándar)" \
-    --vlines="1/pi:2000,1/2pi:4300,1/3pi:6000" \
-    --vlines="1/pi:3600,1/2pi:8700,1/3pi:6500" \
-    --vlines="1/pi:1850,1/2pi:2200,1/3pi:8000" \
-    --vlines="1/pi:100,1/2pi:100,1/3pi:100" \
-    --legend-loc="1/pi:lower right@0.06" \
+    --vlines="0.11:1800,0.16:2000,0.32:1000" \
+    --vlines-label="inicio del estacionario" --vlines-color=gris \
     --out=TP2/presentacion/figuras/clusters-temporal.pdf
 
-# <S> vs eta, una curva por densidad - punto (d)
+# <S> vs eta, una curva por densidad - punto (d). --transient=40% (no 500: el largo de la
+# corrida es 10000 pasos aca, no 3000 como en (c), asi que el corte absoluto seria distinto)
 python3 TP2/scripts/plot_va_vs_eta.py generated/d_eta_rho*/runs.csv --group-by=density \
-    --observable=s_csv --transient=500 \
+    --observable=s_csv --transient=40% \
     --out=TP2/presentacion/figuras/clusters-vs-eta.pdf
 
-# v_a vs S - punto (e)
-python3 TP2/scripts/plot_va_vs_s.py generated/d_eta_rho*/runs.csv --transient=500 \
+# v_a vs S - punto (e). Lleva las 6 densidades (las 3 bajas de (d) + las 3 del enunciado de
+# (c)): family de va-vs-s.pdf que grafica el estandar completo, no solo las densidades bajas.
+python3 TP2/scripts/plot_va_vs_s.py generated/d_eta_rho*/runs.csv generated/c_eta_rho*/runs.csv \
+    --transient=40% \
     --out=TP2/presentacion/figuras/va-vs-s.pdf
+```
+
+Las mismas tres densidades bajas, una figura por densidad en vez de las tres en un panel
+(para el informe, no la presentación). Un solo `--transient` por figura alcanza porque cada
+una es de una sola densidad -- no hace falta `--vlines`:
+
+```bash
+python3 TP2/scripts/plot_va.py \
+    generated/d10k_rho1pi/eta{0,0.5,1,3}_seed1_S.csv \
+    --label-by=eta --width=6 --height=5 --transient=1000 \
+    --out=TP2/informe/figuras/clusters-temporal-rho1pi.pdf
+
+python3 TP2/scripts/plot_va.py \
+    generated/d10k_rho2pi/eta{0,0.5,1,3}_seed1_S.csv \
+    --label-by=eta --width=6 --height=5 --transient=2000 \
+    --out=TP2/informe/figuras/clusters-temporal-rho2pi.pdf
+
+python3 TP2/scripts/plot_va.py \
+    generated/d10k_rho3pi/eta{0,0.5,1,3}_seed1_S.csv \
+    --label-by=eta --width=6 --height=5 --transient=1800 \
+    --out=TP2/informe/figuras/clusters-temporal-rho3pi.pdf
 ```
 
 ### Unidades del eje temporal
