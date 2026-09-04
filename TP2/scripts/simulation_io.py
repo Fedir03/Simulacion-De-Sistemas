@@ -47,11 +47,19 @@ def density_label_for(density: float, n: int | None = None,
     la fraccion: con L = 10 las tres dan N = 11, 16 y 32, o sea 0.11, 0.16 y 0.32. Con n
     y l se reconoce ese caso (N es el entero mas cercano a la densidad objetivo por L^2)
     y la etiqueta sigue siendo la fraccion, que es lo que identifica a la corrida.
+
+    La tolerancia no puede ser ajustadisima: con L=10 fijo, N se redondea al entero
+    mas cercano (11, 16, 32 para 1/(3pi), 1/(2pi), 1/pi), lo que separa la densidad
+    resultante de la fraccion exacta hasta ~0.004 (peor caso N=11). 1e-2 cubre eso
+    con margen y sigue muy por debajo de la distancia a la fraccion vecina mas
+    cercana (>0.05 en todos los casos que usamos), asi que no hay riesgo de
+    confundir una densidad con la fraccion equivocada.
     """
     for k in range(1, 7):
         objetivo = 1.0 / (k * math.pi)
         redondeada = n is not None and l is not None and round(objetivo * l * l) == n
         if abs(density - objetivo) < 1e-6 or redondeada:
+        if abs(density - 1.0 / (k * math.pi)) < 1e-2:
             return "1/π" if k == 1 else f"1/({k}π)"
     return f"{density:g}"
 

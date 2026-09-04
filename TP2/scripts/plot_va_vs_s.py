@@ -61,6 +61,7 @@ def collect(indexes: Sequence[Path], transient: str | int) -> dict[tuple[float, 
             va_tail = steady_values(index_path.parent, row["va_csv"], transient)
             s_tail = steady_values(index_path.parent, row["s_csv"], transient)
             density = int(row["n"]) / (float(row["l"]) ** 2)
+            key = (density, f"ρ = {density_label_for(density)} (N = {row['n']})")
             etiqueta = density_label_for(density, int(row["n"]), float(row["l"]))
             key = (density, f"ρ = {etiqueta} (N = {row['n']}, L = {float(row['l']):.4g})")
             va_list, s_list = grouped[key][float(row["eta"])]
