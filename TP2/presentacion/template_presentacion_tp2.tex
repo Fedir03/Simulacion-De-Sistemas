@@ -77,7 +77,7 @@
 % ---------- Barra superior por sección ----------
 % Rangos de diapositivas del template:
 % Introducción 2--4 | Implementación 5--8 | Simulaciones 9--12
-% Resultados 13--29 | Conclusiones 30--32
+% Resultados 13--34 | Conclusiones 35--37
 \newcount\TPNavDot
 
 % Dibuja un punto por diapositiva de la sección. Solamente el punto de la
@@ -129,8 +129,8 @@
       \navblock{0.17}{Introducción}{2}{4}%
       \navblock{0.19}{Implementación}{5}{8}%
       \navblock{0.17}{Simulaciones}{9}{12}%
-      \navblock{0.32}{Resultados}{13}{29}%
-      \navblock{0.15}{Conclusiones}{30}{32}%
+      \navblock{0.32}{Resultados}{13}{34}%
+      \navblock{0.15}{Conclusiones}{35}{37}%
     }%
   \end{beamercolorbox}%
   % La línea azul solo hace falta cuando la diapositiva no tiene título.
@@ -297,17 +297,26 @@
 
 % 4. Fundamentos matemáticos
 \begin{frame}{Fundamentos}
-  [Presentar las ecuaciones centrales del modelo.]
-  \vspace{0.25cm}
+  Posición y velocidad (común a los dos modelos):
   \begin{align*}
-    \bm{x}(t+1) &= [\text{ecuación de actualización}],\\
-    \theta(t+1) &= [\text{ecuación angular o regla secundaria}].
+    \vec{r}_i(t+\Delta t) &= \vec{r}_i(t) + \vec{v}_i(t)\Delta t,\\
+    \vec{v}_i(t) &= v_0\big(\cos\theta_i(t), \sin\theta_i(t)\big)
   \end{align*}
-  \vspace{0.15cm}
-  [Definir aquí la interacción, promedio local o condición de contorno.]
-  \begin{equation*}
-    [\text{expresión matemática principal}].
-  \end{equation*}
+  \vspace{0.05cm}
+  \textbf{Modelo estándar} --- actualización angular:
+  \[
+    \theta_i(t+\Delta t) = \langle\theta_j(t)\rangle_{j\in\mathcal{V}_i(t)} + \Delta\theta_i(t)
+  \]
+  \textbf{Modelo votante} --- actualización angular:
+  \[
+    \theta_i(t+\Delta t) = \theta_j(t) + \Delta\theta_i(t), \; j\sim U(\mathcal{V}_i(t))
+  \]
+  {\scriptsize Si $\mathcal{V}_i(t)=\emptyset$: $\theta_i(t+\Delta t) = \theta_i(t) + \Delta\theta_i(t)$ (ambos modelos).\par}
+  \vspace{0.05cm}
+  Ruido (común a los dos modelos):
+  \[
+    \Delta\theta_i(t) \sim U(-\eta/2,\ \eta/2)
+  \]
 \end{frame}
 
 % ---------------- IMPLEMENTACIÓN ----------------
@@ -427,20 +436,20 @@
 \end{frame}
 
 % 19. Relación entre parámetro y observable
-\begin{frame}{Relación entre [Parámetro] y [Observable]}
+\begin{frame}{Relación entre $\eta$ y $v_a$ --- Modelo Estándar}
   \centering
-  \maybeimage{figuras/relacion-parametro-observable.pdf}{4.65cm}{Insertar gráfico con barras de error}
+  \maybeimage{figuras/relacion-parametro-observable-estandar.pdf}{4.65cm}{Insertar gráfico con barras de error}
   \vspace{0.08cm}
   \colorbox{TPLight}{\parbox[c][0.55cm][c]{0.90\linewidth}{\centering
-    $[\text{parámetro fijo 1}]=[\ ]$\hfill$[\text{parámetro fijo 2}]=[\ ]$}}
+    $L=10$\hfill$T=3000$\hfill$M=5$\hfill$N\in\{200,\ 400,\ 800\}$}}
 \end{frame}
 
 % 20. Barrido de tamaño o densidad
-\begin{frame}{Relación entre [Variable] y [Observable]}
+\begin{frame}{Barrido de Densidad --- Modelo Estándar}
   \centering
   \maybeimage{figuras/barrido-variable.pdf}{5.0cm}{Insertar gráfico del barrido de parámetros}
   \colorbox{TPLight}{\parbox[c][0.48cm][c]{0.90\linewidth}{\centering
-    $[\text{variable}]\in\{[\text{valores estudiados}]\}$}}
+    $L=10$\hfill$M=5$\hfill$T=3000$}}
 \end{frame}
 
 % 20--22. Resultados visuales del modelo votante
@@ -495,6 +504,14 @@
   \maybeimage{figuras/evolucion-variante.pdf}{5.6cm}{Insertar evolución temporal de la variante}
 \end{frame}
 
+\begin{frame}{Relación entre $\eta$ y $v_a$ --- Modelo Votante}
+  \centering
+  \maybeimage{figuras/relacion-parametro-observable-votante.pdf}{4.65cm}{Insertar gráfico con barras de error}
+  \vspace{0.08cm}
+  \colorbox{TPLight}{\parbox[c][0.55cm][c]{0.90\linewidth}{\centering
+    $L=10$\hfill$T=3000$\hfill$M=5$\hfill$N\in\{200,\ 400,\ 800\}$}}
+\end{frame}
+
 \begin{frame}{Interacción Votante}
   \centering
   \maybeimage{figuras/clusters-modelos-rho1pi.pdf}{4.65cm}{Insertar comparación de $S$}
@@ -503,12 +520,46 @@
     $N=400$\hfill$T=10000$\hfill$M=5$\hfill$\rho=\tfrac{1}{\pi}$}}
 \end{frame}
 
+% --- Clusters en las densidades del enunciado: estándar vs. votante ---
+\begin{frame}{Componente Gigante $S$ vs. $\eta$ --- $\rho=2$}
+  \centering
+  \maybeimage{figuras/clusters-modelos-enunciado-rho2.pdf}{4.65cm}{Insertar comparación de $S$}
+  \vspace{0.08cm}
+  \colorbox{TPLight}{\parbox[c][0.55cm][c]{0.90\linewidth}{\centering
+    $N=200$\hfill$L=10$\hfill$T=3000$\hfill$M=5$}}
+\end{frame}
+
+\begin{frame}{Componente Gigante $S$ vs. $\eta$ --- $\rho=4$}
+  \centering
+  \maybeimage{figuras/clusters-modelos-enunciado-rho4.pdf}{4.65cm}{Insertar comparación de $S$}
+  \vspace{0.08cm}
+  \colorbox{TPLight}{\parbox[c][0.55cm][c]{0.90\linewidth}{\centering
+    $N=400$\hfill$L=10$\hfill$T=3000$\hfill$M=5$}}
+\end{frame}
+
+\begin{frame}{Componente Gigante $S$ vs. $\eta$ --- $\rho=8$}
+  \centering
+  \maybeimage{figuras/clusters-modelos-enunciado-rho8.pdf}{4.65cm}{Insertar comparación de $S$}
+  \vspace{0.08cm}
+  \colorbox{TPLight}{\parbox[c][0.55cm][c]{0.90\linewidth}{\centering
+    $N=800$\hfill$L=10$\hfill$T=3000$\hfill$M=5$}}
+\end{frame}
+
 \begin{frame}{Interacción Votante}
   \centering
   \maybeimage{figuras/va-vs-s-votante.pdf}{4.65cm}{Insertar $v_a$ en función de $S$}
   \vspace{0.08cm}
   \colorbox{TPLight}{\parbox[c][0.55cm][c]{0.90\linewidth}{\centering
     $N=400$\hfill$T=10000$\hfill$M=5$\hfill$\rho\in\{\tfrac{1}{3\pi},\ \tfrac{1}{2\pi},\ \tfrac{1}{\pi}\}$}}
+\end{frame}
+
+% --- Comparación final: estándar vs. votante ---
+\begin{frame}{Comparación entre el Modelo Estándar y el Modelo Votante}
+  \centering
+  \maybeimage{figuras/comparacion-modelos.pdf}{4.65cm}{Insertar comparación de modelos}
+  \vspace{0.08cm}
+  \colorbox{TPLight}{\parbox[c][0.55cm][c]{0.90\linewidth}{\centering
+    $N\in\{200,\ 400,\ 800\}$\hfill$L=10$\hfill$T=3000$\hfill$M=5$}}
 \end{frame}
 
 % --- Punto (g): tiempos del CIM ---
