@@ -130,21 +130,38 @@ densidades bajas cercano al umbral de percolación.
 % ================================================================
 \section{Introducción}
 
-% TODO: contexto general — sistemas de partículas autopropulsadas (self-driven
-% particles) y transiciones de fase en el orden colectivo. Sin ecuaciones acá
-% (van en la sección Modelo) ni geometría/parámetros concretos (van en Simulaciones).
+Los sistemas de partículas autopropulsadas constituyen una clase de modelos
+ampliamente estudiada para describir la aparición de orden colectivo a
+partir de interacciones puramente locales, sin necesidad de un mecanismo de
+coordinación centralizado. Este tipo de dinámica aparece como abstracción de
+fenómenos de movimiento colectivo observados en sistemas biológicos, y
+motiva el estudio de las condiciones bajo las cuales un sistema de agentes
+con reglas de interacción simples transita entre un régimen desordenado y
+uno con alineamiento global. El modelo de Vicsek, introducido originalmente
+por Vicsek et al. \cite{ref:vicsek1995}, captura esta dinámica mediante un
+autómata celular off-lattice: cada partícula se mueve a rapidez constante y
+ajusta su dirección en función de la de sus vecinas dentro de un radio de
+interacción, sujeta a una perturbación aleatoria de ruido. En este trabajo
+se estudian dos variantes de la regla de actualización angular, cuya
+formulación abstracta se desarrolla en la Sección~\ref{sec:modelo}: el
+modelo estándar de Vicsek \cite{ref:vicsek1995} y una variante de tipo
+votante, basada en Loscar, Baglietto y Vazquez \cite{ref:loscar2021} y en su
+antecedente, Baglietto y Vazquez \cite{ref:baglietto2016}.
 
-[Completar: motivación del estudio de sistemas de partículas autopropulsadas
-y transiciones de fase orden-desorden en el comportamiento colectivo.
-Introducido originalmente por Vicsek et al.~\cite{ref:vicsek1995}. En este
-trabajo se estudian dos variantes del modelo, cuya formulación abstracta se
-desarrolla en la Sección~\ref{sec:modelo}: el modelo estándar de
-Vicsek~\cite{ref:vicsek1995} y una variante de tipo votante, basada en
-Loscar, Baglietto y Vazquez~\cite{ref:loscar2021} y en su antecedente,
-Baglietto y Vazquez~\cite{ref:baglietto2016}.]
-
-[Completar: objetivo general del trabajo práctico y organización del resto
-del documento.]
+El objetivo de este trabajo es implementar ambas variantes del modelo y
+caracterizar su comportamiento colectivo en función de la amplitud de ruido
+angular $\eta$ y de la densidad de partículas $\rho$, utilizando como
+observable principal el parámetro de orden $v_a$. Se estudia además la
+formación de clusters mediante el observable $S$, en particular en el
+régimen de densidades bajas cercano al umbral de percolación, y se compara
+el desempeño del método de búsqueda de vecinos (Cell Index Method) con los
+tiempos de ejecución obtenidos en el TP1. El resto del documento se organiza
+como sigue: la Sección~\ref{sec:modelo} presenta las ecuaciones de ambos
+modelos; la Sección~\ref{sec:implementacion} describe la arquitectura del
+motor de simulación; la Sección~\ref{sec:simulaciones} detalla los
+parámetros y observables utilizados; la Sección~\ref{sec:resultados}
+presenta los resultados obtenidos; y la Sección~\ref{sec:conclusiones}
+resume las conclusiones del trabajo.
 
 % ================================================================
 % 2. MODELO
@@ -224,22 +241,29 @@ ruido sobre su dirección actual.
 % 3. IMPLEMENTACIÓN
 % ================================================================
 \section{Implementación}
+\label{sec:implementacion}
 
-[Completar: lenguaje y entorno de ejecución (Java 21 + Maven), estructura de
-paquetes del motor.]
+La implementación del motor de simulación se realizó en Java 21, con Maven
+como herramienta de build. El proyecto se organiza como un reactor
+multi-módulo que depende directamente del módulo del TP1, reusando su
+implementación del Cell Index Method (ver Sección~\ref{sec:reuso-tp1}). El
+motor de TP2 se estructura en tres paquetes: \texttt{command} (los
+subcomandos de la CLI -- \texttt{SimulateCommand}, \texttt{GenerateIcCommand},
+\texttt{ClustersCommand}, \texttt{BenchmarkCimCommand}, entre otros),
+\texttt{engine} (la implementación del modelo de Vicsek propiamente dicho), y
+\texttt{analysis} (lectura de resultados, cálculo de clusters mediante
+búsqueda en amplitud, y benchmarking del CIM).
 
 \subsection{Reuso del motor de búsqueda de vecinos de TP1}
+\label{sec:reuso-tp1}
 
 La búsqueda de vecinos reutiliza, sin modificar, el Cell Index Method (CIM)
-implementado en TP1 (ver informe de TP1 para el detalle del algoritmo, no se
-repite aquí). El criterio de vecindad de TP1 —distancia borde-a-borde entre
+implementado en TP1. El criterio de vecindad de TP1 —distancia borde-a-borde entre
 partículas con radio— se reduce exactamente al criterio de vecindad puntual
 de Vicsek al instanciar las partículas con radio $=0$: no es una
 aproximación, es la misma fórmula evaluada en el caso particular correcto.
 
 \subsection{Arquitectura del motor}
-
-[Completar: diagrama de paquetes/clases principales.]
 
 Los dos modelos de actualización angular (Secciones~\ref{sec:modelo-estandar}
 y~\ref{sec:modelo-votante}) se implementan detrás de una única interfaz común,
@@ -247,6 +271,15 @@ de forma que el resto del motor (generación de condición inicial, contorno
 periódico, búsqueda de vecinos, escritura de resultados) es idéntico para
 ambos modelos.
 
+% ----------------------------------------------------------------
+% Diagrama UML de clases (TikZ) reemplazado por la vista de arquitectura
+% compartida con la presentación (ver TP2/ARQUITECTURA_UML.md y
+% TP2/arquitectura_tp2.dot, de Lorenzo) para evitar dos diagramas
+% divergentes. Se deja comentado por si hace falta volver a esta versión
+% de detalle de clases/patrones (Strategy, Adapter, grupo "condición
+% inicial") que la vista de pipeline no muestra.
+% ----------------------------------------------------------------
+\iffalse
 \begin{figure}[H]
   \centering
   \resizebox{0.95\linewidth}{!}{%
@@ -318,6 +351,11 @@ ambos modelos.
   \caption{Diagrama UML de la arquitectura del motor de simulación.}
   \label{fig:uml}
 \end{figure}
+\fi
+
+\faltafigura{figuras/arquitectura_tp2.png}{Arquitectura del proyecto: flujo
+desde la ejecución del motor de simulación hasta la generación de gráficos y
+animaciones.}{fig:uml}
 
 \subsection{Orden del paso de simulación}
 
@@ -358,12 +396,22 @@ t1
 ...
 \end{verbatim}
 
-[Completar si hace falta más detalle de formato o de los flags de CLI.]
+Los principales flags de la CLI de simulación son: \texttt{-{}-model}
+(estándar o votante), \texttt{-{}-n}, \texttt{-{}-l}, \texttt{-{}-rc}, \texttt{-{}-dt},
+\texttt{-{}-v0}, \texttt{-{}-eta} (parámetros del sistema), \texttt{-{}-steps}
+(duración de la corrida), \texttt{-{}-seedIC}/\texttt{-{}-seedLoop} (semillas
+independientes para la condición inicial y el ruido, respectivamente),
+\texttt{-{}-icFile} (para compartir una condición inicial ya generada entre
+corridas, ver Sección~\ref{sec:repeticiones}), \texttt{-{}-periodic} y
+\texttt{-{}-theta0}, y \texttt{-{}-out} (archivo de salida). Estos flags
+corresponden directamente a los campos de la cabecera del archivo de
+trayectoria mostrada arriba.
 
 % ================================================================
 % 4. SIMULACIONES
 % ================================================================
 \section{Simulaciones}
+\label{sec:simulaciones}
 
 \subsection{Parámetros}
 
@@ -428,9 +476,10 @@ t1
     % partícula dentro del radio de interacción (vecina)
     \fill[TPNavGray] (3.6,3.4) circle (0.05);
 
-    % partícula destacada i
+    % partícula destacada i, con línea guía hacia la etiqueta
     \fill[TPBlue] (3,3) circle (0.07);
-    \node[TPBlue, anchor=north] at (3.9,2.15) {\footnotesize partícula $i$};
+    \draw[TPBlue, thin] (3,3) -- (2.1,1.85)
+      node[anchor=north east, inner sep=1pt] {\footnotesize partícula $i$};
 
     % radio de interacción rc
     \draw[draw=TPBlue, dashed, thin] (3,3) circle (0.9);
@@ -438,7 +487,7 @@ t1
     \node[TPBlue] at (3.42,3.32) {\small $r_c$};
   \end{tikzpicture}%
   }
-  \caption{Esquema del dominio de simulación: caja periódica de lado $L$, con el radio de interacción $r_c$ marcado sobre una partícula de ejemplo.}
+  \caption{Esquema del dominio de simulación: caja periódica de lado $L$, con el radio de interacción $r_c$ marcado sobre una partícula $i$ de ejemplo.}
   \label{fig:sistema}
 \end{figure}
 
@@ -507,6 +556,7 @@ y tomando el desvío estándar muestral de $\mathcal{B}$:
 \end{equation}
 
 \subsection{Repeticiones y tiempos de simulación}
+\label{sec:repeticiones}
 
 Cada combinación de parámetros se repite $M = 5$ veces con corridas
 independientes. La duración de las corridas depende del estudio: $3000$
@@ -526,7 +576,7 @@ del largo de cada corrida ($40\%$).
 Para la comparación entre el modelo estándar y el modelo votante (punto f),
 ambos modelos parten de la misma condición inicial (posiciones y ángulos),
 generada una única vez y compartida entre las dos corridas vía archivo
-(comando \texttt{generate-ic} y flag \texttt{--icFile}): así, cualquier
+(comando \texttt{generate-ic} y flag \texttt{-{}-icFile}): así, cualquier
 diferencia observada entre modelos se debe al modelo en sí y no a que
 hayan partido de configuraciones iniciales distintas. El ruido de cada
 modelo, en cambio, usa una semilla independiente --- nunca comparten la
@@ -547,27 +597,61 @@ modelos ``contamine'' al otro con la misma secuencia.
 
 \faltafigura{figuras/relacion-parametro-observable-estandar.pdf}{Polarización $\left\langle \overline{v_a} \right\rangle$ en función de $\eta$, modelo estándar, para $\rho = 2, 4, 8$.}{fig:va-eta-estandar}
 
-\faltatexto
+Para las tres densidades estudiadas ($\rho=2,4,8$), $v_a$ parte de valores
+cercanos a 1 en $\eta=0$ y decrece de forma monótona con el ruido. La caída
+es gradual hasta $\eta\approx2$, donde $v_a$ se mantiene por encima de 0.6
+para las tres densidades. Entre $\eta=2$ y $\eta=4$ la caída se acentúa,
+alcanzando valores entre 0.1 y 0.2 hacia $\eta=4.5$-$5$. En todo el rango,
+la curva de $\rho=8$ se mantiene por encima de las de $\rho=4$ y $\rho=2$
+(en ese orden), aunque las tres convergen a valores similares en $\eta=5$.
+Las barras de error son notoriamente mayores en la zona intermedia
+($\eta\approx2$-$3.5$) que en los extremos del rango.
 
 \subsection{Polarización $v_a$ vs.\ $\eta$ --- modelo votante}
 
 \faltafigura{figuras/relacion-parametro-observable-votante.pdf}{Polarización $\left\langle \overline{v_a} \right\rangle$ en función de $\eta$, modelo votante, para $\rho = 2, 4, 8$.}{fig:va-eta-votante}
 
-\faltatexto
+A diferencia del modelo estándar, $v_a$ cae abruptamente entre $\eta=0$ y
+$\eta=0.5$, pasando de valores cercanos a 1 a valores entre 0.2 y 0.4 según
+la densidad. A partir de $\eta=1$, la curva se aplana, con $v_a$ oscilando
+entre 0.05 y 0.2 para el resto del rango de $\eta$ estudiado. Las tres
+densidades muestran el mismo comportamiento cualitativo, con diferencias
+entre ellas mucho menores que en el modelo estándar.
 
 \subsection{Clusters $S$ vs.\ $\eta$}
 
-\faltafigura{figuras/clusters-temporal.pdf}{Evolución temporal $S(t)$ representativa, usada para justificar el criterio de estado estacionario del observable de clusters.}{fig:clusters-temporal}
+\faltafigura{figuras/clusters-temporal-rho1pi.pdf}{Evolución temporal de la fracción en la componente gigante $S(t)$ para $\rho = 1/\pi$ ($N = 32$, $L = 10$), modelo estándar, con $\eta = 0,\ 0.5,\ 1,\ 3$. La línea vertical en $t = 1000$ marca el corte usado para descartar el transitorio al promediar el estado estacionario.}{fig:clusters-temporal-rho1pi}
+
+\faltafigura{figuras/clusters-temporal-rho2pi.pdf}{Evolución temporal de la fracción en la componente gigante $S(t)$ para $\rho = 1/(2\pi)$ ($N = 16$, $L = 10$), modelo estándar, con $\eta = 0,\ 0.5,\ 1,\ 3$. La línea vertical en $t = 2000$ marca el corte usado para descartar el transitorio al promediar el estado estacionario.}{fig:clusters-temporal-rho2pi}
+
+\faltafigura{figuras/clusters-temporal-rho3pi.pdf}{Evolución temporal de la fracción en la componente gigante $S(t)$ para $\rho = 1/(3\pi)$ ($N = 11$, $L = 10$), modelo estándar, con $\eta = 0,\ 0.5,\ 1,\ 3$. La línea vertical en $t = 1800$ marca el corte usado para descartar el transitorio al promediar el estado estacionario.}{fig:clusters-temporal-rho3pi}
 
 \faltafigura{figuras/clusters-vs-eta.pdf}{Tamaño relativo del cluster más grande $\left\langle \overline{S} \right\rangle$ en función de $\eta$, para $\rho = 2, 4, 8, \tfrac{1}{\pi}, \tfrac{1}{2\pi}, \tfrac{1}{3\pi}$.}{fig:clusters-eta}
 
-\faltatexto
+En las Figuras~\ref{fig:clusters-temporal-rho1pi}, \ref{fig:clusters-temporal-rho2pi}
+y \ref{fig:clusters-temporal-rho3pi} se observa que, para las tres
+densidades bajas estudiadas, $S(t)$ alcanza un régimen aproximadamente
+estacionario a partir de $t=1000$ ($\rho=1/\pi$), $t=1800$ ($\rho=1/(3\pi)$)
+y $t=2000$ ($\rho=1/(2\pi)$) respectivamente, aunque con fluctuaciones
+considerables incluso dentro del estado estacionario -- más marcadas cuanto
+menor es $\rho$, consistente con el tamaño reducido del sistema
+($N=11,16,32$). En la Figura~\ref{fig:clusters-eta}, para $\rho=2,4,8$, $S$
+se mantiene cercano a 1 en todo el rango de $\eta$ estudiado, con una leve
+caída hacia $\eta=5$. Para las tres densidades bajas, $S$ decrece de forma
+continua desde valores cercanos a 1 en $\eta=0$ hasta valores entre 0.15 y
+0.25 en $\eta\geq3$, sin diferencias marcadas entre sí. Las barras de error
+son notoriamente mayores en las densidades bajas que en las altas.
 
 \subsection{Relación entre $v_a$ y $S$}
 
 \faltafigura{figuras/va-vs-s.pdf}{Relación entre la polarización $\overline{v_a}$ y el tamaño de cluster $\overline{S}$.}{fig:va-vs-s}
 
-\faltatexto
+Para las densidades bajas, $v_a$ y $S$ muestran una relación creciente
+aproximadamente monótona, con los pares $(S,v_a)$ distribuidos a lo largo de
+una diagonal entre valores bajos y altos de ambos observables. Para las
+densidades altas ($\rho=2,4,8$), los puntos se concentran en la zona
+$S\approx0.95$-$1.0$, con $v_a$ variando en un rango amplio para ese mismo
+valor de $S$ prácticamente constante.
 
 \subsection{Comparación entre el modelo estándar y el modelo votante}
 
@@ -575,21 +659,67 @@ modelos ``contamine'' al otro con la misma secuencia.
 % una figura resumen por densidad, no una comparación exhaustiva figura por figura.
 \faltafigura{figuras/comparacion-modelos.pdf}{Comparación entre el modelo estándar y el modelo votante, para $\rho = 2, 4, 8$.}{fig:comparacion-modelos}
 
-\faltatexto
+Para las tres densidades comparadas, el modelo estándar mantiene valores de
+$v_a$ notoriamente más altos que el modelo votante en todo el rango de
+$\eta>0$. La diferencia es más marcada en la zona de ruido bajo-intermedio
+($\eta=0.5$-$2$), donde el modelo estándar todavía muestra $v_a>0.7$
+mientras que el modelo votante ya cayó por debajo de 0.2. Ambos modelos
+convergen a valores similares en $\eta=5$. Este patrón se repite de forma
+consistente en las tres densidades estudiadas.
+
+\subsection{Tiempos de ejecución del CIM}
+
+\faltafigura{figuras/tiempos-cim.pdf}{Tiempo por llamada al Cell Index Method
+en función de $N$, comparando TP1 (partículas uniformes, con $L=20$ y con la
+geometría de TP2, $L=10$) con TP2 (medido dentro de la simulación,
+partículas agrupadas), $r_c=1$, condiciones periódicas.}{fig:tiempos-cim}
+
+En la Figura~\ref{fig:tiempos-cim}, para $N\leq300$ las tres series muestran
+tiempos similares, por debajo de 0.5\,ms, con barras de error que se
+solapan entre sí. A partir de $N=500$ las series se separan: las dos curvas
+de TP1 (uniforme con $L=20$, $r\in[0.23,0.26]$; y uniforme con la geometría
+de TP2, $L=10$, $r\approx0$) se mantienen próximas entre sí y crecen de
+forma moderada, alcanzando aproximadamente 1.25\,ms y 2.3\,ms
+respectivamente en $N=1000$. La serie de TP2 (medida dentro de la
+simulación, con partículas agrupadas) crece más rápido y con barras de
+error notoriamente mayores que las otras dos, alcanzando aproximadamente
+3\,ms en $N=700$ y $N=850$, y cerca de 6\,ms en $N=1000$ (con un intervalo
+de error de aproximadamente 4.3\,ms a 8\,ms en ese último punto). La
+comparación con TP1 queda directamente representada en la figura, que
+superpone ambas mediciones de TP1 con la de TP2 bajo los mismos valores de
+$N$.
 
 % ================================================================
 % 6. CONCLUSIONES
 % ================================================================
 \section{Conclusiones}
+\label{sec:conclusiones}
 
-\textit{Recordatorio de formato: cada conclusión debe aclarar explícitamente
-a qué modelo se refiere (estándar o votante) --- nunca dejarlo ambiguo. Por
-ejemplo, aumentar $N$ a $L$ fijo favorece mayor orden colectivo en el modelo
-estándar, pero no necesariamente en el modelo votante; no debe darse por
-sentado que ambos modelos responden igual a un mismo cambio de parámetro.}
+En el modelo estándar, el sistema tolera un rango considerablemente mayor de
+ruido antes de perder el orden colectivo: la transición hacia el desorden es
+gradual y se extiende a lo largo de todo el rango de $\eta$ estudiado, con
+un desempeño ligeramente mejor a mayor densidad. En el modelo votante, en
+cambio, la pérdida de orden ocurre de forma abrupta a valores de $\eta$
+mucho más bajos, y el sistema no logra alcanzar niveles apreciables de
+polarización salvo en la vecindad inmediata de $\eta=0$; la densidad tiene
+una influencia comparativamente menor sobre este comportamiento que en el
+modelo estándar.
 
-[Completar con las conclusiones reales, basadas únicamente en los resultados
-mostrados en la Sección~\ref{sec:resultados}.]
+Respecto de la formación de clusters en el modelo estándar, el observable
+$S$ resulta mucho más sensible al ruido en el régimen de densidades bajas, cercano al umbral de
+percolación, que en las densidades altas, donde el sistema permanece
+fuertemente conectado ($S\approx1$) independientemente de $\eta$. Esto se
+refleja también en la relación entre $v_a$ y $S$: a densidad baja, ambos
+observables están acoplados y crecen conjuntamente, mientras que a densidad
+alta $S$ deja de ser informativo sobre el grado de orden del sistema, al
+saturarse en valores cercanos a 1 con independencia del valor de $v_a$.
+
+La comparación directa entre ambos modelos confirma que el mecanismo de
+actualización angular -- promedio vectorial de los vecinos en el modelo
+estándar, frente a copia de un único vecino elegido al azar en el modelo
+votante -- es determinante para la robustez del orden colectivo frente al
+ruido, siendo el modelo estándar sistemáticamente más resistente a perder
+polarización en todo el rango de densidades estudiado.
 
 % ================================================================
 % REFERENCIAS
