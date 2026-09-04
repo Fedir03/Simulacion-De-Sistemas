@@ -44,6 +44,8 @@ apunte_lolo.md
 /TP2/presentacion/*.toc
 /TP2/presentacion/generated
 TP2/informe/*.aux
+TP2/informe/*.fdb_latexmk
+TP2/informe/*.fls
 TP2/informe/*.log
 TP2/informe/*.out
 TP2/informe/*.toc
