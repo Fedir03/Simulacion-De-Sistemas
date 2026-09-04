@@ -204,24 +204,24 @@
 }
 
 % Compara dos niveles de ruido manteniendo visibles los parámetros comunes.
-% #1 N, #2 L, #3 T, #4 imagen eta=0.5, #5 URL eta=0.5,
-% #6 imagen eta=2, #7 URL eta=2.
-\newcommand{\dobleanimacion}[7]{%
+% #1 N, #2 T, #3 imagen eta=0.5, #4 URL eta=0.5,
+% #5 imagen eta=2, #6 URL eta=2.
+\newcommand{\dobleanimacion}[6]{%
   \begin{center}
     \colorbox{TPLight}{\parbox[c][0.54cm][c]{0.94\linewidth}{\centering
-      $N=#1$\hfill$L=#2$\hfill$T=#3$}}
+      $N=#1$\hfill$T=#2$}}
   \end{center}
   \vspace{-0.08cm}
   \begin{columns}[T,onlytextwidth]
     \begin{column}{0.485\textwidth}
       \centering
       {\color{TPBlueDark}\large $\eta=0.5$}\par\vspace{0.08cm}
-      \videooimagen{#4}{4.75cm}{#5}{Animación con $\eta=0.5$}
+      \videooimagen{#3}{4.75cm}{#4}{Animación con $\eta=0.5$}
     \end{column}
     \begin{column}{0.485\textwidth}
       \centering
       {\color{TPBlueDark}\large $\eta=2$}\par\vspace{0.08cm}
-      \videooimagen{#6}{4.75cm}{#7}{Animación con $\eta=2$}
+      \videooimagen{#5}{4.75cm}{#6}{Animación con $\eta=2$}
     \end{column}
   \end{columns}
 }
@@ -419,19 +419,19 @@
 
 % 14--16. Resultados visuales / animaciones del modelo estándar
 \begin{frame}{Modelo Estándar --- Densidad $\rho=2$}
-  \dobleanimacion{200}{10}{1000}
+  \dobleanimacion{200}{1000}
     {figuras/standard_rho2_eta0.5_mid.png}{\animacionStandardRhoDosEtaUnoURL}
     {figuras/standard_rho2_eta2_mid.png}{\animacionStandardRhoDosEtaDosURL}
 \end{frame}
 
 \begin{frame}{Modelo Estándar --- Densidad $\rho=4$}
-  \dobleanimacion{400}{10}{1000}
+  \dobleanimacion{400}{1000}
     {figuras/standard_rho4_eta0.5_mid.png}{\animacionStandardRhoCuatroEtaUnoURL}
     {figuras/standard_rho4_eta2_mid.png}{\animacionStandardRhoCuatroEtaDosURL}
 \end{frame}
 
 \begin{frame}{Modelo Estándar --- Densidad $\rho=8$}
-  \dobleanimacion{800}{10}{1000}
+  \dobleanimacion{800}{1000}
     {figuras/standard_rho8_eta0.5_mid.png}{\animacionStandardRhoOchoEtaUnoURL}
     {figuras/standard_rho8_eta2_mid.png}{\animacionStandardRhoOchoEtaDosURL}
 \end{frame}
@@ -461,19 +461,19 @@
 
 % 20--22. Resultados visuales del modelo votante
 \begin{frame}{Modelo Votante --- Densidad $\rho=2$}
-  \dobleanimacion{200}{10}{1000}
+  \dobleanimacion{200}{1000}
     {figuras/voter_rho2_eta0.5_mid.png}{\animacionVoterRhoDosEtaUnoURL}
     {figuras/voter_rho2_eta2_mid.png}{\animacionVoterRhoDosEtaDosURL}
 \end{frame}
 
 \begin{frame}{Modelo Votante --- Densidad $\rho=4$}
-  \dobleanimacion{400}{10}{1000}
+  \dobleanimacion{400}{1000}
     {figuras/voter_rho4_eta0.5_mid.png}{\animacionVoterRhoCuatroEtaUnoURL}
     {figuras/voter_rho4_eta2_mid.png}{\animacionVoterRhoCuatroEtaDosURL}
 \end{frame}
 
 \begin{frame}{Modelo Votante --- Densidad $\rho=8$}
-  \dobleanimacion{800}{10}{1000}
+  \dobleanimacion{800}{1000}
     {figuras/voter_rho8_eta0.5_mid.png}{\animacionVoterRhoOchoEtaUnoURL}
     {figuras/voter_rho8_eta2_mid.png}{\animacionVoterRhoOchoEtaDosURL}
 \end{frame}
