@@ -9,8 +9,10 @@ insertar los videos de YouTube en Google Slides.
 from __future__ import annotations
 
 import argparse
+import os
 import shutil
 import subprocess
+import sys
 import tempfile
 import time
 from pathlib import Path
@@ -74,11 +76,33 @@ def size(width: int, height: int):
     value.Height = height
     return value
 
+def find_libreoffice() -> str:
+    candidates = [
+        os.environ.get("SOFFICE"),
+        shutil.which("libreoffice"),
+        shutil.which("soffice"),
+    ]
+
+    if sys.platform == "win32":
+        candidates.extend([
+            r"C:\Program Files\LibreOffice\program\soffice.exe",
+            r"C:\Program Files (x86)\LibreOffice\program\soffice.exe",
+        ])
+
+    for candidate in candidates:
+        if candidate and Path(candidate).is_file():
+            return candidate
+
+    raise FileNotFoundError(
+        "No se encontró el ejecutable de LibreOffice. "
+        "Se buscó SOFFICE, libreoffice/soffice en PATH "
+        "y las rutas estándar de Windows."
+    )
 
 def connect_to_libreoffice(profile: Path):
     port = 2083
     command = [
-        shutil.which("libreoffice") or "libreoffice",
+        find_libreoffice(),
         "--headless",
         "--nologo",
         "--nodefault",
