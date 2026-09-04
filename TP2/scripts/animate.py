@@ -222,7 +222,6 @@ def render_animation(
     axis_ticks = [header.l * index / 5 for index in range(6)]
     ax.set_xticks(axis_ticks)
     ax.set_yticks(axis_ticks)
-    ax.set_title("Animación de Vicsek")
     ax.set_xlabel("x")
     ax.set_ylabel("y")
     ax.grid(alpha=0.15)
@@ -259,7 +258,6 @@ def render_animation(
     writer = FFMpegWriter(
         fps=fps,
         codec="libx264",
-        metadata={"title": "Animación de Vicsek"},
         extra_args=["-pix_fmt", "yuv420p", "-movflags", "+faststart"],
     )
     progress = ProgressBar(len(frames))

@@ -23,28 +23,28 @@ PAGE_WIDTH = 25_400
 PAGE_HEIGHT = 19_050
 ANIMATION_SLIDES = {
     14: (
-        ("η = 0.5", "https://youtu.be/tjz83aO8iwQ"),
-        ("η = 2", "https://youtu.be/RP3dOs-_ELc"),
+        ("η = 0.5", "https://youtu.be/sEDXRR8ARZ8"),
+        ("η = 2", "https://youtu.be/j-hlr1N8Z2s"),
     ),
     15: (
-        ("η = 0.5", "https://youtu.be/ngE39u-xCEI"),
-        ("η = 2", "https://youtu.be/rkuXh_qFMdY"),
+        ("η = 0.5", "https://youtu.be/3qtWyzX8O0Y"),
+        ("η = 2", "https://youtu.be/tSCNM-5Nypw"),
     ),
     16: (
-        ("η = 0.5", "https://youtu.be/gbwHo-AOQGQ"),
-        ("η = 2", "https://youtu.be/w-pdjDPP4RM"),
+        ("η = 0.5", "https://youtu.be/CjRGO-5fePk"),
+        ("η = 2", "https://youtu.be/J3nHD0oBGfM"),
     ),
     20: (
-        ("η = 0.5", "https://youtu.be/8RyfFk5Yj8Y"),
-        ("η = 2", "https://youtu.be/z1xa2CueQdE"),
+        ("η = 0.5", "https://youtu.be/OyJbGN_weK4"),
+        ("η = 2", "https://youtu.be/oLabBdmlHN4"),
     ),
     21: (
-        ("η = 0.5", "https://youtu.be/kPLsJwJBRlY"),
-        ("η = 2", "https://youtu.be/jrqbFW_8UeE"),
+        ("η = 0.5", "https://youtu.be/XqlSIoh8m60"),
+        ("η = 2", "https://youtu.be/IiN3baNlE9s"),
     ),
     22: (
-        ("η = 0.5", "https://youtu.be/hr4IxYUil08"),
-        ("η = 2", "https://youtu.be/YiQn1nXZoMQ"),
+        ("η = 0.5", "https://youtu.be/j0L89se9d-U"),
+        ("η = 2", "https://youtu.be/JnMzeiVw5Tw"),
     ),
 }
 
@@ -125,7 +125,7 @@ def add_link(document, page, url: str, x: int) -> None:
     shape.ZOrder = 101
     url_field = document.createInstance("com.sun.star.text.textfield.URL")
     url_field.URL = url
-    url_field.Representation = "▶ Ver video en YouTube"
+    url_field.Representation = url
     url_field.TargetFrame = "_blank"
     shape.Text.insertTextContent(shape.Text.createTextCursor(), url_field, False)
     cursor = shape.Text.createTextCursor()

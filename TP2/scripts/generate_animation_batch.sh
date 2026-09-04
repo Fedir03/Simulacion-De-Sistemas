@@ -8,7 +8,8 @@ set -euo pipefail
 #
 # Por cada corrida produce:
 #   generated/runs/batch/<nombre>.txt
-#   generated/animations/batch/<nombre>.mp4
+#   generated/animations/batch/<nombre>.mp4 (1920x1080, 16:9)
+#   generated/animations/batch/<nombre>.png (fotograma central)
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd -- "$SCRIPT_DIR/../.." && pwd)"
@@ -71,7 +72,7 @@ done
 require_positive_integer "--steps" "$STEPS"
 require_positive_integer "--fps" "$FPS"
 
-for command in java ffmpeg; do
+for command in java ffmpeg ffprobe; do
   if ! command -v "$command" >/dev/null 2>&1; then
     echo "Error: falta el comando requerido '$command'." >&2
     exit 1
@@ -116,6 +117,8 @@ for model in "${models[@]}"; do
       name="${model}_rho${rho}_eta${eta}"
       run_file="$RUNS_DIR/${name}.txt"
       video="$ANIMATIONS_DIR/${name}.mp4"
+      image="$ANIMATIONS_DIR/${name}.png"
+      raw_video="$TEMP_DIR/${name}-raw.mp4"
 
       printf '\n[%d/%d] Simulando %s (N=%d, L=%d, eta=%s)...\n' \
         "$current" "$total" "$model" "$n" "$L" "$eta"
@@ -133,13 +136,35 @@ for model in "${models[@]}"; do
       echo "Renderizando animación a $FPS FPS..."
       MPLCONFIGDIR="$TEMP_DIR/matplotlib" "$PYTHON" "$ANIMATE_SCRIPT" \
         "$run_file" \
-        --out="$video" \
+        --out="$raw_video" \
         --fps="$FPS"
 
-      echo "Listo: $name"
+      duration="$(ffprobe -v error -show_entries format=duration \
+        -of default=noprint_wrappers=1:nokey=1 "$raw_video")"
+      midpoint="$(awk -v duration="$duration" 'BEGIN { printf "%.6f", duration / 2 }')"
+
+      echo "Extrayendo fotograma central sin barras..."
+      ffmpeg -hide_banner -loglevel error -y \
+        -ss "$midpoint" \
+        -i "$raw_video" \
+        -frames:v 1 \
+        "$image"
+
+      echo "Convirtiendo video a 16:9 (1920x1080)..."
+      ffmpeg -hide_banner -loglevel error -y \
+        -i "$raw_video" \
+        -vf "scale=1080:1080:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2:color=black,setsar=1" \
+        -c:v libx264 \
+        -pix_fmt yuv420p \
+        -movflags +faststart \
+        -map_metadata -1 \
+        "$video"
+
+      echo "Listo: $video"
+      echo "Imagen: $image"
     done
   done
 done
 
-printf '\nBatch completo.\nCorridas: %s\nAnimaciones: %s\n' \
+printf '\nBatch completo.\nCorridas: %s\nAnimaciones e imágenes: %s\n' \
   "$RUNS_DIR" "$ANIMATIONS_DIR"

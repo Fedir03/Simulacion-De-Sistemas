@@ -52,18 +52,18 @@
 
 % URLs de las animaciones usadas en las diapositivas 14--16 y 20--22.
 % Reemplazar cada placeholder cuando el video correspondiente esté disponible.
-\newcommand{\animacionStandardRhoDosEtaUnoURL}{https://youtu.be/tjz83aO8iwQ}
-\newcommand{\animacionStandardRhoDosEtaDosURL}{https://youtu.be/RP3dOs-_ELc"}
-\newcommand{\animacionStandardRhoCuatroEtaUnoURL}{https://youtu.be/ngE39u-xCEI}
-\newcommand{\animacionStandardRhoCuatroEtaDosURL}{https://youtu.be/rkuXh_qFMdY}
-\newcommand{\animacionStandardRhoOchoEtaUnoURL}{https://youtu.be/gbwHo-AOQGQ}
-\newcommand{\animacionStandardRhoOchoEtaDosURL}{https://youtu.be/w-pdjDPP4RM}
-\newcommand{\animacionVoterRhoDosEtaUnoURL}{https://youtu.be/8RyfFk5Yj8Y}
-\newcommand{\animacionVoterRhoDosEtaDosURL}{https://youtu.be/z1xa2CueQdE}
-\newcommand{\animacionVoterRhoCuatroEtaUnoURL}{https://youtu.be/kPLsJwJBRlY}
-\newcommand{\animacionVoterRhoCuatroEtaDosURL}{https://youtu.be/jrqbFW_8UeE}
-\newcommand{\animacionVoterRhoOchoEtaUnoURL}{https://youtu.be/hr4IxYUil08}
-\newcommand{\animacionVoterRhoOchoEtaDosURL}{https://youtu.be/YiQn1nXZoMQ}
+\newcommand{\animacionStandardRhoDosEtaUnoURL}{https://youtu.be/sEDXRR8ARZ8}
+\newcommand{\animacionStandardRhoDosEtaDosURL}{https://youtu.be/j-hlr1N8Z2s}
+\newcommand{\animacionStandardRhoCuatroEtaUnoURL}{https://youtu.be/3qtWyzX8O0Y}
+\newcommand{\animacionStandardRhoCuatroEtaDosURL}{https://youtu.be/tSCNM-5Nypw}
+\newcommand{\animacionStandardRhoOchoEtaUnoURL}{https://youtu.be/CjRGO-5fePk}
+\newcommand{\animacionStandardRhoOchoEtaDosURL}{https://youtu.be/J3nHD0oBGfM}
+\newcommand{\animacionVoterRhoDosEtaUnoURL}{https://youtu.be/OyJbGN_weK4}
+\newcommand{\animacionVoterRhoDosEtaDosURL}{https://youtu.be/oLabBdmlHN4}
+\newcommand{\animacionVoterRhoCuatroEtaUnoURL}{https://youtu.be/XqlSIoh8m60}
+\newcommand{\animacionVoterRhoCuatroEtaDosURL}{https://youtu.be/IiN3baNlE9s}
+\newcommand{\animacionVoterRhoOchoEtaUnoURL}{https://youtu.be/j0L89se9d-U}
+\newcommand{\animacionVoterRhoOchoEtaDosURL}{https://youtu.be/JnMzeiVw5Tw}
 
 % Si existe logo_itba.png o logo_itba.pdf junto al .tex, se inserta.
 \newcommand{\institutionlogo}{%
@@ -199,8 +199,7 @@
       \maybeimage{#1}{#2}{#4}%
     \fi
     \par\vspace{1mm}
-    \href{#3}{{\color{TPBlue}\scriptsize
-      $\blacktriangleright$ Ver video en YouTube}}%
+    \href{#3}{{\color{TPBlue}\scriptsize\nolinkurl{#3}}}%
   \end{minipage}%
 }
 
@@ -290,7 +289,7 @@
       \end{itemize}
     \end{column}
     \begin{column}{0.42\textwidth}
-      \maybeimage{figuras/sistema-real.png}{3.7cm}{Insertar imagen del sistema real}
+      \maybeimage{figuras/enjambre.jpg}{3.7cm}{Insertar imagen del sistema real}
     \end{column}
   \end{columns}
 \end{frame}
@@ -316,19 +315,27 @@
 
 % 6. Arquitectura general
 \begin{frame}{Arquitectura}
-  Implementación:
-  \begin{itemize}
-    \item Lenguaje: [nombre y versión]
-    \item Bibliotecas: [bibliotecas principales]
-    \item Entorno: [entorno de ejecución]
-  \end{itemize}
-  Estructura:
-  \begin{itemize}
-    \item \texttt{[módulo-principal.py]}
-    \item \texttt{[modelo.py]}
-    \item \texttt{[procesamiento.py]}
-    \item \texttt{[visualización.py]}
-  \end{itemize}
+  \small
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.47\textwidth}
+      \textbf{Implementación}
+      \begin{itemize}
+        \item Lenguaje principal: Java 21
+        \item Análisis y visualización: Python 3
+        \item Bibliotecas: Matplotlib y JUnit 5
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.50\textwidth}
+      \textbf{Estructura}
+      \begin{itemize}
+        \item Motor Java
+        \item Búsqueda de vecinos
+        \item Calculos y Análisis
+        \item Visualización
+        \item Comunicación
+      \end{itemize}
+    \end{column}
+  \end{columns}
 \end{frame}
 
 % 7. Diagrama de arquitectura
@@ -360,7 +367,7 @@
   Parámetros de entrada fijos:
   \begin{itemize}
     \item $r_c=1$ --- Radio de Interacción
-    \item $v=[\text{valor}]$ --- Modulo de la Velocidad
+    \item $v=0.03$ --- Modulo de la Velocidad
   \end{itemize}
   Parámetros de entrada variables:
   \begin{itemize}
