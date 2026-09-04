@@ -49,7 +49,7 @@ MODEL_LABELS = {"standard": "estándar", "voter": "votante"}
 def _group_key_single(header: SimulationHeader, field: str) -> tuple[float, str]:
     """Devuelve (orden, etiqueta) del grupo al que pertenece una corrida, para un solo campo."""
     if field == "density":
-        return header.density, f"ρ = {header.density_label} (N = {header.n}, L = {header.l:g})"
+        return header.density, f"ρ = {header.density_label} (N = {header.n})"
     if field == "n":
         return float(header.n), f"N = {header.n} (L = {header.l:g}, ρ = {header.density_label})"
     if field == "l":
