@@ -222,7 +222,6 @@ def render_animation(
     axis_ticks = [header.l * index / 5 for index in range(6)]
     ax.set_xticks(axis_ticks)
     ax.set_yticks(axis_ticks)
-    ax.set_title("Animación de Vicsek")
     ax.set_xlabel("x")
     ax.set_ylabel("y")
     ax.grid(alpha=0.15)

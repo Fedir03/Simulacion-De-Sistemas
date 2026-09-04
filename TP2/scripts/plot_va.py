@@ -218,10 +218,11 @@ def draw_axes(ax, series, labels, transient, logy, ticker, show_ylabel: bool,
         linea, = ax.plot(times, values, color=color, linewidth=1.2, label=label)
         curvas.append((linea, label, color))
 
+    linea_transitorio = None
     if transient is not None:
         resolved_transient = resolve_transient(transient, series[0][1][-1])
-        ax.axvline(resolved_transient * headers[0].dt, color="#555555", linestyle="--", alpha=0.7,
-                   label="inicio del estacionario")
+        linea_transitorio = ax.axvline(resolved_transient * headers[0].dt, color="#555555",
+                                       linestyle="--", alpha=0.7)
     verticales: list[tuple] = []
     for indice, (color, etiqueta, tiempo) in enumerate(vlines):
         # sin color explicito la vertical toma el de su curva: la leyenda queda "curva, punteada"
@@ -252,10 +253,10 @@ def draw_axes(ax, series, labels, transient, logy, ticker, show_ylabel: bool,
     ax.set_xlim(left=0.0)
     # la grilla acompana solo a las marcas con numero: las chicas quedan como marquita
     ax.grid(alpha=0.3, which="both" if logy else "major")
-    build_legend(ax, curvas, verticales, legend_loc)
+    build_legend(ax, curvas, verticales, legend_loc, linea_transitorio)
 
 
-def build_legend(ax, curvas, verticales, loc) -> None:
+def build_legend(ax, curvas, verticales, loc, transitorio=None) -> None:
     """Un renglon por curva: "(linea) eta = x, (linea dashed) estacionario".
 
     Empareja por posicion: el conjunto i de --vlines corresponde a la curva i, asi la
@@ -265,7 +266,7 @@ def build_legend(ax, curvas, verticales, loc) -> None:
     repite el valor de t porque se lee del eje.
     """
     extra = {}
-    if len(verticales) == len(curvas) and curvas:
+    if len(verticales) == len(curvas) and curvas and transitorio is None:
         handles = [linea for linea, _, _ in curvas] + [linea for linea, _, _, _ in verticales]
         labels = [f"{label}," for _, label, _ in curvas] + [etiqueta for _, etiqueta, _, _ in verticales]
         extra = {"ncols": 2, "columnspacing": 1.1, "handletextpad": 0.5}
@@ -273,6 +274,10 @@ def build_legend(ax, curvas, verticales, loc) -> None:
         handles = [linea for linea, _, _ in curvas] + [linea for linea, _, _, _ in verticales]
         labels = ([label for _, label, _ in curvas]
                   + [etiqueta for _, etiqueta, _, _ in verticales])
+        if transitorio is not None:
+            # la vertical de --transient: que significa no se lee del grafico, el t si
+            handles.append(transitorio)
+            labels.append("inicio del estacionario")
 
     ubicacion, _, ancla = (loc or "best").partition("@")
     if ancla:

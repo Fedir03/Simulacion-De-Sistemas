@@ -20,7 +20,7 @@ from pathlib import Path
 from typing import Sequence
 
 from order_parameter import load_series, mean_and_stdev, resolve_transient, tail_values
-from simulation_io import SimulationFormatError, SimulationHeader
+from simulation_io import SimulationFormatError, SimulationHeader, density_label_for
 
 
 PALETTE = ["#2a9d8f", "#e63946", "#457b9d", "#f4a261", "#8e7dbe", "#264653"]
@@ -61,7 +61,7 @@ def collect(indexes: Sequence[Path], transient: str | int) -> dict[tuple[float, 
             va_tail = steady_values(index_path.parent, row["va_csv"], transient)
             s_tail = steady_values(index_path.parent, row["s_csv"], transient)
             density = int(row["n"]) / (float(row["l"]) ** 2)
-            key = (density, f"ρ = {density:.4g} (N = {row['n']}, L = {float(row['l']):.4g})")
+            key = (density, f"ρ = {density_label_for(density)} (N = {row['n']}, L = {float(row['l']):.4g})")
             va_list, s_list = grouped[key][float(row["eta"])]
             va_list.extend(va_tail)
             s_list.extend(s_tail)
