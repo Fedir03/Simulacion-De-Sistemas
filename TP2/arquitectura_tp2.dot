@@ -6,10 +6,7 @@ digraph ArquitecturaTP2 {
     nodesep=0.48,
     ranksep=0.7,
     splines=ortho,
-    fontname="Arial",
-    label="Arquitectura del TP2 — Modelo de Vicsek",
-    labelloc="t",
-    fontsize=22
+    fontname="Arial"
   ];
 
   node [
