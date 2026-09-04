@@ -8,6 +8,10 @@ __pycache__/
 # Salidas de prueba (no versionar resultados de corridas locales)
 salida*.txt
 generated/
+!/TP_template/informe/generated/
+!/TP_template/informe/generated/README.md
+!/TP_template/presentacion/generated/
+!/TP_template/presentacion/generated/README.md
 vecinos.txt
 bench_*.csv
 test_nmax/

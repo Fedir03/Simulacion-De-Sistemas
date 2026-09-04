@@ -1,0 +1,3 @@
+# Agregar una dependencia por linea y fijar una version minima o exacta.
+# Ejemplo: matplotlib>=3.8
+
