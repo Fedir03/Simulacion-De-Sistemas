@@ -35,15 +35,23 @@ class SimulationFormatError(ValueError):
     """El archivo no respeta el formato de salida del motor."""
 
 
-def density_label_for(density: float) -> str:
+def density_label_for(density: float, n: int | None = None,
+                      l: float | None = None) -> str:
     """La densidad como texto, en forma fraccionaria de pi cuando corresponde.
 
     Las densidades del anuncio de la catedra son 1/pi, 1/(2pi) y 1/(3pi); escribirlas
     como 0.3183 pierde de vista que estan elegidas para dar 1, 1/2 y 1/3 vecinos
     promedio. Se detecta hasta 1/(6pi), que cubre todo lo que usamos.
+
+    Con L fijo el N tiene que ser entero, asi que la densidad efectiva es el redondeo de
+    la fraccion: con L = 10 las tres dan N = 11, 16 y 32, o sea 0.11, 0.16 y 0.32. Con n
+    y l se reconoce ese caso (N es el entero mas cercano a la densidad objetivo por L^2)
+    y la etiqueta sigue siendo la fraccion, que es lo que identifica a la corrida.
     """
     for k in range(1, 7):
-        if abs(density - 1.0 / (k * math.pi)) < 1e-6:
+        objetivo = 1.0 / (k * math.pi)
+        redondeada = n is not None and l is not None and round(objetivo * l * l) == n
+        if abs(density - objetivo) < 1e-6 or redondeada:
             return "1/π" if k == 1 else f"1/({k}π)"
     return f"{density:g}"
 
@@ -68,7 +76,7 @@ class SimulationHeader:
 
     @property
     def density_label(self) -> str:
-        return density_label_for(self.density)
+        return density_label_for(self.density, self.n, self.l)
 
     @property
     def theta0_is_random(self) -> bool:
