@@ -384,11 +384,11 @@
   \begin{itemize}
     \item $r_c=1$ --- Radio de Interacción
     \item $v=0.03$ --- Modulo de la Velocidad
+    \item $L=10$ --- Tamaño del dominio
   \end{itemize}
   Parámetros de entrada variables:
   \begin{itemize}
     \item $N\in[11, 800]$ --- Cantidad de entidades
-    \item $L=10$ --- Tamaño del dominio
     \item $T\in[0, 10000]$ --- Cantidad de pasos
     \item $\eta\in[0, 5]$ --- Ruido
   \end{itemize}
@@ -541,10 +541,13 @@
 \begin{frame}{Conclusiones}
   Principales conclusiones obtenidas:
   \begin{itemize}
-    \item Hallazgo principal: [conclusión respaldada por los resultados.]
-    \item Parámetro principal: [efecto observado.]
-    \item Comparación: [modelo base frente a variante.]
-    \item Trabajo futuro: [limitación o próxima línea de análisis.]
+    \item Hallazgo principal: modelo estándar tolera mucho más ruido antes de perder
+      orden colectivo que el votante.
+    \item Parámetro principal: la densidad afecta bastante al estándar, casi nada al votante.
+    \item Comparación: promedio vectorial (estándar) sistemáticamente más resistente
+      al ruido que copia de un vecino al azar (votante).
+    \item Trabajo futuro: profundizar el estudio de clusters ($S$) en el modelo votante,
+      no incluido en este TP.
   \end{itemize}
 \end{frame}
 
