@@ -35,6 +35,19 @@ class SimulationFormatError(ValueError):
     """El archivo no respeta el formato de salida del motor."""
 
 
+def density_label_for(density: float) -> str:
+    """La densidad como texto, en forma fraccionaria de pi cuando corresponde.
+
+    Las densidades del anuncio de la catedra son 1/pi, 1/(2pi) y 1/(3pi); escribirlas
+    como 0.3183 pierde de vista que estan elegidas para dar 1, 1/2 y 1/3 vecinos
+    promedio. Se detecta hasta 1/(6pi), que cubre todo lo que usamos.
+    """
+    for k in range(1, 7):
+        if abs(density - 1.0 / (k * math.pi)) < 1e-6:
+            return "1/π" if k == 1 else f"1/({k}π)"
+    return f"{density:g}"
+
+
 @dataclass(frozen=True)
 class SimulationHeader:
     model: str
@@ -55,16 +68,7 @@ class SimulationHeader:
 
     @property
     def density_label(self) -> str:
-        """La densidad como texto, en forma fraccionaria de pi cuando corresponde.
-
-        Las densidades del anuncio de la catedra son 1/pi, 1/(2pi) y 1/(3pi); escribirlas
-        como 0.3183 pierde de vista que estan elegidas para dar 1, 1/2 y 1/3 vecinos
-        promedio. Se detecta hasta 1/(6pi), que cubre todo lo que usamos.
-        """
-        for k in range(1, 7):
-            if abs(self.density - 1.0 / (k * math.pi)) < 1e-6:
-                return "1/π" if k == 1 else f"1/({k}π)"
-        return f"{self.density:g}"
+        return density_label_for(self.density)
 
     @property
     def theta0_is_random(self) -> bool:
