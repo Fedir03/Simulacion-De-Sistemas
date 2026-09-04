@@ -113,7 +113,7 @@ class GroupingTest(unittest.TestCase):
         order, label = group_key(header(model="voter", n=800, l=10.0), "density,model")
         self.assertEqual((8.0, 0.0), order)
         self.assertIn("ρ = 8", label)
-        self.assertIn("modelo voter", label)
+        self.assertIn("modelo votante", label)
 
     def test_combined_group_by_gives_a_distinct_key_per_model_at_the_same_density(self):
         standard = group_key(header(model="standard", n=200), "density,model")

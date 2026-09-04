@@ -41,9 +41,16 @@ def density_label_for(density: float) -> str:
     Las densidades del anuncio de la catedra son 1/pi, 1/(2pi) y 1/(3pi); escribirlas
     como 0.3183 pierde de vista que estan elegidas para dar 1, 1/2 y 1/3 vecinos
     promedio. Se detecta hasta 1/(6pi), que cubre todo lo que usamos.
+
+    La tolerancia no puede ser ajustadisima: con L=10 fijo, N se redondea al entero
+    mas cercano (11, 16, 32 para 1/(3pi), 1/(2pi), 1/pi), lo que separa la densidad
+    resultante de la fraccion exacta hasta ~0.004 (peor caso N=11). 1e-2 cubre eso
+    con margen y sigue muy por debajo de la distancia a la fraccion vecina mas
+    cercana (>0.05 en todos los casos que usamos), asi que no hay riesgo de
+    confundir una densidad con la fraccion equivocada.
     """
     for k in range(1, 7):
-        if abs(density - 1.0 / (k * math.pi)) < 1e-6:
+        if abs(density - 1.0 / (k * math.pi)) < 1e-2:
             return "1/π" if k == 1 else f"1/({k}π)"
     return f"{density:g}"
 
