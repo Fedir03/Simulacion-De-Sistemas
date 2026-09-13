@@ -56,6 +56,27 @@ class EngineTest {
         var result = new CollisionSimulator(stage(List.of(particle(1, 0.6, 0.1, 1, 0)), List.of())).run(2, 1, (t,e,g,ps) -> {});
         assertEquals(0, result.goals()); assertTrue(Double.isNaN(result.t90()));
     }
+    @Test void savesIncomingVelocityAtCollisionAndContinuesWithReflectedVelocity() throws Exception {
+        Particle p = particle(1, 0.6, 0.34, 1, 0);
+        double contactTime = C.length() - C.radius() - p.x();
+        List<Double> times = new ArrayList<>();
+        var result = new CollisionSimulator(stage(List.of(p), List.of())).run(contactTime + 0.1, 1, (t,e,g,ps) -> {
+            times.add(t);
+            if (e == 1 && Math.abs(t - contactTime) < EPS) {
+                assertEquals(C.length() - C.radius(), ps.getFirst().x(), EPS);
+                assertEquals(1, ps.getFirst().vx(), EPS);
+                assertEquals(0, g);
+                assertFalse(ps.getFirst().used());
+            } else if (t > contactTime) {
+                assertEquals(C.length() - C.radius() - 0.1, ps.getFirst().x(), EPS);
+                assertEquals(-1, ps.getFirst().vx(), EPS);
+                assertEquals(1, g);
+            }
+        });
+        assertEquals(3, times.size());
+        assertEquals(contactTime, times.get(1), EPS);
+        assertEquals(1, result.goals());
+    }
     @Test void reflectsBothWallsAtCorner() throws Exception {
         double duration = 0.2;
         Particle p = particle(1, C.length()-C.radius()-duration, C.width()-C.radius()-duration, 1, 1);

@@ -39,6 +39,11 @@ public final class CollisionSimulator {
             Event e = queue.remove();
             if (!e.valid()) continue;
             advance(e.time());
+            events++;
+            // A4: guarda el estado de contacto antes de resolver el choque (A5).
+            if (events % outputEvery == 0) {
+                output.write(time, events, goals, particles); lastOutput = time;
+            }
             Particle a = e.a();
             switch (e.type()) {
                 case VERTICAL_WALL -> {
@@ -53,16 +58,12 @@ public final class CollisionSimulator {
                     a.setVelocityAfterCollision(a.vx() - factor * dx, a.vy() - factor * dy);
                 }
             }
-            events++;
             if (Double.isNaN(t90) && goals >= Math.ceil(0.9 * particles.size())) t90 = time;
             predict(a, null);
             if (e.b() != null) predict(e.b(), a);
             // Limita memoria retenida por eventos obsoletos sin alterar las predicciones válidas.
             if (queue.size() > 8L * particles.size() * (particles.size() + obstacles.size() + 2))
                 queue.removeIf(event -> !event.valid());
-            if (events % outputEvery == 0) {
-                output.write(time, events, goals, particles); lastOutput = time;
-            }
         }
         if (time < limit) advance(limit);
         if (lastOutput != time || events % outputEvery != 0) output.write(time, events, goals, particles);
