@@ -12,6 +12,7 @@
     <modules>
         <module>TP1</module>
         <module>TP2</module>
+        <module>TP3</module>
     </modules>
 
     <build>

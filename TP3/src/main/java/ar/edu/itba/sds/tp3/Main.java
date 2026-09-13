@@ -1,0 +1,100 @@
+package ar.edu.itba.sds.tp3;
+
+import ar.edu.itba.sds.tp3.engine.*;
+import ar.edu.itba.sds.tp3.engine.obstacles.ObstacleGenerators;
+import ar.edu.itba.sds.tp3.io.StageFile;
+import java.io.*;
+import java.nio.file.*;
+import java.util.*;
+
+public final class Main {
+    private Main() { }
+    public static void main(String[] args) {
+        try { execute(args); }
+        catch (IllegalArgumentException | IOException e) {
+            System.err.println("Error: " + e.getMessage()); System.exit(1);
+        }
+    }
+    public static void execute(String[] args) throws IOException {
+        if (args.length == 0 || args[0].equals("--help")) {
+            System.out.println("""
+                    generate [--n 100] [--seed 42] [--out archivo.txt]
+                             [--obstacle-algorithm random|none] [--obstacle-count 2]
+                             [--obstacle-radius 0.05] [--obstacle-seed <seed>]
+                             [--obstacles archivo.txt (excluye opciones de algoritmo)]
+                             [--length 1.2] [--width 0.68] [--goal-width 0.2]
+                             [--radius 0.0175] [--mass 0.025] [--speed 1.0]
+                    simulate --input archivo.txt [--time 30] [--every 1] [--out archivo.txt]
+                    Salidas predeterminadas: TP3/generated/initial.txt y TP3/generated/simulation.txt
+                    """);
+            return;
+        }
+        Set<String> allowed = switch (args[0]) {
+            case "generate" -> Set.of("n", "seed", "obstacles", "out", "length", "width", "goal-width", "radius", "mass", "speed",
+                    "obstacle-algorithm", "obstacle-count", "obstacle-radius", "obstacle-seed");
+            case "simulate" -> Set.of("input", "time", "every", "out");
+            default -> throw new IllegalArgumentException("Comando desconocido: " + args[0]);
+        };
+        Map<String, String> options = new HashMap<>();
+        for (int i = 1; i < args.length; i += 2) {
+            if (!args[i].startsWith("--") || i + 1 >= args.length) throw new IllegalArgumentException("Se esperaba --opción valor");
+            String key = args[i].substring(2);
+            if (!allowed.contains(key) || options.put(key, args[i + 1]) != null) throw new IllegalArgumentException("Opción inválida o repetida: " + key);
+        }
+        if (args[0].equals("generate")) {
+            SimulationConfig c = new SimulationConfig(value(options, "length", "1.2"), value(options, "width", "0.68"),
+                    value(options, "goal-width", "0.2"), value(options, "radius", "0.0175"), value(options, "mass", "0.025"), value(options, "speed", "1"));
+            long seed = Long.parseLong(options.getOrDefault("seed", "42"));
+            boolean generatorOptions = options.keySet().stream().anyMatch(key -> key.startsWith("obstacle-"));
+            if (options.containsKey("obstacles") && generatorOptions)
+                throw new IllegalArgumentException("Usar --obstacles o las opciones --obstacle-*, no ambos");
+            String algorithm = options.getOrDefault("obstacle-algorithm", "random");
+            if (algorithm.equals("none") && (options.containsKey("obstacle-count")
+                    || options.containsKey("obstacle-radius") || options.containsKey("obstacle-seed")))
+                throw new IllegalArgumentException("El algoritmo none no utiliza cantidad, radio ni semilla de obstáculos");
+            var obstacles = options.containsKey("obstacles") ? StageFile.readObstacles(Path.of(options.get("obstacles")))
+                    : ObstacleGenerators.create(algorithm, Integer.parseInt(options.getOrDefault("obstacle-count", "2")),
+                            value(options, "obstacle-radius", "0.05"))
+                        .generate(c, Long.parseLong(options.getOrDefault("obstacle-seed", Long.toString(seed))));
+            var stage = StageGeneration.generate(c, Integer.parseInt(options.getOrDefault("n", "100")),
+                    seed, obstacles);
+            Path out = output(options, "initial.txt");
+            StageFile.write(out, stage);
+            System.out.println("Condición inicial: " + out);
+        } else {
+            if (!options.containsKey("input")) throw new IllegalArgumentException("Falta --input");
+            Path input = Path.of(options.get("input")), out = output(options, "simulation.txt");
+            if (input.toAbsolutePath().normalize().equals(out.toAbsolutePath().normalize())
+                    || Files.exists(out) && Files.isSameFile(input, out)) throw new IllegalArgumentException("Entrada y salida deben ser distintas");
+            double endTime = value(options, "time", "30");
+            int every = Integer.parseInt(options.getOrDefault("every", "1"));
+            if (!Double.isFinite(endTime) || endTime < 0 || every <= 0) throw new IllegalArgumentException("Tiempo o frecuencia inválidos");
+            var stage = StageFile.read(input);
+            try (BufferedWriter w = StageFile.writer(out)) {
+                StageFile.header(w, stage);
+                var result = new CollisionSimulator(stage).run(endTime, every,
+                        (t, e, g, p) -> StageFile.frame(w, t, e, g, p));
+                w.write("# tf=" + result.time() + " outputEvery=" + every + " events=" + result.events() + " Ng=" + result.goals() + " t90=" + result.t90());
+                w.newLine();
+                System.out.println("Trayectoria: " + out + " | eventos=" + result.events() + " goles=" + result.goals() + " t90=" + result.t90());
+            }
+        }
+    }
+    private static double value(Map<String, String> options, String key, String fallback) {
+        return Double.parseDouble(options.getOrDefault(key, fallback));
+    }
+    private static Path output(Map<String, String> options, String name) {
+        if (options.containsKey("out")) return Path.of(options.get("out"));
+        // Independiente del cwd: ubica el módulo desde target/classes o desde su JAR.
+        try {
+            Path code = Path.of(Main.class.getProtectionDomain().getCodeSource().getLocation().toURI());
+            Path base = Files.isDirectory(code) ? code : code.getParent();
+            while (base != null) {
+                if (Files.isDirectory(base.resolve("enunciado")) && Files.exists(base.resolve("pom.xml")))
+                    return base.resolve("generated").resolve(name);
+                base = base.getParent();
+            }
+        } catch (java.net.URISyntaxException e) { throw new IllegalStateException(e); }
+        throw new IllegalArgumentException("No se pudo ubicar TP3; indicar --out");
+    }
+}

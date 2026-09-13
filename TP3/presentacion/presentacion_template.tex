@@ -1,0 +1,98 @@
+\documentclass[aspectratio=169,11pt]{beamer}
+
+\usepackage[T1]{fontenc}
+\usepackage[provide=*,spanish]{babel}
+\usepackage{lmodern}
+\usepackage{amsmath,amssymb,bm}
+\usepackage{graphicx}
+
+\definecolor{TPBlue}{HTML}{3939B5}
+\definecolor{TPBlueDark}{HTML}{29298A}
+\definecolor{TPNavGray}{HTML}{858585}
+
+\setbeamercolor{normal text}{fg=black,bg=white}
+\setbeamercolor{structure}{fg=TPBlue}
+\setbeamercolor{frametitle}{fg=white,bg=TPBlue}
+\setbeamercolor{title}{fg=TPBlueDark}
+\setbeamercolor{itemize item}{fg=TPBlue}
+\setbeamertemplate{items}[circle]
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{footline}{%
+  \leavevmode\hbox{%
+    \begin{beamercolorbox}[wd=\paperwidth,ht=0.22cm,dp=0.10cm,rightskip=0.2cm]{normal text}
+      \hfill{\color{TPNavGray}\tiny\insertframenumber/\inserttotalframenumber}
+    \end{beamercolorbox}%
+  }%
+}
+\setbeamertemplate{frametitle}{%
+  \nointerlineskip
+  \begin{beamercolorbox}[wd=\paperwidth,ht=0.7cm,dp=0.15cm,leftskip=0.4cm]{frametitle}
+    \insertframetitle
+  \end{beamercolorbox}%
+}
+
+\newcommand{\institutionlogo}{%
+  \IfFileExists{logo_itba.png}{\includegraphics[height=0.9cm]{logo_itba.png}}{%
+    \fbox{\scriptsize LOGO DE LA INSTITUCION}%
+  }%
+}
+
+\newcommand{\placeholder}[2][4cm]{%
+  \fbox{\parbox[c][#1][c]{0.85\linewidth}{\centering\color{TPNavGray}#2}}%
+}
+
+\title{Trabajo Practico Nro. COMPLETAR}
+\subtitle{COMPLETAR: titulo}
+\author{COMPLETAR: integrantes}
+\institute{Instituto Tecnologico de Buenos Aires}
+\date{COMPLETAR: fecha y grupo}
+
+\begin{document}
+
+\begin{frame}
+  \titlepage
+  \begin{center}\institutionlogo\end{center}
+\end{frame}
+
+\section{Introduccion}
+\begin{frame}{Problema y objetivo}
+  \begin{itemize}
+    \item COMPLETAR: que sistema se estudia.
+    \item COMPLETAR: pregunta que responde el trabajo.
+    \item COMPLETAR: metodo y observable principal.
+  \end{itemize}
+\end{frame}
+
+\section{Implementacion}
+\begin{frame}{Modelo e implementacion}
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.48\textwidth}
+      \placeholder{Diagrama o ecuacion principal}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{itemize}
+        \item COMPLETAR: regla del modelo.
+        \item COMPLETAR: decision de arquitectura.
+        \item COMPLETAR: validacion realizada.
+      \end{itemize}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\section{Resultados}
+\begin{frame}{Resultado principal}
+  \centering
+  \placeholder[4.7cm]{Figura principal con ejes, unidades y leyenda}
+\end{frame}
+
+\section{Conclusiones}
+\begin{frame}{Conclusiones}
+  \begin{itemize}
+    \item COMPLETAR: respuesta al objetivo.
+    \item COMPLETAR: evidencia cuantitativa clave.
+    \item COMPLETAR: limitacion o proximo paso.
+  \end{itemize}
+\end{frame}
+
+\end{document}
+
