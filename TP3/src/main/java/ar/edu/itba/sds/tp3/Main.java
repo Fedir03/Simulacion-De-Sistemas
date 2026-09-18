@@ -3,6 +3,7 @@ package ar.edu.itba.sds.tp3;
 import ar.edu.itba.sds.tp3.engine.*;
 import ar.edu.itba.sds.tp3.engine.obstacles.ObstacleGenerators;
 import ar.edu.itba.sds.tp3.io.StageFile;
+import ar.edu.itba.sds.tp3.models.Obstacle;
 import java.io.*;
 import java.nio.file.*;
 import java.util.*;
@@ -18,21 +19,28 @@ public final class Main {
     public static void execute(String[] args) throws IOException {
         if (args.length == 0 || args[0].equals("--help")) {
             System.out.println("""
-                    generate [--n 100] [--seed 42] [--out archivo.txt]
-                             [--obstacle-algorithm random|none] [--obstacle-count 2]
-                             [--obstacle-radius 0.05] [--obstacle-seed <seed>]
-                             [--obstacles archivo.txt (excluye opciones de algoritmo)]
+                    generate [--n 100] [--seed 42] [--out archivo.txt] [--obstacles-out config.txt]
+                             [--obstacle-algorithm random|none|single|funnel|semicircle|posts]
+                               random:     [--obstacle-count 2] [--obstacle-radius 0.05] [--obstacle-seed <seed>]
+                               single:     [--obstacle-x L/2] [--obstacle-y W/2] [--obstacle-radius 0.1]
+                               funnel:     [--obstacle-funnel-length 0.3] [--obstacle-max-radius ∞] [--obstacle-grid 0.001]
+                               semicircle: [--obstacle-free-radius 0.36] [--obstacle-goals right|both]
+                                           [--obstacle-max-radius ∞] [--obstacle-grid 0.001]
+                               posts:      [--obstacle-radius 0.05]
+                             [--obstacles archivo.txt (con --obstacle-algorithm, el algoritmo agrega obstáculos a los del archivo)]
                              [--length 1.2] [--width 0.68] [--goal-width 0.2]
                              [--radius 0.0175] [--mass 0.025] [--speed 1.0]
-                    simulate --input archivo.txt [--time 30] [--every 1] [--out archivo.txt]
+                    simulate --input archivo.txt [--time 30] [--every 1 | --dt 0.01] [--out archivo.txt]
+                             --dt escribe estados exactos cada dt segundos en vez de cada --every eventos
                     Salidas predeterminadas: TP3/generated/initial.txt y TP3/generated/simulation.txt
                     """);
             return;
         }
         Set<String> allowed = switch (args[0]) {
-            case "generate" -> Set.of("n", "seed", "obstacles", "out", "length", "width", "goal-width", "radius", "mass", "speed",
-                    "obstacle-algorithm", "obstacle-count", "obstacle-radius", "obstacle-seed");
-            case "simulate" -> Set.of("input", "time", "every", "out");
+            case "generate" -> Set.of("n", "seed", "obstacles", "out", "obstacles-out", "length", "width", "goal-width", "radius", "mass", "speed",
+                    "obstacle-algorithm", "obstacle-count", "obstacle-radius", "obstacle-seed", "obstacle-x", "obstacle-y",
+                    "obstacle-funnel-length", "obstacle-free-radius", "obstacle-goals", "obstacle-max-radius", "obstacle-grid");
+            case "simulate" -> Set.of("input", "time", "every", "dt", "out");
             default -> throw new IllegalArgumentException("Comando desconocido: " + args[0]);
         };
         Map<String, String> options = new HashMap<>();
@@ -46,21 +54,26 @@ public final class Main {
                     value(options, "goal-width", "0.2"), value(options, "radius", "0.0175"), value(options, "mass", "0.025"), value(options, "speed", "1"));
             long seed = Long.parseLong(options.getOrDefault("seed", "42"));
             boolean generatorOptions = options.keySet().stream().anyMatch(key -> key.startsWith("obstacle-"));
-            if (options.containsKey("obstacles") && generatorOptions)
-                throw new IllegalArgumentException("Usar --obstacles o las opciones --obstacle-*, no ambos");
+            boolean fromFile = options.containsKey("obstacles"), withAlgorithm = !fromFile || options.containsKey("obstacle-algorithm");
+            if (fromFile && generatorOptions && !withAlgorithm)
+                throw new IllegalArgumentException("Para combinar --obstacles con opciones --obstacle-*, indicar --obstacle-algorithm");
             String algorithm = options.getOrDefault("obstacle-algorithm", "random");
-            if (algorithm.equals("none") && (options.containsKey("obstacle-count")
-                    || options.containsKey("obstacle-radius") || options.containsKey("obstacle-seed")))
-                throw new IllegalArgumentException("El algoritmo none no utiliza cantidad, radio ni semilla de obstáculos");
-            var obstacles = options.containsKey("obstacles") ? StageFile.readObstacles(Path.of(options.get("obstacles")))
-                    : ObstacleGenerators.create(algorithm, Integer.parseInt(options.getOrDefault("obstacle-count", "2")),
-                            value(options, "obstacle-radius", "0.05"))
-                        .generate(c, Long.parseLong(options.getOrDefault("obstacle-seed", Long.toString(seed))));
+            Map<String, String> params = new HashMap<>();
+            options.forEach((key, v) -> { if (key.startsWith("obstacle-") && !key.equals("obstacle-algorithm")) params.put(key.substring(9), v); });
+            // Los obstáculos del archivo son la base; el algoritmo, si se indica, agrega obstáculos respetándolos.
+            List<Obstacle> obstacles = new ArrayList<>(fromFile ? StageFile.readObstacles(Path.of(options.get("obstacles"))) : List.of());
+            if (withAlgorithm) obstacles.addAll(ObstacleGenerators.create(algorithm, params)
+                    .generate(c, Long.parseLong(options.getOrDefault("obstacle-seed", Long.toString(seed))), List.copyOf(obstacles)));
             var stage = StageGeneration.generate(c, Integer.parseInt(options.getOrDefault("n", "100")),
                     seed, obstacles);
             Path out = output(options, "initial.txt");
             StageFile.write(out, stage);
-            System.out.println("Condición inicial: " + out);
+            System.out.println("Condición inicial: " + out + " | K=" + obstacles.size());
+            if (options.containsKey("obstacles-out")) {
+                Path config = Path.of(options.get("obstacles-out"));
+                StageFile.writeObstacles(config, obstacles);
+                System.out.println("Obstáculos: " + config);
+            }
         } else {
             if (!options.containsKey("input")) throw new IllegalArgumentException("Falta --input");
             Path input = Path.of(options.get("input")), out = output(options, "simulation.txt");
@@ -68,15 +81,23 @@ public final class Main {
                     || Files.exists(out) && Files.isSameFile(input, out)) throw new IllegalArgumentException("Entrada y salida deben ser distintas");
             double endTime = value(options, "time", "30");
             int every = Integer.parseInt(options.getOrDefault("every", "1"));
+            double dt = value(options, "dt", "0");
             if (!Double.isFinite(endTime) || endTime < 0 || every <= 0) throw new IllegalArgumentException("Tiempo o frecuencia inválidos");
+            if (options.containsKey("dt") && (options.containsKey("every") || !(dt > 0)))
+                throw new IllegalArgumentException("--dt debe ser positivo y excluye --every");
             var stage = StageFile.read(input);
             try (BufferedWriter w = StageFile.writer(out)) {
                 StageFile.header(w, stage);
-                var result = new CollisionSimulator(stage).run(endTime, every,
+                long start = System.nanoTime();
+                var result = new CollisionSimulator(stage).run(endTime, every, dt,
                         (t, e, g, p) -> StageFile.frame(w, t, e, g, p));
-                w.write("# tf=" + result.time() + " outputEvery=" + every + " events=" + result.events() + " Ng=" + result.goals() + " t90=" + result.t90());
+                // Tiempo de ejecución del ciclo de eventos, escritura incluida; excluye arranque de la JVM y lectura.
+                double runtime = (System.nanoTime() - start) / 1e9;
+                w.write("# tf=" + result.time() + (dt > 0 ? " outputInterval=" + dt : " outputEvery=" + every) + " events=" + result.events() + " Ng=" + result.goals()
+                        + " t90=" + result.t90() + " runtime=" + runtime);
                 w.newLine();
-                System.out.println("Trayectoria: " + out + " | eventos=" + result.events() + " goles=" + result.goals() + " t90=" + result.t90());
+                System.out.println("Trayectoria: " + out + " | eventos=" + result.events() + " goles=" + result.goals()
+                        + " t90=" + result.t90() + " runtime=" + runtime + "s");
             }
         }
     }

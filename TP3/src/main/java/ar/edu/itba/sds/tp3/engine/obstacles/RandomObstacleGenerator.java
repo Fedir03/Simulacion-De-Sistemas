@@ -18,11 +18,15 @@ public final class RandomObstacleGenerator implements ObstacleGenerator {
     }
 
     @Override public List<Obstacle> generate(SimulationConfig config, long seed) {
+        return generate(config, seed, List.of());
+    }
+
+    @Override public List<Obstacle> generate(SimulationConfig config, long seed, List<Obstacle> existing) {
         if (radius < config.radius() || 2 * radius > Math.min(config.length(), config.width()))
             throw new IllegalArgumentException("Radio de obstáculo incompatible con el dominio o menor que r");
         Random random = new Random(seed);
-        List<Obstacle> obstacles = new ArrayList<>();
-        for (int i = 0; i < count; i++) {
+        List<Obstacle> obstacles = new ArrayList<>(existing);
+        for (int i = existing.size(); i < existing.size() + count; i++) {
             boolean placed = false;
             for (int attempt = 0; attempt < MAX_ATTEMPTS_PER_OBSTACLE; attempt++) {
                 double x = radius + random.nextDouble() * (config.length() - 2 * radius);
@@ -33,8 +37,8 @@ public final class RandomObstacleGenerator implements ObstacleGenerator {
                 break;
             }
             if (!placed) throw new IllegalArgumentException("No se pudieron ubicar " + count
-                    + " obstáculos: límite de intentos en obstáculo " + (i + 1));
+                    + " obstáculos: límite de intentos en obstáculo " + (i - existing.size() + 1));
         }
-        return List.copyOf(obstacles);
+        return List.copyOf(obstacles.subList(existing.size(), obstacles.size()));
     }
 }

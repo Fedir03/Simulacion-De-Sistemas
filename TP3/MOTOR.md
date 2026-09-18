@@ -20,6 +20,13 @@ flowchart TD
     CLI[Main: generate] --> Selector[ObstacleGenerators]
     Selector --> Random[RandomObstacleGenerator]
     Selector --> Empty[EmptyObstacleGenerator]
+    Selector --> Single[SingleObstacleGenerator]
+    Selector --> Funnel[FunnelObstacleGenerator]
+    Selector --> Semi[SemicircleObstacleGenerator]
+    Funnel --> Fill[RegionFill]
+    Semi --> Fill
+    Single --> Stage
+    Fill --> Stage
     CLI --> File[StageFile.readObstacles]
     Random --> Stage[StageGeneration]
     Empty --> Stage
@@ -56,10 +63,14 @@ Interpreta los comandos `generate` y `simulate`. No contiene las fórmulas físi
 En `generate`, construye la configuración, obtiene obstáculos desde un algoritmo
 o desde un archivo, genera las partículas y escribe el estado inicial.
 El algoritmo por defecto es `random`, con dos obstáculos de radio 0.05 m.
+Las opciones `--obstacle-*` (salvo `--obstacle-algorithm`) se pasan a la fábrica sin
+el prefijo; cada algoritmo valida las suyas. Con `--obstacles-out` escribe además los
+obstáculos en el formato de competencia, solo si la generación completa tuvo éxito.
 
 En `simulate`, lee el estado, crea el simulador y conecta su salida con el escritor
 de texto. Impide usar el mismo archivo como entrada y salida. Al terminar escribe
-un comentario con tiempo final, frecuencia de escritura, eventos, goles y t90.
+un comentario con tiempo final, frecuencia de escritura, eventos, goles, t90 y el
+tiempo real del ciclo de eventos (`runtime`, medido con `System.nanoTime`).
 
 Utiliza un `Set<String>` para las opciones admitidas y un `HashMap<String, String>`
 para los valores recibidos. Así puede buscar una opción por nombre sin depender
@@ -214,13 +225,88 @@ Implementa el mismo contrato y devuelve `List.of()`, una lista vacía inmodifica
 Sirve para las corridas sin obstáculos y la comparación con otras configuraciones.
 Se selecciona con `--obstacle-algorithm none`.
 
+### `engine/obstacles/SingleObstacleGenerator.java`: un obstáculo
+
+[Ver código](src/main/java/ar/edu/itba/sds/tp3/engine/obstacles/SingleObstacleGenerator.java).
+
+Devuelve un único obstáculo en (x, y) con el radio indicado. Una coordenada `NaN`
+(el valor por defecto desde la CLI) se reemplaza por el centro de la mesa, que se
+conoce recién en `generate`. La validez del disco la comprueba `StageGeneration`.
+
+### `engine/obstacles/RegionFill.java`: relleno de una región bloqueada
+
+[Ver código](src/main/java/ar/edu/itba/sds/tp3/engine/obstacles/RegionFill.java).
+
+Recibe una `Region`, interfaz funcional con `distanceToFree(x, y)`: distancia a la
+zona libre, positiva dentro de la región a bloquear y ≤ 0 fuera de ella.
+Una partícula de radio r puede tener su centro en p si p está a distancia ≥ r de las
+paredes y `|p - c_k| ≥ R_k + r` para todo obstáculo. El objetivo es que ningún punto
+de la región bloqueada cumpla eso: si no, podría nacer ahí una partícula atrapada.
+
+Para cada punto candidato de una grilla se guardan dos cotas del radio de un disco
+centrado en él: `limit = min(pared, max(r, distanciaALaZonaLibre), maxRadius)` y
+`clearance = min_k(|p - c_k| - R_k)`. En cada paso se elige el candidato con mayor
+`min(limit, clearance)`, se coloca ese disco (menos 1e-9 para evitar tangencias
+exactas por redondeo), se actualiza `clearance` de los demás y se descartan los que
+ya no admiten un disco de radio r: tampoco admiten el centro de una partícula.
+Termina cuando no quedan candidatos. Cada disco tiene radio ≥ r por construcción.
+
+Permitir invadir la zona libre hasta r evita dejar una ranura de ancho menor que r
+entre la zona libre y los discos. La grilla incluye las rectas extremas `x = r`,
+`x = L - r`, `y = r`, `y = W - r` (desplazadas 2e-9), donde se forman bolsillos
+contra las paredes. Se hacen tres pasadas, con pasos grid, grid/2 y grid/4, cada una
+partiendo de los discos ya colocados, para cubrir huecos más chicos que la grilla.
+
+Es un algoritmo voraz tipo empaquetamiento apoloniano: produce pocos discos grandes
+y rellenos más chicos en los intersticios. Es determinista. Con paso 1 mm el costo
+está dominado por la grilla de 0.25 mm: unos 13 millones de puntos, cada uno con
+evaluación temprana contra los discos ya colocados. La generación tarda alrededor de un segundo.
+
+### `engine/obstacles/FunnelObstacleGenerator.java`: embudos hacia los arcos
+
+[Ver código](src/main/java/ar/edu/itba/sds/tp3/engine/obstacles/FunnelObstacleGenerator.java).
+
+La región bloqueada son las cuatro esquinas detrás de las rectas que unen cada palo
+`(0, (W+d)/2)` con `(a, W)`, y sus simétricas, donde `a` es el largo del embudo.
+Por simetría, cada punto se lleva a la esquina superior izquierda con
+`x' = min(x, L-x)`, `y' = max(y, W-y)`. Está bloqueado si queda del lado de la esquina
+según el producto vectorial con la recta; su distancia a la zona libre es la distancia
+al segmento palo–pared. Exige `a ≤ L/2` para que las esquinas no se superpongan.
+
+### `engine/obstacles/SemicircleObstacleGenerator.java`: semicírculo libre
+
+[Ver código](src/main/java/ar/edu/itba/sds/tp3/engine/obstacles/SemicircleObstacleGenerator.java).
+
+La zona libre son los puntos a distancia ≤ R_libre del centro del arco derecho
+`(L, W/2)`; `distanceToFree = |p - (L, W/2)| - R_libre`. Con R_libre = 0.36 m = 0.3 L
+se bloquea el 70 % izquierdo del largo, incluido el arco izquierdo. Si R_libre > W/2,
+el semicírculo queda recortado por las paredes largas.
+
+### `engine/obstacles/PostsObstacleGenerator.java`: palos
+
+[Ver código](src/main/java/ar/edu/itba/sds/tp3/engine/obstacles/PostsObstacleGenerator.java).
+
+Cuatro discos de radio R en `(R, W/2 ± (d/2 + R))` y `(L - R, W/2 ± (d/2 + R))`: tangentes
+a la pared corta y con su punto más bajo o más alto a la altura del palo.
+
+### Combinación con obstáculos existentes
+
+`ObstacleGenerator` tiene además `generate(config, seed, existing)`, que devuelve solo
+los obstáculos nuevos. Por defecto ignora `existing`. `RandomObstacleGenerator` rechaza
+posiciones que solapan con ellos; `FunnelObstacleGenerator` y `SemicircleObstacleGenerator`
+se los pasan a `RegionFill.fill(..., existing)`, que parte de ellos al calcular holguras.
+`Main` usa los obstáculos de `--obstacles` como base cuando también se indica
+`--obstacle-algorithm`.
+
 ### `engine/obstacles/ObstacleGenerators.java`: selección por nombre
 
 [Ver código](src/main/java/ar/edu/itba/sds/tp3/engine/obstacles/ObstacleGenerators.java).
 
-Es una fábrica sencilla: `create(name, count, radius)` usa un `switch` para
-instanciar el algoritmo `random` o `none`. Rechaza nombres desconocidos.
-Este es el punto donde se registra el nombre de un algoritmo nuevo para la CLI.
+Es una fábrica sencilla: `create(name, params)` recibe el nombre y un mapa de
+opciones sin el prefijo `--obstacle-`. Un primer `switch` define las opciones que
+acepta cada algoritmo y rechaza las demás; un segundo instancia `random`, `none`,
+`single`, `funnel`, `semicircle` o `posts` con sus valores por defecto. Rechaza nombres
+desconocidos. Este es el punto donde se registra un algoritmo nuevo para la CLI.
 No utiliza reflexión ni descubrimiento automático de clases.
 
 ### `engine/CollisionSimulator.java`: ejecución de la dinámica
@@ -236,6 +322,7 @@ Sus métodos principales son:
 | Método | Responsabilidad |
 |---|---|
 | `run(endTime, outputEvery, output)` | Coordinar el ciclo de eventos y calcular resultados |
+| `run(endTime, outputEvery, outputInterval, output)` | Igual, pero con `outputInterval > 0` escribe en t = k·outputInterval |
 | `advance(next)` | Mover todas las partículas hasta el nuevo tiempo |
 | `predict(p, skip)` | Predecir choques de p contra paredes, partículas y obstáculos |
 | `add(...)` | Insertar predicciones finitas dentro del tiempo de simulación |
@@ -262,6 +349,7 @@ Centraliza el formato `tp3-v1`:
 - `header(...)` escribe parámetros y obstáculos.
 - `frame(...)` escribe tiempo, eventos, goles, fracción usada y filas de partículas.
 - `write(...)` guarda una condición inicial de un único bloque t=0.
+- `writeObstacles(...)` guarda obstáculos en el formato de competencia `x y radio`.
 - `read(...)` reconstruye esa condición usando `BufferedReader`, valida formato,
   columnas, colores y geometría. No es un lector de trayectorias completas ni
   permite reiniciar desde un bloque de tiempo arbitrario.
@@ -291,6 +379,13 @@ mientras haya eventos:
 avanzar hasta el tiempo final si falta
 escribir el estado final si aún no quedó escrito
 ```
+
+Con salida por intervalo (`--dt`), antes de resolver cada evento se escriben las
+muestras pendientes `k·dt ≤ tiempoDelEvento`: se copian las partículas, se avanzan las
+copias hasta la muestra y se escriben. No se avanza el sistema real: partir un tramo en
+dos cambia el redondeo, y en un sistema caótico eso altera la trayectoria y t90. Como entre eventos el movimiento es rectilíneo uniforme, esos estados son
+exactos. Una muestra que coincide con un evento muestra el estado previo al choque.
+Los tiempos se calculan como `k·dt`, sin acumular sumas, para evitar deriva.
 
 Solamente se insertan eventos cuyo tiempo no supera el límite de la corrida.
 Por eso, al vaciarse la cola se puede avanzar directamente al tiempo final.
@@ -467,17 +562,20 @@ public final class CentralObstacleGenerator implements ObstacleGenerator {
 }
 ```
 
-Este ejemplo es ilustrativo: esa clase **no está agregada al motor actual**.
-Para habilitarla habría que guardarla en su archivo y agregar al `switch` de
+Este ejemplo es ilustrativo: esa clase **no está agregada al motor actual**
+(`single` ya cubre ese caso). Para habilitarla habría que guardarla en su archivo,
+agregar su nombre a `ObstacleGenerators.NAMES` y un caso a cada `switch` de
 `ObstacleGenerators.create`:
 
 ```java
-case "central" -> new CentralObstacleGenerator(radius);
+case "central" -> Set.of("radius");                                            // opciones aceptadas
+case "central" -> new CentralObstacleGenerator(number(params, "radius", "0.1")); // instancia
 ```
 
-También conviene actualizar la ayuda y el mensaje de algoritmos disponibles.
-Si necesita parámetros nuevos, se agregan al parser de `Main` y a la fábrica;
-la generación de partículas y `CollisionSimulator` no cambian.
+Si necesita opciones nuevas, se agregan `--obstacle-<nombre>` al conjunto de opciones
+admitidas de `Main` y a la ayuda; la generación de partículas y `CollisionSimulator`
+no cambian. Para bloquear una zona con forma arbitraria basta con escribir su
+`RegionFill.Region` y llamar a `RegionFill.fill`, como hacen `funnel` y `semicircle`.
 
 Los algoritmos actuales se eligen así, desde la raíz del repositorio:
 
@@ -490,6 +588,13 @@ java -jar TP3/target/tp3.jar generate --obstacle-algorithm random --obstacle-cou
 
 # Mesa vacía.
 java -jar TP3/target/tp3.jar generate --obstacle-algorithm none
+
+# Un obstáculo grande sobre el eje longitudinal.
+java -jar TP3/target/tp3.jar generate --obstacle-algorithm single --obstacle-x 0.4 --obstacle-radius 0.15
+
+# Embudos hacia los arcos y semicírculo libre junto al arco derecho, guardando la configuración.
+java -jar TP3/target/tp3.jar generate --obstacle-algorithm funnel --obstacle-funnel-length 0.3 --obstacles-out TP3/configs/funnel.txt
+java -jar TP3/target/tp3.jar generate --obstacle-algorithm semicircle --obstacle-free-radius 0.36 --obstacles-out TP3/configs/semicircle_70.txt
 
 # Configuración definida a mano o guardada por una exploración anterior.
 java -jar TP3/target/tp3.jar generate --obstacles TP3/configs/central.txt
@@ -505,6 +610,8 @@ Para comparar distintas realizaciones sobre los mismos obstáculos, fijar
 | Archivo | Contenido y función |
 |---|---|
 | [configs/central.txt](configs/central.txt) | Un obstáculo de ejemplo en `(0.60, 0.34)` con radio `0.08`; cada fila usa `x y radio`. No es una configuración optimizada. |
+| [configs/funnel.txt](configs/funnel.txt) | Salida de `funnel` con largo 0.30 m: 28 discos en las cuatro esquinas. |
+| [configs/semicircle_70.txt](configs/semicircle_70.txt) | Salida de `semicircle` con radio libre 0.36 m: 31 discos que cubren el 70 % izquierdo. |
 | [pom.xml](pom.xml) | Compilación Java 21, JUnit 5, ejecución de pruebas con Surefire y creación de `target/tp3.jar` con `Main` como entrada. Se modificó la configuración Maven existente. |
 | [README.md](README.md) | Guía operativa: estructura, comandos, formato y decisiones principales. |
 | [MOTOR.md](MOTOR.md) | Este documento explicativo. |
@@ -538,15 +645,20 @@ comentada incluye t90, que puede no coincidir con el tiempo de un fotograma guar
 ## 8. Pruebas que acompañan al motor
 
 [EngineTest.java](src/test/java/ar/edu/itba/sds/tp3/engine/EngineTest.java)
-contiene 11 pruebas de predicción, conservación de energía y momento, invalidación,
-goles únicos, rebotes, esquinas, reproducibilidad, formato, errores y comandos.
+contiene 14 pruebas de predicción, conservación de energía y momento, invalidación,
+goles únicos, rebotes, esquinas, reproducibilidad, formato, errores, comandos y
+salida exacta a intervalos fijos de tiempo, que no altera la dinámica.
 Una corrida de 100 partículas durante 3 segundos verifica energía, paredes y
 solapamientos en los estados emitidos cada 50 eventos.
 
 [ObstacleGenerationTest.java](src/test/java/ar/edu/itba/sds/tp3/engine/ObstacleGenerationTest.java)
-agrega 4 pruebas sobre reproducibilidad del algoritmo aleatorio, geometría,
+agrega 10 pruebas sobre reproducibilidad del algoritmo aleatorio, geometría,
 configuraciones inválidas, límite de intentos, selección por CLI, carga desde
-archivo y semillas independientes.
+archivo, semillas independientes, el obstáculo único, opciones rechazadas por
+cada algoritmo, exportación de la configuración, `posts`, el cuenco y el
+relleno que respeta obstáculos existentes. Para `funnel` y `semicircle`
+comprueba en una grilla de 0.4 mm que ningún punto de la región bloqueada admite
+el centro de una partícula y que se pueden ubicar 100 partículas.
 
 Se usa `@TempDir` para que los archivos de prueba se creen en directorios
 temporales. Las pruebas aleatorias fijan sus semillas y las físicas comparan
@@ -557,6 +669,6 @@ mvn -f TP3/pom.xml test
 mvn -f TP3/pom.xml package
 ```
 
-La última compilación de esta implementación completó las 15 pruebas sin fallos.
+La última compilación de esta implementación completó las 24 pruebas sin fallos.
 Estas pruebas respaldan los casos cubiertos; no constituyen una solución ni una
 verificación exhaustiva de impactos colectivos simultáneos.

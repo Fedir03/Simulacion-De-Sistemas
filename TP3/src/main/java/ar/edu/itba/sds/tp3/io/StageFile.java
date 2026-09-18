@@ -82,6 +82,12 @@ public final class StageFile {
         if (v.length != count) throw new IllegalArgumentException("Se esperaban " + count + " columnas: " + line);
         return v;
     }
+    /** Escribe obstáculos en el formato de competencia: una línea x y radio por obstáculo. */
+    public static void writeObstacles(Path path, List<Obstacle> obstacles) throws IOException {
+        try (BufferedWriter w = writer(path)) {
+            for (Obstacle o : obstacles) { w.write(o.x() + " " + o.y() + " " + o.radius()); w.newLine(); }
+        }
+    }
     public static List<Obstacle> readObstacles(Path path) throws IOException {
         List<Obstacle> result = new ArrayList<>();
         for (String line : Files.readAllLines(path)) {
