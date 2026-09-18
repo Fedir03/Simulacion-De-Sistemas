@@ -11,4 +11,10 @@ import java.util.List;
 @FunctionalInterface
 public interface ObstacleGenerator {
     List<Obstacle> generate(SimulationConfig config, long seed);
+
+    /** Obstáculos nuevos para agregar a {@code existing}, que no se incluyen en el resultado.
+     * Por defecto los ignora: si hubiera solapamientos, los rechaza la validación del mapa. */
+    default List<Obstacle> generate(SimulationConfig config, long seed, List<Obstacle> existing) {
+        return generate(config, seed);
+    }
 }
