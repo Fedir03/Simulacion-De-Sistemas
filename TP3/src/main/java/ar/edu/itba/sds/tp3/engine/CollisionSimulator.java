@@ -25,9 +25,17 @@ public final class CollisionSimulator {
     }
 
     public Result run(double endTime, int outputEvery, FrameSink output) throws IOException {
+        return run(endTime, outputEvery, 0, output);
+    }
+
+    /** Con outputInterval > 0 escribe los estados en t = k·outputInterval en lugar de cada
+     * outputEvery eventos. Son exactos: entre eventos el movimiento es rectilíneo uniforme.
+     * Se calculan sobre copias, así la dinámica es idéntica bit a bit con o sin muestreo. */
+    public Result run(double endTime, int outputEvery, double outputInterval, FrameSink output) throws IOException {
         if (started) throw new IllegalStateException("Crear un simulador nuevo para cada corrida");
-        if (!Double.isFinite(endTime) || endTime < 0 || outputEvery <= 0)
+        if (!Double.isFinite(endTime) || endTime < 0 || outputEvery <= 0 || !Double.isFinite(outputInterval) || outputInterval < 0)
             throw new IllegalArgumentException("Tiempo final no negativo y frecuencia positiva requeridos");
+        boolean sampled = outputInterval > 0;
         started = true; limit = endTime;
         long events = 0;
         int goals = (int) particles.stream().filter(Particle::used).count();
@@ -35,13 +43,18 @@ public final class CollisionSimulator {
         output.write(0, 0, goals, particles);
         for (Particle p : particles) predict(p, null);
         double lastOutput = 0;
+        long samples = 1;
         while (!queue.isEmpty()) {
             Event e = queue.remove();
             if (!e.valid()) continue;
+            // Muestras temporales hasta este evento, antes de resolverlo.
+            for (double next = samples * outputInterval; sampled && next <= e.time(); next = ++samples * outputInterval) {
+                sample(next, events, goals, output); lastOutput = next;
+            }
             advance(e.time());
             events++;
             // A4: guarda el estado de contacto antes de resolver el choque (A5).
-            if (events % outputEvery == 0) {
+            if (!sampled && events % outputEvery == 0) {
                 output.write(time, events, goals, particles); lastOutput = time;
             }
             Particle a = e.a();
@@ -65,9 +78,21 @@ public final class CollisionSimulator {
             if (queue.size() > 8L * particles.size() * (particles.size() + obstacles.size() + 2))
                 queue.removeIf(event -> !event.valid());
         }
+        for (double next = samples * outputInterval; sampled && next <= limit; next = ++samples * outputInterval) {
+            sample(next, events, goals, output); lastOutput = next;
+        }
         if (time < limit) advance(limit);
-        if (lastOutput != time || events % outputEvery != 0) output.write(time, events, goals, particles);
+        if (lastOutput != time || !sampled && events % outputEvery != 0) output.write(time, events, goals, particles);
         return new Result(time, events, goals, t90);
+    }
+
+    /** Escribe el estado en t ≥ time sin modificar las partículas: redondear posiciones
+     * intermedias cambiaría la trayectoria de un sistema caótico. */
+    private void sample(double t, long events, int goals, FrameSink output) throws IOException {
+        double dt = t - time;
+        List<Particle> moved = new ArrayList<>(particles.size());
+        for (Particle p : particles) { Particle q = p.copy(); q.move(dt); moved.add(q); }
+        output.write(t, events, goals, moved);
     }
 
     private void advance(double next) {

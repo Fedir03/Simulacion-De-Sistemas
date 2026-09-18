@@ -9,6 +9,8 @@ import sys
 from simulation_io import parse_simulation, sample_frame
 
 
+MAX_GAP = 0.01
+
 def render_animation(data, output, *, fps=30, speed=1.0, dpi=120):
     if fps <= 0 or dpi <= 0 or not math.isfinite(speed) or speed <= 0:
         raise ValueError('fps, dpi y speed deben ser positivos y finitos')
@@ -86,9 +88,12 @@ def main(argv=None):
         if output.resolve() == args.input.resolve():
             raise ValueError('entrada y salida deben ser distintas')
         data = parse_simulation(args.input)
-        if any(b.events - a.events > 1 for a, b in zip(data.frames, data.frames[1:])):
-            print('Aviso: faltan choques intermedios; el recorrido se aproxima. Usá simulate --every 1.',
-                  file=sys.stderr)
+        # Entre estados guardados se interpola en línea recta: un choque omitido se ve como
+        # un atajo, despreciable si los estados están a lo sumo a MAX_GAP segundos.
+        gaps = [b.time - a.time for a, b in zip(data.frames, data.frames[1:]) if b.events - a.events > 1]
+        if gaps and max(gaps) > MAX_GAP * (1 + 1e-6):
+            print(f'Aviso: faltan choques intermedios; el recorrido se aproxima. '
+                  f'Usá simulate --dt {MAX_GAP} (o menor) o --every 1.', file=sys.stderr)
         render_animation(data, output, fps=args.fps, speed=args.speed, dpi=args.dpi)
     except (OSError, ValueError, RuntimeError, subprocess.CalledProcessError) as exc:
         print(f'Error: {exc}', file=sys.stderr)

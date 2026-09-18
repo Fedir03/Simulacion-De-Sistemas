@@ -24,7 +24,8 @@ public final class Main {
                              [--obstacles archivo.txt (excluye opciones de algoritmo)]
                              [--length 1.2] [--width 0.68] [--goal-width 0.2]
                              [--radius 0.0175] [--mass 0.025] [--speed 1.0]
-                    simulate --input archivo.txt [--time 30] [--every 1] [--out archivo.txt]
+                    simulate --input archivo.txt [--time 30] [--every 1 | --dt 0.01] [--out archivo.txt]
+                             --dt escribe estados exactos cada dt segundos en vez de cada --every eventos
                     Salidas predeterminadas: TP3/generated/initial.txt y TP3/generated/simulation.txt
                     """);
             return;
@@ -32,7 +33,7 @@ public final class Main {
         Set<String> allowed = switch (args[0]) {
             case "generate" -> Set.of("n", "seed", "obstacles", "out", "length", "width", "goal-width", "radius", "mass", "speed",
                     "obstacle-algorithm", "obstacle-count", "obstacle-radius", "obstacle-seed");
-            case "simulate" -> Set.of("input", "time", "every", "out");
+            case "simulate" -> Set.of("input", "time", "every", "dt", "out");
             default -> throw new IllegalArgumentException("Comando desconocido: " + args[0]);
         };
         Map<String, String> options = new HashMap<>();
@@ -68,15 +69,23 @@ public final class Main {
                     || Files.exists(out) && Files.isSameFile(input, out)) throw new IllegalArgumentException("Entrada y salida deben ser distintas");
             double endTime = value(options, "time", "30");
             int every = Integer.parseInt(options.getOrDefault("every", "1"));
+            double dt = value(options, "dt", "0");
             if (!Double.isFinite(endTime) || endTime < 0 || every <= 0) throw new IllegalArgumentException("Tiempo o frecuencia inválidos");
+            if (options.containsKey("dt") && (options.containsKey("every") || !(dt > 0)))
+                throw new IllegalArgumentException("--dt debe ser positivo y excluye --every");
             var stage = StageFile.read(input);
             try (BufferedWriter w = StageFile.writer(out)) {
                 StageFile.header(w, stage);
-                var result = new CollisionSimulator(stage).run(endTime, every,
+                long start = System.nanoTime();
+                var result = new CollisionSimulator(stage).run(endTime, every, dt,
                         (t, e, g, p) -> StageFile.frame(w, t, e, g, p));
-                w.write("# tf=" + result.time() + " outputEvery=" + every + " events=" + result.events() + " Ng=" + result.goals() + " t90=" + result.t90());
+                // Tiempo de ejecución del ciclo de eventos, escritura incluida; excluye arranque de la JVM y lectura.
+                double runtime = (System.nanoTime() - start) / 1e9;
+                w.write("# tf=" + result.time() + (dt > 0 ? " outputInterval=" + dt : " outputEvery=" + every) + " events=" + result.events() + " Ng=" + result.goals()
+                        + " t90=" + result.t90() + " runtime=" + runtime);
                 w.newLine();
-                System.out.println("Trayectoria: " + out + " | eventos=" + result.events() + " goles=" + result.goals() + " t90=" + result.t90());
+                System.out.println("Trayectoria: " + out + " | eventos=" + result.events() + " goles=" + result.goals()
+                        + " t90=" + result.t90() + " runtime=" + runtime + "s");
             }
         }
     }
