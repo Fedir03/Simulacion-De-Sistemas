@@ -5,7 +5,13 @@
 a) Presentación oral (con duración fija, ej. 13 minutos) siguiendo el formato de "Formato_Presentaciones.pdf" de la cátedra.
 b) El documento de la presentación en PDF — **sin animaciones embebidas, solo links explícitos** (ver reglas-figuras.md, sección "Animaciones — entrega vs presentación en vivo").
 c) Código fuente en un .zip — **SOLO la versión final del motor de simulación**. Tamaño esperado del orden de los KB, no MB. NO incluir: historial de commits, documentación, scripts de post-procesamiento/graficado/animación, output de simulaciones, ni ningún archivo de trabajo intermedio.
-d) Informe con las mismas secciones que la presentación, formato según "Formato_Informes.pdf" de la cátedra.
+d) Informe con las mismas secciones que la presentación, formato según "Formato_Informes.pdf" de la cátedra — **NO asumir que siempre se pide**, ver sección siguiente.
+
+## Los entregables varían de un TP a otro — no asumir que se repiten
+
+Confirmado con TP2 vs TP3: TP2 pedía informe como entregable explícito, TP3 NO lo pide (solo presentación oral, PDF de la presentación, código, y archivo de configuración de resultado). No asumir que "siempre hay informe" solo porque el TP anterior lo tenía — releer la lista de entregables de cada enunciado nuevo, punto por punto, antes de empezar a armar nada.
+
+Si el TP no pide informe pero el equipo quiere igual documentar el desarrollo por su cuenta, es una decisión aparte y explícita (no la misma prioridad que un entregable real) — no vale la pena invertir el mismo esfuerzo ahí que en lo que sí se entrega y se corrige.
 
 ## Nombres de archivo
 

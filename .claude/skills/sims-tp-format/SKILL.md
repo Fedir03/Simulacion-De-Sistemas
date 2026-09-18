@@ -38,3 +38,15 @@ Nombres de archivo exactos, qué va en el ZIP de código (mucho menos de lo que 
 ## Correcciones reales de un grupo anterior (nota 5.5)
 
 Ver `references/correcciones-nash.md` para la lista completa, con contexto de por qué cada corrección importa — no son reglas abstractas, son errores reales que ya le costaron puntos a alguien con este mismo enunciado tipo.
+
+## Correcciones reales del propio TP2 (nota 6.5)
+
+Ver `references/correcciones-reales-tp2.md` — feedback directo sobre trabajo propio, máxima prioridad. Incluye el hallazgo más importante de toda la skill: el orden de un algoritmo se verifica contra la letra exacta del enunciado, nunca contra "lo que parece físicamente razonable".
+
+## Uso de agentes de código (Claude Code u otros)
+
+Ver `references/uso-de-agentes-ia.md` — pauta oficial de la cátedra sobre cómo delegar trabajo a un agente sin perder el control ni la comprensión real del código. La cátedra activamente señala texto/código que "suena generado por IA" en las correcciones — revisar todo con criterio humano antes de aceptarlo.
+
+## Entregables: no asumir que se repiten de un TP a otro
+
+TP2 pedía informe, TP3 no. Releer la lista de entregables de cada enunciado nuevo — ver `references/checklist-entrega.md`.
