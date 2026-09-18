@@ -62,7 +62,7 @@ def plot(data, result, radius, path):
     fig, ax = plt.subplots(figsize=(8, 8 * data.width / data.length + 0.6))
     ax.add_patch(Rectangle((0, 0), data.length, data.width, fill=False, lw=1.5, color='black'))
     ax.imshow(result['free'].T, origin='lower', extent=(0, data.length, 0, data.width),
-              cmap=matplotlib.colors.ListedColormap(['white', '#dbe9f6']), interpolation='nearest')
+              cmap=matplotlib.colors.ListedColormap(['white', '#dbe9f6']), interpolation='none')
     for ox, oy, orad in data.obstacles:
         ax.add_patch(Circle((ox, oy), orad, color='0.45', lw=0))
     for p in data.frames[0].particles:

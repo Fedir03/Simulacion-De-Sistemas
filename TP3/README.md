@@ -18,18 +18,18 @@ python3 -m pip install -r TP3/requirements.txt
 python3 TP3/scripts/animate.py TP3/generated/simulation.txt --out TP3/generated/animacion.mp4
 ```
 
-MP4 requiere FFmpeg. Para animar, simular con `--dt 0.01`: escribe estados exactos
-cada 0.01 s, así el archivo pesa lo mismo (~1 MB por segundo simulado con N=100)
-aunque el mapa produzca miles de choques por segundo. `--every 1` también es exacto,
-pero con mapas densos genera archivos enormes. Usar `--speed 0.5` para cámara lenta
-o `--speed 2` para acelerar.
+MP4 requiere FFmpeg. Para animar, simular con `--every 1`: cada evento guardado
+produce un cuadro del video, usando sus posiciones exactas. Se muestran también
+los estados inicial y final. En mapas densos los archivos pueden ser grandes.
+`--fps` fija la cadencia y `--speed` la multiplica (0.5 para la mitad, 2 para el
+doble), sin omitir frames. La reproducción no representa tiempo real.
 
 ```bash
 java -jar TP3/target/tp3.jar generate --seed 1 --obstacles TP3/configs/funnel.txt --out TP3/generated/embudo_ic.txt
-java -jar TP3/target/tp3.jar simulate --input TP3/generated/embudo_ic.txt --time 30 --dt 0.01 --out TP3/generated/embudo.txt
+java -jar TP3/target/tp3.jar simulate --input TP3/generated/embudo_ic.txt --time 30 --every 1 --out TP3/generated/embudo.txt
 python3 TP3/scripts/animate.py TP3/generated/embudo.txt --out TP3/generated/embudo.mp4
 ```
-Ver [scripts/README.md](scripts/README.md) para opciones y límites de interpolación.
+Ver [scripts/README.md](scripts/README.md) para opciones de reproducción por eventos.
 
 ## Estructura
 

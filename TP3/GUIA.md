@@ -136,23 +136,27 @@ $TP3 simulate --input TP3/generated/mi_mapa_ic.txt --time 100 --every 1000000000
 - Qué estados se escriben:
   - `--every n`: cada n choques (1 por defecto). Un n enorme, como arriba, escribe solo el
     estado inicial y el final: lo más rápido si solo interesa t90.
-  - `--dt 0.01`: el estado en t = 0, 0.01, 0.02, …. Es lo adecuado para animar y para el
-    DCM. No altera la dinámica: el t90 es idéntico al de la corrida sin `--dt`.
+  - `--dt 0.01`: el estado en t = 0, 0.01, 0.02, …. Puede usarse para el DCM;
+    para animar los eventos, usar `--every 1`. No altera la dinámica: el t90 es
+    idéntico al de la corrida sin `--dt`.
 - El resultado depende solo de la condición inicial: misma entrada, mismo t90.
 
 ## 4. Animar
 
 ```bash
-$TP3 simulate --input TP3/generated/mi_mapa_ic.txt --time 30 --dt 0.01 --out TP3/generated/mi_mapa_anim.txt
+$TP3 simulate --input TP3/generated/mi_mapa_ic.txt --time 30 --every 1 --out TP3/generated/mi_mapa_anim.txt
 python3 TP3/scripts/animate.py TP3/generated/mi_mapa_anim.txt --out TP3/generated/mi_mapa.mp4
 ```
 
-- `--speed 0.5` cámara lenta, `--speed 2` al doble; `--fps` (30) y `--dpi` (120).
+- Cada frame guardado se dibuja una vez, incluidas las condiciones iniciales y finales
+  y los eventos simultáneos. No se generan posiciones intermedias.
+- `--fps` (30) fija los cuadros por segundo; `--speed` multiplica esa cadencia
+  (0.5 para la mitad, 2 para el doble). No representa tiempo real ni omite frames.
+- `--dpi` (120) controla la resolución.
 - Con `.gif` en `--out` no hace falta ffmpeg, pero consume más memoria.
-- Tamaño: con N=100 y `--dt 0.01`, ~1 MB de texto por segundo simulado. Para videos
-  largos simular menos tiempo: el script carga la trayectoria completa en memoria.
-- No usar `--every` grande para animar: se pierden choques y las partículas atraviesan
-  obstáculos (el script avisa).
+- En mapas densos, `--every 1` genera archivos grandes. Para videos largos simular
+  menos tiempo: el script carga la trayectoria completa en memoria.
+- Con `--every` mayor que 1, los choques omitidos no aparecen en el video.
 
 ### Reproducir en video una realización de un barrido
 
@@ -161,7 +165,7 @@ exactamente la misma corrida:
 
 ```bash
 $TP3 generate --seed 122 --obstacles TP3/configs/central_cuenco_Rf0.30.txt --out TP3/generated/c_ic.txt
-$TP3 simulate --input TP3/generated/c_ic.txt --time 17 --dt 0.01 --out TP3/generated/c.txt   # t90 = 13.55
+$TP3 simulate --input TP3/generated/c_ic.txt --time 17 --every 1 --out TP3/generated/c.txt   # t90 = 13.55
 python3 TP3/scripts/animate.py TP3/generated/c.txt --out TP3/generated/c.mp4
 ```
 
@@ -223,7 +227,7 @@ python3 TP3/scripts/check_map.py TP3/generated/idea_ic.txt --png TP3/generated/i
 python3 TP3/scripts/sweep.py --name idea --realizations 50 --seed-base 101 -- --obstacles TP3/configs/idea.txt
 python3 TP3/scripts/sweep.py --name mejor --realizations 50 --seed-base 101 -- --obstacles TP3/configs/central_cuenco_Rf0.30.txt
 # 4. Verla en video
-$TP3 simulate --input TP3/generated/idea_ic.txt --time 20 --dt 0.01 --out TP3/generated/idea.txt
+$TP3 simulate --input TP3/generated/idea_ic.txt --time 20 --every 1 --out TP3/generated/idea.txt
 python3 TP3/scripts/animate.py TP3/generated/idea.txt --out TP3/generated/idea.mp4
 ```
 
