@@ -1,0 +1,5 @@
+# Un disco de radio 0.10 en cada esquina, tangente a ambas paredes (1e-9 m de holgura por redondeo).
+0.100000001 0.100000001 0.1
+0.100000001 0.579999999 0.1
+1.099999999 0.100000001 0.1
+1.099999999 0.579999999 0.1
