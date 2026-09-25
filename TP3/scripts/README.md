@@ -77,27 +77,28 @@ python3 TP3/scripts/animate.py TP3/generated/simulation.txt --out TP3/generated/
 
 MP4 requiere `ffmpeg` instalado y disponible en PATH. Sin `--out`, el video
 se guarda junto a la entrada con extensión `.mp4`. Las salidas existentes se
-reemplazan. `--speed 1` reproduce a tiempo real, `2` al doble y `0.5` a la mitad.
+reemplazan. `--speed` multiplica los FPS: `1` usa la cadencia indicada, `2` el doble y `0.5`
+la mitad. La reproducción no representa tiempo real.
 `--dpi` controla la resolución (120 por defecto). Consultar `--help`.
 
 Se dibujan discos con sus radios físicos, obstáculos grises y arcos verdes.
 Las partículas frescas son azules y las usadas rojas. El título muestra tiempo,
 goles, fracción usada y eventos acumulados.
 
-Para conservar los rebotes, generar la trayectoria con `simulate --dt 0.01`
-(estados exactos cada 0.01 s, tamaño independiente de la cantidad de choques)
-o con `simulate --every 1` (todos los choques; archivos enormes en mapas densos).
-El video muestrea tiempos uniformes e interpola posiciones entre estados;
-los colores y contadores cambian al alcanzar cada evento guardado. Acepta eventos
-simultáneos y condiciones iniciales de un solo cuadro. Si faltan choques entre
-estados separados por más de 0.01 s, la interpolación puede atravesar obstáculos:
-el script avisa en ese caso. Los FPS limitan qué instantes se ven.
+Para animar los eventos, generar la trayectoria con `simulate --every 1`.
+Cada frame guardado produce un cuadro del video, en el mismo orden, usando
+exactamente sus posiciones, colores, contadores y tiempo. Se incluyen los estados
+inicial y final, todos los eventos simultáneos y entradas de un solo cuadro.
+No se crean posiciones ni cuadros intermedios. Los FPS y `--speed` solo determinan
+la cadencia de reproducción: no se omiten frames. Como los eventos tienen intervalos
+variables, el tiempo físico entre cuadros también varía. Con `--every` mayor que 1,
+solo se muestran los eventos presentes en el archivo.
 
 El lector (`simulation_io.py`) carga la trayectoria completa en memoria; para
 corridas grandes conviene animar una simulación más corta. GIF también acumula
 los cuadros en memoria, por lo que se recomienda MP4 para videos largos.
 
-Pruebas del lector, del muestreo temporal y del resumen de barridos:
+Pruebas del lector, de la animación por frames y del resumen de barridos:
 
 ```bash
 python3 -m unittest discover -s TP3/scripts -p 'test_*.py'

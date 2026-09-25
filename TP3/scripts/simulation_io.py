@@ -1,5 +1,4 @@
-"""Lectura y muestreo temporal del formato tp3-v1."""
-from bisect import bisect_right
+"""Lectura de los frames guardados en el formato tp3-v1."""
 from dataclasses import dataclass
 from pathlib import Path
 import math
@@ -91,19 +90,3 @@ def parse_simulation(path):
             return Simulation(length, width, goal, tuple(obstacles), tuple(frames))
         except (ValueError, KeyError) as exc:
             raise ValueError(f'{path}:{line_number}: {exc}') from exc
-
-
-def sample_frame(data, times, time):
-    """Interpola posiciones; usa el último evento en instantes repetidos.
-
-    Si se guardaron todos los choques, los segmentos son rectilíneos exactos.
-    Los colores y contadores cambian al alcanzar el estado correspondiente.
-    """
-    index = max(0, bisect_right(times, time) - 1)
-    left = data.frames[index]
-    if index == len(times) - 1:
-        return left, [(p[1], p[2]) for p in left.particles]
-    right = data.frames[index + 1]
-    alpha = max(0.0, (time - left.time) / (right.time - left.time))
-    return left, [(p[1] + alpha * (q[1] - p[1]), p[2] + alpha * (q[2] - p[2]))
-                  for p, q in zip(left.particles, right.particles)]

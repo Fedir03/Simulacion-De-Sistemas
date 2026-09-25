@@ -1,18 +1,16 @@
 #!/usr/bin/env python3
-"""Exporta una trayectoria TP3 a MP4 o GIF respetando sus tiempos físicos."""
+"""Exporta los frames guardados de una trayectoria TP3 a MP4 o GIF, en orden."""
 import argparse
 import math
 from pathlib import Path
 import subprocess
 import sys
 
-from simulation_io import parse_simulation, sample_frame
+from simulation_io import parse_simulation
 
-
-MAX_GAP = 0.01
 
 def render_animation(data, output, *, fps=30, speed=1.0, dpi=120):
-    if fps <= 0 or dpi <= 0 or not math.isfinite(speed) or speed <= 0:
+    if not all(math.isfinite(value) and value > 0 for value in (fps, dpi, speed, fps * speed)):
         raise ValueError('fps, dpi y speed deben ser positivos y finitos')
     output = Path(output)
     if output.suffix.lower() not in ('.mp4', '.gif'):
@@ -29,11 +27,10 @@ def render_animation(data, output, *, fps=30, speed=1.0, dpi=120):
     if output.suffix.lower() == '.mp4':
         if not FFMpegWriter.isAvailable():
             raise RuntimeError('MP4 requiere FFmpeg en PATH; también podés usar --out animacion.gif')
-        writer = FFMpegWriter(fps=fps, codec='libx264', extra_args=['-pix_fmt', 'yuv420p'])
+        writer = FFMpegWriter(fps=fps * speed, codec='libx264', extra_args=['-pix_fmt', 'yuv420p'])
     else:
-        writer = PillowWriter(fps=fps)
-    times = [frame.time for frame in data.frames]
-    count = math.ceil((times[-1] - times[0]) * fps / speed) + 1
+        writer = PillowWriter(fps=fps * speed)
+    count = len(data.frames)
     output.parent.mkdir(parents=True, exist_ok=True)
     fig, ax = plt.subplots(figsize=(10, 6))
     ax.set(xlim=(0, data.length), ylim=(0, data.width), xlabel='x [m]', ylabel='y [m]')
@@ -58,14 +55,12 @@ def render_animation(data, output, *, fps=30, speed=1.0, dpi=120):
     fig.subplots_adjust(bottom=0.22, top=0.88)
     try:
         with writer.saving(fig, str(output), dpi):
-            for i in range(count):
-                time = min(times[-1], times[0] + i * speed / fps)
-                frame, positions = sample_frame(data, times, time)
-                for circle, p, position in zip(circles, frame.particles, positions):
-                    circle.center = position
+            for i, frame in enumerate(data.frames):
+                for circle, p in zip(circles, frame.particles):
+                    circle.center = (p[1], p[2])
                     circle.set_radius(p[3])
                     circle.set_facecolor(p[4])
-                title.set_text(f'TP3 · t = {time:.3f} s · Goles: {frame.goals}/{len(circles)}'
+                title.set_text(f'TP3 · t = {frame.time:.3f} s · Goles: {frame.goals}/{len(circles)}'
                                f' · Fu = {frame.goals / len(circles):.1%} · Eventos: {frame.events}')
                 writer.grab_frame()
                 if i % max(1, count // 100) == 0 or i == count - 1:
@@ -80,7 +75,8 @@ def main(argv=None):
     parser.add_argument('input', type=Path, help='salida .txt del motor TP3')
     parser.add_argument('--out', type=Path, help='salida .mp4 o .gif; por defecto, junto al TXT')
     parser.add_argument('--fps', type=int, default=30, help='cuadros por segundo (30)')
-    parser.add_argument('--speed', type=float, default=1.0, help='velocidad: 1 real, 2 doble, 0.5 mitad')
+    parser.add_argument('--speed', type=float, default=1.0,
+                        help='multiplicador de FPS: 1 normal, 2 doble, 0.5 mitad (no tiempo real)')
     parser.add_argument('--dpi', type=int, default=120, help='resolución (120)')
     args = parser.parse_args(argv)
     output = args.out or args.input.with_suffix('.mp4')
@@ -88,12 +84,6 @@ def main(argv=None):
         if output.resolve() == args.input.resolve():
             raise ValueError('entrada y salida deben ser distintas')
         data = parse_simulation(args.input)
-        # Entre estados guardados se interpola en línea recta: un choque omitido se ve como
-        # un atajo, despreciable si los estados están a lo sumo a MAX_GAP segundos.
-        gaps = [b.time - a.time for a, b in zip(data.frames, data.frames[1:]) if b.events - a.events > 1]
-        if gaps and max(gaps) > MAX_GAP * (1 + 1e-6):
-            print(f'Aviso: faltan choques intermedios; el recorrido se aproxima. '
-                  f'Usá simulate --dt {MAX_GAP} (o menor) o --every 1.', file=sys.stderr)
         render_animation(data, output, fps=args.fps, speed=args.speed, dpi=args.dpi)
     except (OSError, ValueError, RuntimeError, subprocess.CalledProcessError) as exc:
         print(f'Error: {exc}', file=sys.stderr)
