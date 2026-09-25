@@ -127,6 +127,34 @@ class ObstacleGenerationTest {
         assertThrows(IllegalArgumentException.class, () -> ObstacleGenerators.create("semicircle", Map.of("goals", "left")));
     }
 
+    @Test void bowlCenterOffsetMovesFreeCircleIntoTheField() {
+        var bowl = ObstacleGenerators.create("semicircle", Map.of("goals", "both", "free-radius", "0.35", "center-offset", "0.2")).generate(C, 1);
+        assertDoesNotThrow(() -> StageGeneration.generate(C, 100, 3, bowl));
+        // Ningún disco invade los círculos libres centrados en x = 0.2 y x = 1.0 más allá de r.
+        assertTrue(bowl.stream().noneMatch(o -> Math.hypot(0.2 - o.x(), 0.34 - o.y()) < 0.35 - C.radius()));
+        assertTrue(bowl.stream().noneMatch(o -> Math.hypot(1.0 - o.x(), 0.34 - o.y()) < 0.35 - C.radius()));
+        // Las esquinas detrás del centro, fuera del círculo, quedan bloqueadas.
+        assertTrue(bowl.stream().anyMatch(o -> Math.hypot(1.2 - C.radius() - o.x(), C.radius() - o.y()) < o.radius() + C.radius()));
+        // Con los palos fuera del círculo, el arco queda bloqueado y se rechaza.
+        assertThrows(IllegalArgumentException.class, () -> ObstacleGenerators.create("semicircle",
+                Map.of("goals", "both", "free-radius", "0.35", "center-offset", "0.34")).generate(C, 1));
+        assertThrows(IllegalArgumentException.class, () -> ObstacleGenerators.create("semicircle", Map.of("center-offset", "-0.1")));
+    }
+
+    @Test void bowlEdgeIsAChainOfMinimalDiscs() {
+        var bowl = ObstacleGenerators.create("semicircle", Map.of("goals", "both", "free-radius", "0.35", "edge-radius", "0.0175")).generate(C, 1);
+        assertDoesNotThrow(() -> StageGeneration.generate(C, 100, 3, bowl));
+        // Todo disco que asoma a la zona libre (a menos de 2r de un círculo) es de radio mínimo.
+        for (Obstacle o : bowl) {
+            double near = Math.min(Math.hypot(o.x(), o.y() - 0.34), Math.hypot(1.2 - o.x(), o.y() - 0.34)) - o.radius();
+            if (near < 0.35) assertEquals(0.0175, o.radius(), 1e-12);
+        }
+        // Una cadena por arco, centrada sobre la circunferencia.
+        assertTrue(bowl.stream().filter(o -> Math.abs(Math.hypot(1.2 - o.x(), o.y() - 0.34) - 0.35) < 1e-6).count() > 20);
+        assertThrows(IllegalArgumentException.class, () -> ObstacleGenerators.create("semicircle",
+                Map.of("goals", "both", "free-radius", "0.35", "center-offset", "0.3", "edge-radius", "0.0175")).generate(C, 1));
+    }
+
     @Test void regionFillRespectsExistingObstacles() {
         List<Obstacle> base = List.of(new Obstacle(0.6, 0.34, 0.32));
         for (String name : List.of("funnel", "semicircle")) {

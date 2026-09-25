@@ -25,8 +25,8 @@ public final class Main {
                                single:     [--obstacle-x L/2] [--obstacle-y W/2] [--obstacle-radius 0.1]
                                funnel:     [--obstacle-funnel-length 0.3] [--obstacle-edge-radius <radio de la frontera>]
                                            [--obstacle-max-radius ∞] [--obstacle-grid 0.001]
-                               semicircle: [--obstacle-free-radius 0.36] [--obstacle-goals right|both]
-                                           [--obstacle-max-radius ∞] [--obstacle-grid 0.001]
+                               semicircle: [--obstacle-free-radius 0.36] [--obstacle-center-offset 0] [--obstacle-goals right|both]
+                                           [--obstacle-edge-radius <radio de la frontera>] [--obstacle-max-radius ∞] [--obstacle-grid 0.001]
                                posts:      [--obstacle-radius 0.05]
                                lattice:    [--obstacle-spacing 0.1] [--obstacle-radius r]
                                ellipse:    [--obstacle-focus-x 0.3] [--obstacle-edge-radius r]
@@ -44,7 +44,7 @@ public final class Main {
         Set<String> allowed = switch (args[0]) {
             case "generate" -> Set.of("n", "seed", "obstacles", "out", "obstacles-out", "length", "width", "goal-width", "radius", "mass", "speed",
                     "obstacle-algorithm", "obstacle-count", "obstacle-radius", "obstacle-seed", "obstacle-x", "obstacle-y",
-                    "obstacle-funnel-length", "obstacle-edge-radius", "obstacle-free-radius", "obstacle-goals", "obstacle-max-radius", "obstacle-grid", "obstacle-spacing",
+                    "obstacle-funnel-length", "obstacle-edge-radius", "obstacle-free-radius", "obstacle-center-offset", "obstacle-goals", "obstacle-max-radius", "obstacle-grid", "obstacle-spacing",
                     "obstacle-focus-x", "obstacle-focus-shape", "obstacle-focus-size", "obstacle-lens-width");
             case "simulate" -> Set.of("input", "time", "every", "dt", "out");
             default -> throw new IllegalArgumentException("Comando desconocido: " + args[0]);

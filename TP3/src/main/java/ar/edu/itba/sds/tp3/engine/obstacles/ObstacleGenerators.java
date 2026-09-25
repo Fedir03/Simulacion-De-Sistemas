@@ -16,7 +16,7 @@ public final class ObstacleGenerators {
             case "none" -> Set.of();
             case "single" -> Set.of("x", "y", "radius");
             case "funnel" -> Set.of("funnel-length", "edge-radius", "max-radius", "grid");
-            case "semicircle" -> Set.of("free-radius", "goals", "max-radius", "grid");
+            case "semicircle" -> Set.of("free-radius", "center-offset", "edge-radius", "goals", "max-radius", "grid");
             case "posts" -> Set.of("radius");
             case "lattice" -> Set.of("spacing", "radius");
             case "ellipse" -> Set.of("focus-x", "edge-radius", "focus-shape", "focus-size", "lens-width", "max-radius", "grid");
@@ -29,7 +29,8 @@ public final class ObstacleGenerators {
             case "single" -> new SingleObstacleGenerator(number(params, "x", "NaN"), number(params, "y", "NaN"), number(params, "radius", "0.1"));
             case "funnel" -> new FunnelObstacleGenerator(number(params, "funnel-length", "0.3"), number(params, "edge-radius", "NaN"),
                     number(params, "max-radius", "Infinity"), number(params, "grid", "0.001"));
-            case "semicircle" -> new SemicircleObstacleGenerator(number(params, "free-radius", "0.36"), goals(params),
+            case "semicircle" -> new SemicircleObstacleGenerator(number(params, "free-radius", "0.36"), number(params, "center-offset", "0"),
+                    number(params, "edge-radius", "NaN"), goals(params),
                     number(params, "max-radius", "Infinity"), number(params, "grid", "0.001"));
             case "posts" -> new PostsObstacleGenerator(number(params, "radius", "0.05"));
             case "lattice" -> new LatticeObstacleGenerator(number(params, "spacing", "0.1"), number(params, "radius", "NaN"));
