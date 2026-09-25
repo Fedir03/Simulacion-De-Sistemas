@@ -16,7 +16,7 @@ antes de exportarlas — no depender de que Beamer las achique bien al
 insertarlas. Verificar contraste y legibilidad proyectando a pantalla
 completa, no solo mirando el archivo en el editor.
 
-**Ojo con las 9 diapositivas de Resultados (15–23):** ahí la figura vive en
+**Ojo con las diapositivas de Resultados (15–29):** ahí la figura vive en
 una columna de `0.70\textwidth`, no en el ancho completo del frame (el
 costado de `0.27\textwidth` es la caja de parámetros fijos). Eso reduce el
 ancho disponible en pantalla a un factor ~0.68 del ancho anterior. Compensar
@@ -43,15 +43,21 @@ arregle después en el `.tex` de la presentación.
 |---|---|---|
 | `sistema_real.jpg` | 3 | Foto de una mesa de metegol/billar real |
 | `geometria-sistema.png` | 11 | ✅ Ya incluida. Esquema con L, W, d, r y R_k marcados. Generada por `plot_geometria_sistema.py` (regenerar con `python3 figuras/plot_geometria_sistema.py` si cambia la paleta) |
-| `tiempo-ejecucion-vs-n.pdf` | 15 | ⟨t_ejec⟩ vs. N, mesa vacía, barras de error |
+| `tiempo-ejecucion-vs-n.png` | 15 | ✅ ⟨t_ejec⟩ vs. N, mesa vacía (`generated/runtime.png`) |
 | `vacia_frame.png` | 16 | Fotograma representativo, mesa vacía |
 | `fu-temporal-vacia.pdf` | 17 | F_u(t) de 1–2 corridas, mesa vacía |
-| `t90-vs-xk.pdf` | 18 | ⟨t₉₀⟩ vs. posición del obstáculo único |
-| `t90-vs-k.pdf` | 19 | ⟨t₉₀⟩ vs. K, área total fija |
-| `elegida_frame.png` | 20 | Fotograma representativo, configuración elegida |
-| `fu-temporal-elegida.pdf` | 21 | F_u(t): configuración elegida vs. mesa vacía |
-| `dcm-ajuste.pdf` | 22 | DCM z(t) con el ajuste lineal superpuesto |
-| `d-vs-t90.pdf` | 23 | D por configuración, y D vs. ⟨t₉₀⟩ |
+| `t90-vs-xk.png` | 18 | ✅ ⟨t₉₀⟩ vs. x_k, un disco R = 0.30 (`generated/exp3_eje_R0.3.png`) |
+| `t90-vs-r-central.png`, `mapa-central.png` | 19 | ✅ ⟨t₉₀⟩ vs. R del disco central (`generated/centro_R.png`) |
+| `t90-vs-k.pdf` | 20 | ⟨t₉₀⟩ vs. K, área total fija (sin barrido todavía) |
+| `t90-vs-largo-embudo.png`, `mapa-embudo.png` | 21 | ✅ ⟨t₉₀⟩ vs. largo del embudo, dos fronteras (`generated/exp1_embudo_min.png`) |
+| `t90-vs-separacion-galton.png`, `mapa-galton.png` | 22 | ✅ ⟨t₉₀⟩ vs. separación de la red (`generated/galton.png`) |
+| `t90-vs-rf-central-cuenco.png`, `mapa-central-cuenco.png` | 23 | ✅ ⟨t₉₀⟩ vs. R_f, disco central + cuenco (`generated/central32_cuenco.png`) |
+| `t90-vs-desplazamiento-cuenco.png`, `mapa-cuenco-desplazado.png` | 24 | ✅ ⟨t₉₀⟩ vs. desplazamiento del centro del cuenco (`generated/cuenco_R0.35_offset.png`) |
+| `t90-vs-rf-cuenco.png` | 25 | ⟨t₉₀⟩ vs. R_f, cuenco de frontera fina (barrido `cuenco_fino_radio`) |
+| `elegida_frame.png` | 26 | Fotograma representativo, configuración elegida |
+| `fu-temporal-elegida.pdf` | 27 | F_u(t): configuración elegida vs. mesa vacía |
+| `dcm-ajuste.pdf` | 28 | DCM z(t) con el ajuste lineal superpuesto |
+| `d-vs-t90.pdf` | 29 | D por configuración, y D vs. ⟨t₉₀⟩ |
 
-Las URLs de YouTube de las diapositivas 17 y 21 se completan en
+Las URLs de YouTube de las diapositivas 16 y 26 se completan en
 `\animacionVaciaURL` / `\animacionElegidaURL`, al principio del `.tex`.

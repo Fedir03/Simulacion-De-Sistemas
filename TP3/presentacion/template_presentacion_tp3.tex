@@ -82,7 +82,7 @@
 \institute{Instituto Tecnológico de Buenos Aires}
 \date{2026 2C --- Grupo N.º 02}
 
-% URLs de las animaciones (diapositivas 17 y 21).
+% URLs de las animaciones (diapositivas 16 y 26).
 % COMPLETAR cuando los videos estén subidos a YouTube.
 \newcommand{\animacionVaciaURL}{https://youtu.be/COMPLETAR}
 \newcommand{\animacionElegidaURL}{https://youtu.be/COMPLETAR}
@@ -99,7 +99,7 @@
 % ---------- Barra superior por sección ----------
 % Rangos de diapositivas:
 % Introducción 2--5 (incluye Modelo, fusionado -- ver TP2) | Implementación 6--9
-% Simulaciones 10--13 | Resultados 14--23 | Conclusiones 24--26
+% Simulaciones 10--13 | Resultados 14--29 | Conclusiones 30--32
 % Cada rango incluye su \sectiondivider como primera diapositiva del
 % bloque. Si se agregan o quitan diapositivas hay que renumerar estos
 % rangos a mano.
@@ -149,11 +149,11 @@
 % entre las dos ramas de \TPheadline (con y sin franja de relleno).
 \newcommand{\TPnavrow}{%
   \makebox[\paperwidth][l]{%
-    \navblock{0.27}{Introducción}{2}{5}%
+    \navblock{0.21}{Introducción}{2}{5}%
     \navblock{0.19}{Implementación}{6}{9}%
     \navblock{0.17}{Simulaciones}{10}{13}%
-    \navblock{0.20}{Resultados}{14}{23}%
-    \navblock{0.17}{Conclusiones}{24}{26}%
+    \navblock{0.26}{Resultados}{14}{29}%
+    \navblock{0.17}{Conclusiones}{30}{32}%
   }%
 }
 
@@ -269,6 +269,28 @@
     \end{column}
     \begin{column}{0.27\textwidth}
       \parambox{#5}%
+    \end{column}
+  \end{columns}%
+}
+
+% Diapositiva de resultados: figura a la izquierda (0.70) y, a la derecha,
+% la caja de parámetros fijos y opcionalmente un mapa de ejemplo de la
+% familia de configuraciones barrida, con su epígrafe.
+% #1 figura, #2 altura, #3 texto del placeholder, #4 parámetros fijos,
+% #5 mapa (vacío = sin mapa), #6 epígrafe del mapa.
+\newcommand{\resultadofigura}[6]{%
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.70\textwidth}
+      \centering
+      \maybeimage{#1}{#2}{#3}%
+    \end{column}
+    \begin{column}{0.27\textwidth}
+      \parambox{#4}%
+      \ifstrempty{#5}{}{%
+        \par\vspace{2mm}\centering
+        \maybeimage{#5}{2.1cm}{Mapa de ejemplo}\par
+        {\scriptsize\color{TPNavGray}#6\par}%
+      }%
     \end{column}
   \end{columns}%
 }
@@ -545,7 +567,7 @@
   \vspace{0.1cm}
   \begin{databox}{Nro.\ de realizaciones}
     \centering
-    Tiempo de ejecución: 10 \hfill $\langle t_{90}\rangle$: 5 \hfill DCM: 1
+    Tiempo de ejecución: 10 \hfill $\langle t_{90}\rangle$: 50 \hfill DCM: 1
   \end{databox}
 \end{frame}
 
@@ -581,15 +603,8 @@
 
 % 15
 \begin{frame}[c]{Tiempo de Ejecución en Función de $N$}
-  \begin{columns}[T,onlytextwidth]
-    \begin{column}{0.70\textwidth}
-      \centering
-      \maybeimage{figuras/tiempo-ejecucion-vs-n.pdf}{4.9cm}{Insertar tiempo de ejecución vs.\ $N$}
-    \end{column}
-    \begin{column}{0.27\textwidth}
-      \parambox{\item Mesa vacía \item $t_f = 30$ s \item Realizaciones: 10}
-    \end{column}
-  \end{columns}
+  \resultadofigura{figuras/tiempo-ejecucion-vs-n.png}{4.9cm}{Insertar tiempo de ejecución vs.\ $N$}
+    {\item Mesa vacía \item $t_f = 30$ s \item Realizaciones: 10}{}{}
 \end{frame}
 
 % 16
@@ -601,94 +616,98 @@
 
 % 17
 \begin{frame}[c]{Mesa Vacía --- Fracción de Partículas Usadas}
-  \begin{columns}[T,onlytextwidth]
-    \begin{column}{0.70\textwidth}
-      \centering
-      \maybeimage{figuras/fu-temporal-vacia.pdf}{4.9cm}{Insertar $F_u(t)$ y la lectura de $t_{90}$}
-    \end{column}
-    \begin{column}{0.27\textwidth}
-      \parambox{\item $N = 100$ \item $K = 0$ \item 1--2 corridas representativas}
-    \end{column}
-  \end{columns}
+  \resultadofigura{figuras/fu-temporal-vacia.pdf}{4.9cm}{Insertar $F_u(t)$ y la lectura de $t_{90}$}
+    {\item $N = 100$ \item $K = 0$ \item 1--2 corridas representativas}{}{}
 \end{frame}
 
 % 18
 \begin{frame}[c]{Un Obstáculo sobre el Eje Longitudinal}
-  \begin{columns}[T,onlytextwidth]
-    \begin{column}{0.70\textwidth}
-      \centering
-      \maybeimage{figuras/t90-vs-xk.pdf}{4.7cm}{Insertar $\langle t_{90}\rangle$ vs.\ $x_k$}
-    \end{column}
-    \begin{column}{0.27\textwidth}
-      \parambox{\item $N = 100$ \item $K = 1$ \item Realizaciones: 5}
-    \end{column}
-  \end{columns}
+  \resultadofigura{figuras/t90-vs-xk.png}{4.7cm}{Insertar $\langle t_{90}\rangle$ vs.\ $x_k$}
+    {\item $N = 100$ \item $K = 1$, $R = 0.30$ m \item $y_k = W/2$ \item Realizaciones: 50}{}{}
 \end{frame}
 
 % 19
-\begin{frame}[c]{$K$ Obstáculos de Área Total Fija}
-  \begin{columns}[T,onlytextwidth]
-    \begin{column}{0.70\textwidth}
-      \centering
-      \maybeimage{figuras/t90-vs-k.pdf}{4.7cm}{Insertar $\langle t_{90}\rangle$ vs.\ $K$}
-    \end{column}
-    \begin{column}{0.27\textwidth}
-      \parambox{\item $N = 100$ \item $\sum \pi R_k^2$ constante \item Realizaciones: 5}
-    \end{column}
-  \end{columns}
+\begin{frame}[c]{Un Obstáculo en el Centro --- Radio}
+  \resultadofigura{figuras/t90-vs-r-central.png}{4.7cm}{Insertar $\langle t_{90}\rangle$ vs.\ $R$}
+    {\item $N = 100$ \item $K = 1$ \item Centro de la mesa \item Realizaciones: 50}
+    {figuras/mapa-central.png}{Ej.: $R = 0.34$ m}
 \end{frame}
 
 % 20
+\begin{frame}[c]{$K$ Obstáculos de Área Total Fija}
+  \resultadofigura{figuras/t90-vs-k.pdf}{4.7cm}{Insertar $\langle t_{90}\rangle$ vs.\ $K$}
+    {\item $N = 100$ \item $\sum \pi R_k^2$ constante \item Realizaciones: 5}{}{}
+\end{frame}
+
+% 21
+% Dos bordes para el mismo embudo: discos de radio r sobre la recta
+% (frontera lisa) o relleno libre (discos grandes asomando).
+\begin{frame}[c]{Embudos hacia los Arcos}
+  \resultadofigura{figuras/t90-vs-largo-embudo.png}{4.7cm}{Insertar $\langle t_{90}\rangle$ vs.\ $a$}
+    {\item $N = 100$ \item Embudo en ambos arcos \item Realizaciones: 50}
+    {figuras/mapa-embudo.png}{Ej.: $a = 0.30$ m}
+\end{frame}
+
+% 22
+\begin{frame}[c]{Red de Obstáculos Mínimos (Galton)}
+  \resultadofigura{figuras/t90-vs-separacion-galton.png}{4.7cm}{Insertar $\langle t_{90}\rangle$ vs.\ $s$}
+    {\item $N = 100$ \item $R_k = r$ \item Red triangular \item Realizaciones: 50}
+    {figuras/mapa-galton.png}{Ej.: $s = 0.10$ m}
+\end{frame}
+
+% 23
+% Referencia: disco central R = 0.32 m solo (no la mesa vacía).
+\begin{frame}[c]{Disco Central y Cuenco}
+  \resultadofigura{figuras/t90-vs-rf-central-cuenco.png}{4.7cm}{Insertar $\langle t_{90}\rangle$ vs.\ $R_f$}
+    {\item $N = 100$ \item Disco central\\ $R = 0.32$ m \item Semicírculo libre en cada arco \item Realizaciones: 50}
+    {figuras/mapa-central-cuenco.png}{Ej.: $R_f = 0.30$ m}
+\end{frame}
+
+% 24
+\begin{frame}[c]{Cuenco --- Centro Desplazado}
+  \resultadofigura{figuras/t90-vs-desplazamiento-cuenco.png}{4.7cm}{Insertar $\langle t_{90}\rangle$ vs.\ $s$}
+    {\item $N = 100$ \item $R_f = 0.35$ m \item Centro a $s$ del arco \item Realizaciones: 50}
+    {figuras/mapa-cuenco-desplazado.png}{Ej.: $s = 0.20$ m}
+\end{frame}
+
+% 25
+% Barrido en curso (cuenco_fino_radio): R_f de 0.28 a 0.58 m, frontera de
+% discos de radio r, centro en el arco.
+\begin{frame}[c]{Cuenco --- Radio Libre}
+  \resultadofigura{figuras/t90-vs-rf-cuenco.png}{4.7cm}{Insertar $\langle t_{90}\rangle$ vs.\ $R_f$}
+    {\item $N = 100$ \item Centro en el arco \item Frontera de discos $R_k = r$ \item Realizaciones: 50}{}{}
+\end{frame}
+
+% 26
 \begin{frame}[c]{Configuración Elegida --- Evolución del Sistema}
   \animacionsimple{figuras/elegida_frame.png}{5.1cm}{\animacionElegidaURL}
     {Insertar fotograma representativo de la configuración elegida}
     {\item $N = 100$ \item $K = $ COMPLETAR \item $t_{\max} = 100$ s}
 \end{frame}
 
-% 21
+% 27
 \begin{frame}[c]{Configuración Elegida --- Comparación contra la Mesa Vacía}
-  \begin{columns}[T,onlytextwidth]
-    \begin{column}{0.70\textwidth}
-      \centering
-      \maybeimage{figuras/fu-temporal-elegida.pdf}{4.7cm}{Insertar $F_u(t)$ de la configuración elegida y de la mesa vacía}
-    \end{column}
-    \begin{column}{0.27\textwidth}
-      \parambox{\item $N = 100$ \item Realizaciones: 5}
-    \end{column}
-  \end{columns}
+  \resultadofigura{figuras/fu-temporal-elegida.pdf}{4.7cm}{Insertar $F_u(t)$ de la configuración elegida y de la mesa vacía}
+    {\item $N = 100$ \item Realizaciones: 5}{}{}
 \end{frame}
 
-% 22
+% 28
 \begin{frame}[c]{Desplazamiento Cuadrático Medio y Ajuste Lineal}
-  \begin{columns}[T,onlytextwidth]
-    \begin{column}{0.70\textwidth}
-      \centering
-      \maybeimage{figuras/dcm-ajuste.pdf}{4.7cm}{Insertar $z(t)$ con el ajuste superpuesto}
-    \end{column}
-    \begin{column}{0.27\textwidth}
-      \parambox{\item $N = 100$ \item Una realización \item $z = c\,t$, $D = c/2$}
-    \end{column}
-  \end{columns}
+  \resultadofigura{figuras/dcm-ajuste.pdf}{4.7cm}{Insertar $z(t)$ con el ajuste superpuesto}
+    {\item $N = 100$ \item Una realización \item $z = c\,t$, $D = c/2$}{}{}
 \end{frame}
 
-% 23
+% 29
 \begin{frame}[c]{Coeficiente de Difusión}
-  \begin{columns}[T,onlytextwidth]
-    \begin{column}{0.70\textwidth}
-      \centering
-      \maybeimage{figuras/d-vs-t90.pdf}{4.7cm}{Insertar $D$ vs.\ $\langle t_{90}\rangle$ por configuración}
-    \end{column}
-    \begin{column}{0.27\textwidth}
-      \parambox{\item $N = 100$ \item Barras de error solo en $\langle t_{90}\rangle$}
-    \end{column}
-  \end{columns}
+  \resultadofigura{figuras/d-vs-t90.pdf}{4.7cm}{Insertar $D$ vs.\ $\langle t_{90}\rangle$ por configuración}
+    {\item $N = 100$ \item Barras de error solo en $\langle t_{90}\rangle$}{}{}
 \end{frame}
 
 % ---------------- CONCLUSIONES ----------------
-% 24
+% 30
 \sectiondivider{Conclusiones}
 
-% 25
+% 31
 % RECORDATORIOS (correcciones reales de TP2):
 %  - Aclarar SIEMPRE a qué configuración se refiere cada afirmación.
 %    Nunca "el sistema depende de K" sin decir cómo y en qué configuración.
@@ -707,7 +726,7 @@
   \end{itemize}
 \end{frame}
 
-% 26. Cierre
+% 32. Cierre
 \begin{frame}{}
   \vfill
   \begin{beamercolorbox}[wd=0.86\paperwidth,ht=0.72cm,dp=0.20cm,center]{frametitle}
