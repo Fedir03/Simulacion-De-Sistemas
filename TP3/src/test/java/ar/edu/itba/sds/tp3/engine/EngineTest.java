@@ -134,6 +134,53 @@ class EngineTest {
         assertTrue(text.contains("# tf=0.5 outputEvery=100"));
         assertThrows(IllegalArgumentException.class, () -> Main.execute(new String[]{"simulate","--input",ic.toString(),"--out",ic.toString()}));
     }
+    @Test void eventLogHasEveryEventWhileSnapshotsAreSparse() throws Exception {
+        Path ic = temp.resolve("initial.txt"), out = temp.resolve("run.txt");
+        Main.execute(new String[]{"generate","--n","20","--obstacle-algorithm","single","--obstacle-radius","0.1","--out",ic.toString()});
+        Main.execute(new String[]{"simulate","--input",ic.toString(),"--time","5","--out",out.toString()});
+        String text = Files.readString(out);
+        long events = Long.parseLong(text.lines().filter(l -> l.startsWith("# tf=")).findFirst().orElseThrow()
+                .replaceAll(".* events=(\\d+) .*", "$1"));
+        int goals = Integer.parseInt(text.replaceAll("(?s).* Ng=(\\d+) t90.*", "$1").trim());
+        // Estado completo cada 100 eventos (valor por defecto), más el inicial y el final.
+        assertEquals(events / 100 + 1 + (events % 100 == 0 ? 0 : 1), text.lines().filter(l -> l.startsWith("t=")).count());
+        List<String[]> log = Files.readAllLines(temp.resolve("run_events.txt")).stream()
+                .filter(l -> !l.startsWith("#")).map(l -> l.split(" ")).toList();
+        assertEquals(events, log.size());
+        double previous = 0;
+        for (int i = 0; i < log.size(); i++) {
+            String[] row = log.get(i);
+            assertTrue(Double.parseDouble(row[0]) >= previous);
+            previous = Double.parseDouble(row[0]);
+            assertEquals(i + 1, Long.parseLong(row[1]));
+            assertTrue(Set.of("P", "O", "V", "H").contains(row[2]));
+            assertEquals(row[2].equals("V") || row[2].equals("H") ? -1 : 0, Math.min(0, Integer.parseInt(row[4])));
+            if (row[2].equals("O")) assertEquals(0, Integer.parseInt(row[4]));
+        }
+        assertEquals(goals, log.stream().filter(r -> r[5].equals("1")).count());
+        assertTrue(log.stream().anyMatch(r -> r[2].equals("O")));
+        Path none = temp.resolve("none.txt");
+        Main.execute(new String[]{"simulate","--input",ic.toString(),"--time","1","--events-out","none","--out",none.toString()});
+        assertFalse(Files.exists(temp.resolve("none_events.txt")));
+    }
+    @Test void stopAtT90EndsAtTheSameT90AsTheFullRun() throws Exception {
+        var initial = StageGeneration.generate(C, 100, 7, List.of());
+        var full = new CollisionSimulator(initial).run(100, Integer.MAX_VALUE, 0, (t, e, g, ps) -> { }, CollisionSimulator.EventSink.NONE);
+        List<double[]> frames = new ArrayList<>();
+        List<Double> events = new ArrayList<>();
+        var cut = new CollisionSimulator(initial).run(100, 100, 0, (t, e, g, ps) -> frames.add(new double[]{t, g}),
+                (t, i, type, a, b, goal) -> events.add(t), true);
+        assertTrue(Double.isFinite(full.t90()));
+        assertEquals(full.t90(), cut.t90());
+        assertEquals(cut.t90(), cut.time());
+        assertEquals(90, cut.goals());
+        assertEquals(cut.events(), events.size());
+        assertEquals(cut.t90(), events.getLast());
+        // El último estado escrito es el de t90, con 90 goles.
+        assertEquals(cut.t90(), frames.getLast()[0]);
+        assertEquals(90, frames.getLast()[1]);
+        assertThrows(IllegalArgumentException.class, () -> Main.execute(new String[]{"simulate", "--input", "x.txt", "--until", "t80"}));
+    }
     @Test void sampledOutputWritesExactStatesAtFixedTimes() throws Exception {
         // Choca con la pared derecha, dentro del arco, en t = L - r - 0.2 = 0.9825 s.
         var sim = new CollisionSimulator(stage(List.of(particle(1, 0.2, 0.34, 1, 0)), List.of()));

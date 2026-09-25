@@ -30,6 +30,15 @@ public final class StageFile {
             w.newLine();
         }
     }
+    /** Cabecera del registro de eventos: una línea por colisión válida, en orden. */
+    public static void eventHeader(BufferedWriter w) throws IOException {
+        w.write("# format=tp3-events-v1 columnas: t evento tipo a b gol"); w.newLine();
+        w.write("# tipo: P partícula-partícula (b = id), O obstáculo (b = índice en la cabecera), V pared vertical, H pared horizontal (b = -1)");
+        w.newLine();
+    }
+    public static void event(BufferedWriter w, double time, long index, Event.Type type, int a, int other, boolean goal) throws IOException {
+        w.write(time + " " + index + " " + type.name().charAt(0) + " " + a + " " + other + " " + (goal ? 1 : 0)); w.newLine();
+    }
     public static void write(Path path, StageGeneration.Stage stage) throws IOException {
         try (BufferedWriter w = writer(path)) {
             header(w, stage);

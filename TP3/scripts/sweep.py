@@ -77,7 +77,7 @@ def run_one(jar, workdir, param, value, seed, sim_time, generate_args):
     if generated.returncode != 0:
         return {**row, 'status': 'generate_failed', 'error': generated.stderr.strip()}
     simulated = subprocess.run(['java', '-jar', str(jar), 'simulate', '--input', str(initial), '--time', str(sim_time),
-                                '--every', NO_FRAMES, '--out', str(trajectory)], capture_output=True, text=True)
+                                '--every', NO_FRAMES, '--events-out', 'none', '--out', str(trajectory)], capture_output=True, text=True)
     if simulated.returncode != 0:
         return {**row, 'status': 'simulate_failed', 'error': simulated.stderr.strip()}
     result = {**row, 'status': 'ok', 'K': count_obstacles(initial), **parse_result(trajectory)}

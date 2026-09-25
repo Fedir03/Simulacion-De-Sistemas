@@ -9,10 +9,17 @@ public final class CollisionSimulator {
     @FunctionalInterface public interface FrameSink {
         void write(double time, long events, int goals, List<Particle> particles) throws IOException;
     }
+    /** Recibe cada evento válido ya resuelto: tiempo, número de evento, tipo, id de la partícula,
+     * id de la otra partícula o índice del obstáculo (-1 en paredes) y si fue gol. */
+    @FunctionalInterface public interface EventSink {
+        void event(double time, long index, Event.Type type, int a, int other, boolean goal) throws IOException;
+        EventSink NONE = (t, i, type, a, other, goal) -> { };
+    }
     public record Result(double time, long events, int goals, double t90) { }
     private final SimulationConfig config;
     private final List<Particle> particles;
     private final List<Obstacle> obstacles;
+    private final Map<Obstacle, Integer> obstacleIndex = new HashMap<>();
     private final PriorityQueue<Event> queue = new PriorityQueue<>();
     private double time, limit;
     private long sequence;
@@ -22,6 +29,7 @@ public final class CollisionSimulator {
         config = stage.config(); obstacles = stage.obstacles();
         particles = stage.particles().stream().map(Particle::copy).toList();
         if (particles.isEmpty()) throw new IllegalArgumentException("Se requiere al menos una partícula");
+        for (int i = 0; i < obstacles.size(); i++) obstacleIndex.put(obstacles.get(i), i);
     }
 
     public Result run(double endTime, int outputEvery, FrameSink output) throws IOException {
@@ -32,6 +40,20 @@ public final class CollisionSimulator {
      * outputEvery eventos. Son exactos: entre eventos el movimiento es rectilíneo uniforme.
      * Se calculan sobre copias, así la dinámica es idéntica bit a bit con o sin muestreo. */
     public Result run(double endTime, int outputEvery, double outputInterval, FrameSink output) throws IOException {
+        return run(endTime, outputEvery, outputInterval, output, EventSink.NONE);
+    }
+
+    /** Igual, informando además cada evento a eventLog: permite guardar todos los tiempos de
+     * colisión aunque el estado completo se escriba solo cada outputEvery eventos. */
+    public Result run(double endTime, int outputEvery, double outputInterval, FrameSink output, EventSink eventLog) throws IOException {
+        return run(endTime, outputEvery, outputInterval, output, eventLog, false);
+    }
+
+    /** Con stopAtT90, termina en el evento que alcanza el 90 % de partículas usadas (o en endTime
+     * si no se alcanza): el estado final escrito es el de t90. Hasta ese evento, la dinámica es la
+     * misma que sin cortar. */
+    public Result run(double endTime, int outputEvery, double outputInterval, FrameSink output, EventSink eventLog,
+                      boolean stopAtT90) throws IOException {
         if (started) throw new IllegalStateException("Crear un simulador nuevo para cada corrida");
         if (!Double.isFinite(endTime) || endTime < 0 || outputEvery <= 0 || !Double.isFinite(outputInterval) || outputInterval < 0)
             throw new IllegalArgumentException("Tiempo final no negativo y frecuencia positiva requeridos");
@@ -44,7 +66,7 @@ public final class CollisionSimulator {
         for (Particle p : particles) predict(p, null);
         double lastOutput = 0;
         long samples = 1;
-        while (!queue.isEmpty()) {
+        while (!queue.isEmpty() && !(stopAtT90 && !Double.isNaN(t90))) {
             Event e = queue.remove();
             if (!e.valid()) continue;
             // Muestras temporales hasta este evento, antes de resolverlo.
@@ -58,9 +80,10 @@ public final class CollisionSimulator {
                 output.write(time, events, goals, particles); lastOutput = time;
             }
             Particle a = e.a();
+            boolean goal = false;
             switch (e.type()) {
                 case VERTICAL_WALL -> {
-                    if (Math.abs(a.y() - config.width() / 2) <= config.goalWidth() / 2 && a.markUsed()) goals++;
+                    if (Math.abs(a.y() - config.width() / 2) <= config.goalWidth() / 2 && a.markUsed()) { goals++; goal = true; }
                     a.setVelocityAfterCollision(-a.vx(), a.vy());
                 }
                 case HORIZONTAL_WALL -> a.setVelocityAfterCollision(a.vx(), -a.vy());
@@ -71,6 +94,8 @@ public final class CollisionSimulator {
                     a.setVelocityAfterCollision(a.vx() - factor * dx, a.vy() - factor * dy);
                 }
             }
+            eventLog.event(time, events, e.type(), a.id(),
+                    e.b() != null ? e.b().id() : e.obstacle() != null ? obstacleIndex.get(e.obstacle()) : -1, goal);
             if (Double.isNaN(t90) && goals >= Math.ceil(0.9 * particles.size())) t90 = time;
             predict(a, null);
             if (e.b() != null) predict(e.b(), a);
@@ -78,6 +103,7 @@ public final class CollisionSimulator {
             if (queue.size() > 8L * particles.size() * (particles.size() + obstacles.size() + 2))
                 queue.removeIf(event -> !event.valid());
         }
+        if (stopAtT90 && !Double.isNaN(t90)) limit = time;
         for (double next = samples * outputInterval; sampled && next <= limit; next = ++samples * outputInterval) {
             sample(next, events, goals, output); lastOutput = next;
         }
