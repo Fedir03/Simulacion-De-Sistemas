@@ -20,13 +20,18 @@ public final class Main {
         if (args.length == 0 || args[0].equals("--help")) {
             System.out.println("""
                     generate [--n 100] [--seed 42] [--out archivo.txt] [--obstacles-out config.txt]
-                             [--obstacle-algorithm random|none|single|funnel|semicircle|posts]
+                             [--obstacle-algorithm random|none|single|funnel|semicircle|posts|lattice|ellipse]
                                random:     [--obstacle-count 2] [--obstacle-radius 0.05] [--obstacle-seed <seed>]
                                single:     [--obstacle-x L/2] [--obstacle-y W/2] [--obstacle-radius 0.1]
-                               funnel:     [--obstacle-funnel-length 0.3] [--obstacle-max-radius ∞] [--obstacle-grid 0.001]
+                               funnel:     [--obstacle-funnel-length 0.3] [--obstacle-edge-radius <radio de la frontera>]
+                                           [--obstacle-max-radius ∞] [--obstacle-grid 0.001]
                                semicircle: [--obstacle-free-radius 0.36] [--obstacle-goals right|both]
                                            [--obstacle-max-radius ∞] [--obstacle-grid 0.001]
                                posts:      [--obstacle-radius 0.05]
+                               lattice:    [--obstacle-spacing 0.1] [--obstacle-radius r]
+                               ellipse:    [--obstacle-focus-x 0.3] [--obstacle-edge-radius r]
+                                           [--obstacle-focus-shape none|disc|line|lens] [--obstacle-focus-size 0.1]
+                                           [--obstacle-lens-width 0.03] [--obstacle-max-radius ∞] [--obstacle-grid 0.001]
                              [--obstacles archivo.txt (con --obstacle-algorithm, el algoritmo agrega obstáculos a los del archivo)]
                              [--length 1.2] [--width 0.68] [--goal-width 0.2]
                              [--radius 0.0175] [--mass 0.025] [--speed 1.0]
@@ -39,7 +44,8 @@ public final class Main {
         Set<String> allowed = switch (args[0]) {
             case "generate" -> Set.of("n", "seed", "obstacles", "out", "obstacles-out", "length", "width", "goal-width", "radius", "mass", "speed",
                     "obstacle-algorithm", "obstacle-count", "obstacle-radius", "obstacle-seed", "obstacle-x", "obstacle-y",
-                    "obstacle-funnel-length", "obstacle-free-radius", "obstacle-goals", "obstacle-max-radius", "obstacle-grid");
+                    "obstacle-funnel-length", "obstacle-edge-radius", "obstacle-free-radius", "obstacle-goals", "obstacle-max-radius", "obstacle-grid", "obstacle-spacing",
+                    "obstacle-focus-x", "obstacle-focus-shape", "obstacle-focus-size", "obstacle-lens-width");
             case "simulate" -> Set.of("input", "time", "every", "dt", "out");
             default -> throw new IllegalArgumentException("Comando desconocido: " + args[0]);
         };

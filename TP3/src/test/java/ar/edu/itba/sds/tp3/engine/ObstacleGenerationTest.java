@@ -138,4 +138,71 @@ class ObstacleGenerationTest {
             assertDoesNotThrow(() -> StageGeneration.validate(C, List.of(), all), name);
         }
     }
+
+    @Test void funnelEdgeIsMadeOfMinimumDiscsFacingTheField() {
+        double r = C.radius(), post = 0.44;
+        for (String length : List.of("0.05", "0.3")) {
+            double a = Double.parseDouble(length);
+            var obstacles = ObstacleGenerators.create("funnel", Map.of("funnel-length", length, "edge-radius", Double.toString(r))).generate(C, 1);
+            assertDoesNotThrow(() -> StageGeneration.generate(C, 100, 5, obstacles));
+            double ux = a, uy = C.width() - post, norm = Math.hypot(ux, uy);
+            for (Obstacle o : obstacles) {
+                double fx = Math.min(o.x(), C.length() - o.x()), fy = Math.max(o.y(), C.width() - o.y());
+                // Distancia con signo a la recta palo–banda, positiva hacia la cancha.
+                double toField = (uy * fx - ux * (fy - post)) / norm;
+                if (toField > -o.radius() + 1e-9) assertEquals(r, o.radius(), 1e-12, "disco de frontera en " + o);
+            }
+        }
+        assertThrows(IllegalArgumentException.class, () -> ObstacleGenerators.create("funnel", Map.of("edge-radius", "0")));
+    }
+
+    @Test void latticeIsEquidistantSymmetricAndPassable() {
+        double s = 0.12, r = C.radius();
+        var lattice = ObstacleGenerators.create("lattice", Map.of("spacing", Double.toString(s))).generate(C, 1);
+        assertDoesNotThrow(() -> StageGeneration.generate(C, 100, 3, lattice));
+        for (Obstacle o : lattice) {
+            assertEquals(r, o.radius());
+            // Paso de al menos 2r contra las paredes, simetría y vecinos a distancia s.
+            assertTrue(Math.min(Math.min(o.x(), C.length() - o.x()), Math.min(o.y(), C.width() - o.y())) - r >= 2 * r - 1e-12);
+            assertTrue(lattice.stream().anyMatch(q -> Math.hypot(q.x() - (C.length() - o.x()), q.y() - (C.width() - o.y())) < 1e-9));
+            double nearest = lattice.stream().filter(q -> q != o).mapToDouble(q -> Math.hypot(q.x() - o.x(), q.y() - o.y())).min().orElseThrow();
+            assertEquals(s, nearest, 1e-9);
+        }
+        var withCenter = new LatticeObstacleGenerator(s, Double.NaN).generate(C, 1, List.of(new Obstacle(0.6, 0.34, 0.2)));
+        assertTrue(withCenter.size() < lattice.size());
+        assertTrue(withCenter.stream().allMatch(o -> Math.hypot(o.x() - 0.6, o.y() - 0.34) - 0.2 - r >= 2 * r - 1e-12));
+        assertThrows(IllegalArgumentException.class, () -> ObstacleGenerators.create("lattice", Map.of("spacing", "0.06")).generate(C, 1));
+        assertThrows(IllegalArgumentException.class, () -> ObstacleGenerators.create("lattice", Map.of("spacing", "0.07")).generate(C, 1));
+    }
+
+    @Test void ellipseHasMinimumEdgeAndObjectsAtBothFoci() {
+        double r = C.radius(), a = 0.6, b = Math.sqrt(0.36 - 0.09);
+        // Distancia a la elipse: en los ejes y en un punto sobre ella.
+        assertEquals(0.1, EllipseObstacleGenerator.distance(a, b, 0.7, 0), 1e-12);
+        assertEquals(0.1, EllipseObstacleGenerator.distance(a, b, 0, b + 0.1), 1e-12);
+        assertEquals(0, EllipseObstacleGenerator.distance(a, b, a * Math.cos(0.7), b * Math.sin(0.7)), 1e-9);
+        for (String shape : List.of("none", "disc", "line", "lens")) {
+            Map<String, String> params = shape.equals("none") ? Map.of() : Map.of("focus-shape", shape, "focus-size", "0.1");
+            var obstacles = ObstacleGenerators.create("ellipse", params).generate(C, 1);
+            assertDoesNotThrow(() -> StageGeneration.generate(C, 100, 9, obstacles), shape);
+            for (Obstacle o : obstacles) {
+                double u = o.x() - 0.6, v = o.y() - 0.34;
+                boolean nearFocus = Math.hypot(Math.abs(u) - 0.3, v) < 0.15;
+                // Todo disco del borde que asoma hacia el interior de la elipse es de radio mínimo.
+                if (!nearFocus && EllipseObstacleGenerator.distance(a, b, Math.abs(u), Math.abs(v)) < o.radius() - 1e-9)
+                    assertEquals(r, o.radius(), 1e-12, shape + " " + o);
+            }
+            if (!shape.equals("none"))
+                for (double fx : new double[]{0.3, 0.9})
+                    assertTrue(obstacles.stream().anyMatch(o -> Math.abs(o.x() - fx) < 0.15 && Math.abs(o.y() - 0.34) < 0.15), shape + " foco " + fx);
+        }
+        var discs = ObstacleGenerators.create("ellipse", Map.of("focus-shape", "disc", "focus-size", "0.08")).generate(C, 1)
+                .stream().filter(o -> o.radius() == 0.08).toList();
+        assertEquals(2, discs.size());
+        assertEquals(0.3, discs.get(0).x(), 1e-12);
+        assertEquals(0.9, discs.get(1).x(), 1e-12);
+        assertTrue(discs.stream().allMatch(o -> Math.abs(o.y() - 0.34) < 1e-12));
+        assertThrows(IllegalArgumentException.class, () -> ObstacleGenerators.create("ellipse", Map.of("focus-shape", "star")));
+        assertThrows(IllegalArgumentException.class, () -> ObstacleGenerators.create("ellipse", Map.of("focus-x", "0.7")).generate(C, 1));
+    }
 }
