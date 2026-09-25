@@ -18,15 +18,16 @@ python3 -m pip install -r TP3/requirements.txt
 python3 TP3/scripts/animate.py TP3/generated/simulation.txt --out TP3/generated/animacion.mp4
 ```
 
-MP4 requiere FFmpeg. Para animar, simular con `--every 1`: cada evento guardado
-produce un cuadro del video, usando sus posiciones exactas. Se muestran también
-los estados inicial y final. En mapas densos los archivos pueden ser grandes.
+MP4 requiere FFmpeg. `simulate` guarda el estado completo cada `--every` eventos
+(100 por defecto) y, aparte, todos los eventos en `<salida>_events.txt`. Cada estado
+guardado produce un cuadro del video, con sus posiciones exactas: no se interpola.
+Se muestran también los estados inicial y final. `--jobs` renderiza en paralelo.
 `--fps` fija la cadencia y `--speed` la multiplica (0.5 para la mitad, 2 para el
 doble), sin omitir frames. La reproducción no representa tiempo real.
 
 ```bash
 java -jar TP3/target/tp3.jar generate --seed 1 --obstacles TP3/configs/funnel.txt --out TP3/generated/embudo_ic.txt
-java -jar TP3/target/tp3.jar simulate --input TP3/generated/embudo_ic.txt --time 30 --every 1 --out TP3/generated/embudo.txt
+java -jar TP3/target/tp3.jar simulate --input TP3/generated/embudo_ic.txt --time 30 --every 100 --out TP3/generated/embudo.txt
 python3 TP3/scripts/animate.py TP3/generated/embudo.txt --out TP3/generated/embudo.mp4
 ```
 Ver [scripts/README.md](scripts/README.md) para opciones de reproducción por eventos.
@@ -88,10 +89,13 @@ y `--speed`. Los valores por defecto del enunciado son L=1.20 m, W=0.68 m,
 d=0.20 m, r=0.0175 m, m=0.025 kg y v0=1 m/s. La configuración queda registrada
 en el archivo inicial. `simulate` toma esos parámetros del archivo, con tiempo
 final `--time` en segundos (30 por defecto) y frecuencia `--every` en cantidad
-de colisiones válidas (1 por defecto). Alternativamente, `--dt` escribe los estados
+de colisiones válidas (100 por defecto). Además escribe todos los eventos, uno por
+línea, en `--events-out` (`<salida>_events.txt` por defecto; `none` lo desactiva).
+Alternativamente, `--dt` escribe los estados
 en t = k·dt, exactos porque entre eventos el movimiento es rectilíneo uniforme;
 excluye `--every`. Se calculan sobre copias: la dinámica, y por lo tanto t90, es
-idéntica con o sin `--dt`. Sirve para animaciones y para el DCM, que requiere tiempos uniformes.
+idéntica con o sin `--dt`. Sirve para el DCM, que requiere tiempos uniformes; las
+animaciones usan estados guardados por evento (`--every`).
 
 Cada obstáculo se define con una línea `x y radio`, en metros, compatible con
 el entregable de competencia. Se aceptan líneas vacías y comentarios `#`.
@@ -125,7 +129,11 @@ Cada algoritmo vive en un archivo separado dentro de `engine/obstacles/`:
 - `SemicircleObstacleGenerator.java` (`semicircle`): deja libre solo el semicírculo de
   radio `--obstacle-free-radius` (0.36 m = 0.3 L) centrado en el arco derecho y bloquea
   el resto, arco izquierdo incluido. Con `--obstacle-goals both` deja libre un semicírculo
-  en cada arco: un cuenco, es decir un embudo de pared curva.
+  en cada arco: un cuenco, es decir un embudo de pared curva. `--obstacle-center-offset s`
+  (0) aleja el centro del círculo s metros del arco hacia la cancha: la pared se cierra sobre
+  el arco. Se rechaza s si los palos quedan fuera del círculo (s ≥ √(R_libre² − (d/2)²)).
+  Con `--obstacle-edge-radius ρ` la frontera con la zona libre es una cadena de discos de
+  radio ρ centrados sobre la circunferencia (ρ = r = 0.0175 da la mayor resolución).
 - `PostsObstacleGenerator.java` (`posts`): un disco de radio `--obstacle-radius` (0.05) en
   cada palo de ambos arcos, tangente a la pared corta; estrecha la entrada del arco.
 - `LatticeObstacleGenerator.java` (`lattice`): red triangular de discos equidistantes
@@ -286,6 +294,22 @@ y el estado final, y termina con un comentario:
 ```text
 # tf=30.0 outputEvery=10 events=12345 Ng=95 t90=24.7 runtime=0.41
 ```
+
+El registro de eventos tiene una línea por colisión válida, en orden:
+
+```text
+# format=tp3-events-v1 columnas: t evento tipo a b gol
+0.0123 1 P 17 42 0
+0.0131 2 V 5 -1 1
+```
+
+`tipo` es `P` (partícula-partícula, `b` es el id de la otra), `O` (obstáculo, `b` es su índice
+en la cabecera), `V` o `H` (pared vertical u horizontal, `b = -1`); `gol` es 1 si ese choque
+sumó un gol. Contiene todos los tiempos tc aunque el estado se guarde cada `--every` eventos.
+
+Con `--until t90`, `simulate` termina en el choque que alcanza el 90 % de partículas usadas
+(`--time` es el máximo si no se alcanza). Hasta ese choque la dinámica es la misma, así que t90
+coincide con el de la corrida completa; `Ng` del resultado queda en 90.
 
 `runtime` es el tiempo real en segundos del ciclo de eventos, escritura incluida,
 sin el arranque de la JVM ni la lectura de la condición inicial.

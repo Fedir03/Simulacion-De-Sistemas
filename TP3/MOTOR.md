@@ -290,6 +290,18 @@ La zona libre son los puntos a distancia ≤ R_libre del centro del arco derecho
 se bloquea el 70 % izquierdo del largo, incluido el arco izquierdo. Si R_libre > W/2,
 el semicírculo queda recortado por las paredes largas.
 
+Con `centerOffset` s (`--obstacle-center-offset`) el centro pasa a `(L - s, W/2)` (y `(s, W/2)`
+en el arco izquierdo): la zona libre es más que un semicírculo y su pared se cierra detrás del
+arco. Se exige `√(s² + (d/2)²) < R_libre`, es decir que ambos palos sigan dentro de la zona
+libre; si no, el círculo empieza a bloquear el arco y el generador lo rechaza.
+
+Con `edgeRadius` ρ (`--obstacle-edge-radius`), antes del relleno se coloca sobre cada
+circunferencia una cadena de discos de radio ρ con `DiscChain`, igual que el borde de la elipse:
+se muestrea la circunferencia con 20000 puntos y cada tramo donde un disco de radio ρ entra en la
+mesa se cubre con la mayor cantidad de discos que no se solapan, con huecos menores que 2r. La
+cara interna de la cadena queda a R_libre − ρ del centro. `RegionFill` rellena después detrás de
+la cadena. Con ambos arcos se exige que las dos cadenas no se toquen.
+
 ### `engine/obstacles/PostsObstacleGenerator.java`: palos
 
 [Ver código](src/main/java/ar/edu/itba/sds/tp3/engine/obstacles/PostsObstacleGenerator.java).
@@ -680,6 +692,12 @@ Azul es `0 0 255`; rojo es `255 0 0`. Los obstáculos se escriben una sola vez
 porque no se mueven. El nombre del algoritmo y su semilla independiente no se
 registran actualmente en la cabecera: sí quedan guardados sus obstáculos exactos.
 Para repetir la generación desde cero, conservar el comando utilizado.
+
+Además, `CollisionSimulator.run(..., EventSink)` informa cada evento válido ya resuelto
+(tiempo, número, tipo, partícula, otra partícula u obstáculo, gol) y `Main` lo escribe con
+`StageFile.event` en el registro `--events-out` (`<salida>_events.txt` por defecto). Así se
+conservan todos los tiempos de colisión aunque el estado completo se escriba cada k eventos.
+`--every` vale 100 por defecto.
 
 La salida se escribe después de cada múltiplo de `--every` colisiones válidas,
 además del estado inicial y final. No implica intervalos temporales uniformes.

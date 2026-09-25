@@ -56,6 +56,12 @@ $TP3 generate --obstacle-algorithm funnel --obstacle-funnel-length 0.2 --obstacl
 $TP3 generate --obstacle-algorithm semicircle --obstacle-free-radius 0.36 --out TP3/generated/semi_ic.txt
 # ...o alrededor de ambos arcos (cuenco)
 $TP3 generate --obstacle-algorithm semicircle --obstacle-goals both --obstacle-free-radius 0.40 --out TP3/generated/cuenco_ic.txt
+# ...con el centro de cada círculo libre a 0.2 m del arco, hacia la cancha
+$TP3 generate --obstacle-algorithm semicircle --obstacle-goals both --obstacle-free-radius 0.35 \
+    --obstacle-center-offset 0.2 --out TP3/generated/cuenco_off_ic.txt
+# ...con la frontera hacia la zona libre hecha de discos de radio mínimo
+$TP3 generate --obstacle-algorithm semicircle --obstacle-goals both --obstacle-free-radius 0.35 \
+    --obstacle-edge-radius 0.0175 --out TP3/generated/cuenco_fino_ic.txt
 
 # Red triangular de discos mínimos equidistantes (tablero de Galton), separación s > 0.07
 $TP3 generate --obstacle-algorithm lattice --obstacle-spacing 0.12 --out TP3/generated/galton_ic.txt
@@ -143,18 +149,22 @@ $TP3 simulate --input TP3/generated/mi_mapa_ic.txt --time 100 --every 1000000000
 - La consola muestra `eventos`, `goles`, `t90` (NaN si no se llegó al 90 %) y `runtime`,
   el tiempo real del ciclo de eventos en segundos. Lo mismo queda en la última línea del archivo.
 - Qué estados se escriben:
-  - `--every n`: cada n choques (1 por defecto). Un n enorme, como arriba, escribe solo el
-    estado inicial y el final: lo más rápido si solo interesa t90.
-  - `--dt 0.01`: el estado en t = 0, 0.01, 0.02, …. Puede usarse para el DCM;
-    para animar los eventos, usar `--every 1`. No altera la dinámica: el t90 es
-    idéntico al de la corrida sin `--dt`.
+  - `--every n`: el estado completo cada n choques (100 por defecto). Un n enorme, como
+    arriba, escribe solo el estado inicial y el final: lo más rápido si solo interesa t90.
+  - Todos los eventos (tiempo, tipo, participantes, gol) van a `<salida>_events.txt`,
+    sin el estado del sistema. `--events-out otro.txt` cambia el archivo y
+    `--events-out none` lo desactiva.
+  - `--until t90`: termina en el choque que alcanza el 90 % de partículas usadas (`--time`
+    queda como máximo). t90 es idéntico al de la corrida completa; el último estado escrito es el de t90.
+  - `--dt 0.01`: el estado en t = 0, 0.01, 0.02, …. Puede usarse para el DCM; no para
+    animar, que va por eventos. No altera la dinámica: el t90 es idéntico al de la corrida sin `--dt`.
 - El resultado depende solo de la condición inicial: misma entrada, mismo t90.
 
 ## 4. Animar
 
 ```bash
-$TP3 simulate --input TP3/generated/mi_mapa_ic.txt --time 30 --every 1 --out TP3/generated/mi_mapa_anim.txt
-python3 TP3/scripts/animate.py TP3/generated/mi_mapa_anim.txt --out TP3/generated/mi_mapa.mp4
+$TP3 simulate --input TP3/generated/mi_mapa_ic.txt --time 30 --every 100 --out TP3/generated/mi_mapa_anim.txt
+python3 TP3/scripts/animate.py TP3/generated/mi_mapa_anim.txt --out TP3/generated/mi_mapa.mp4 --jobs 8
 ```
 
 - Cada frame guardado se dibuja una vez, incluidas las condiciones iniciales y finales
@@ -163,9 +173,12 @@ python3 TP3/scripts/animate.py TP3/generated/mi_mapa_anim.txt --out TP3/generate
   (0.5 para la mitad, 2 para el doble). No representa tiempo real ni omite frames.
 - `--dpi` (120) controla la resolución.
 - Con `.gif` en `--out` no hace falta ffmpeg, pero consume más memoria.
-- En mapas densos, `--every 1` genera archivos grandes. Para videos largos simular
-  menos tiempo: el script carga la trayectoria completa en memoria.
-- Con `--every` mayor que 1, los choques omitidos no aparecen en el video.
+- Un cuadro por estado guardado, es decir cada `--every` eventos. `--every 1` guarda todos
+  (unos 2500 eventos por segundo simulado con N = 100): archivos enormes y videos de minutos.
+- `--jobs n` renderiza tramos de cuadros en paralelo y los concatena: mismos cuadros, mismo orden.
+- Para ver todos los demás eventos, usar el registro `<salida>_events.txt`.
+- `bash TP3/scripts/demo_mejor.sh` corre 5 realizaciones del mejor mapa con semillas al azar,
+  las anima y deja `runs.csv` y `summary.csv` en `TP3/generated/demo_mejor/<fecha>/`.
 
 ### Reproducir en video una realización de un barrido
 
@@ -174,7 +187,7 @@ exactamente la misma corrida:
 
 ```bash
 $TP3 generate --seed 122 --obstacles TP3/configs/central_cuenco_Rf0.30.txt --out TP3/generated/c_ic.txt
-$TP3 simulate --input TP3/generated/c_ic.txt --time 17 --every 1 --out TP3/generated/c.txt   # t90 = 13.55
+$TP3 simulate --input TP3/generated/c_ic.txt --time 17 --every 100 --out TP3/generated/c.txt   # t90 = 13.55
 python3 TP3/scripts/animate.py TP3/generated/c.txt --out TP3/generated/c.mp4
 ```
 
@@ -236,7 +249,7 @@ python3 TP3/scripts/check_map.py TP3/generated/idea_ic.txt --png TP3/generated/i
 python3 TP3/scripts/sweep.py --name idea --realizations 50 --seed-base 101 -- --obstacles TP3/configs/idea.txt
 python3 TP3/scripts/sweep.py --name mejor --realizations 50 --seed-base 101 -- --obstacles TP3/configs/central_cuenco_Rf0.30.txt
 # 4. Verla en video
-$TP3 simulate --input TP3/generated/idea_ic.txt --time 20 --every 1 --out TP3/generated/idea.txt
+$TP3 simulate --input TP3/generated/idea_ic.txt --time 20 --every 100 --out TP3/generated/idea.txt
 python3 TP3/scripts/animate.py TP3/generated/idea.txt --out TP3/generated/idea.mp4
 ```
 

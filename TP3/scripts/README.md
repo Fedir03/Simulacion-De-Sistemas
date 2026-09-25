@@ -85,14 +85,16 @@ Se dibujan discos con sus radios físicos, obstáculos grises y arcos verdes.
 Las partículas frescas son azules y las usadas rojas. El título muestra tiempo,
 goles, fracción usada y eventos acumulados.
 
-Para animar los eventos, generar la trayectoria con `simulate --every 1`.
+La trayectoria guarda el estado completo cada `simulate --every k` eventos (100 por
+defecto); los tiempos de todos los eventos quedan en `<salida>_events.txt`.
 Cada frame guardado produce un cuadro del video, en el mismo orden, usando
 exactamente sus posiciones, colores, contadores y tiempo. Se incluyen los estados
 inicial y final, todos los eventos simultáneos y entradas de un solo cuadro.
 No se crean posiciones ni cuadros intermedios. Los FPS y `--speed` solo determinan
 la cadencia de reproducción: no se omiten frames. Como los eventos tienen intervalos
 variables, el tiempo físico entre cuadros también varía. Con `--every` mayor que 1,
-solo se muestran los eventos presentes en el archivo.
+solo se muestran los eventos presentes en el archivo. `--jobs n` renderiza tramos
+contiguos en paralelo y los concatena con ffmpeg sin recodificar.
 
 El lector (`simulation_io.py`) carga la trayectoria completa en memoria; para
 corridas grandes conviene animar una simulación más corta. GIF también acumula
