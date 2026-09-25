@@ -49,11 +49,20 @@ $TP3 generate --obstacle-algorithm single --obstacle-x 0.6 --obstacle-y 0.34 --o
 
 # Embudo recto hacia ambos arcos (esquinas triangulares), largo a ≤ L/2
 $TP3 generate --obstacle-algorithm funnel --obstacle-funnel-length 0.2 --out TP3/generated/embudo_ic.txt
+# ...con la frontera hacia la cancha hecha de discos de radio mínimo
+$TP3 generate --obstacle-algorithm funnel --obstacle-funnel-length 0.2 --obstacle-edge-radius 0.0175 --out TP3/generated/embudo_ic.txt
 
 # Zona libre semicircular alrededor del arco derecho (resto tapado)...
 $TP3 generate --obstacle-algorithm semicircle --obstacle-free-radius 0.36 --out TP3/generated/semi_ic.txt
 # ...o alrededor de ambos arcos (cuenco)
 $TP3 generate --obstacle-algorithm semicircle --obstacle-goals both --obstacle-free-radius 0.40 --out TP3/generated/cuenco_ic.txt
+
+# Red triangular de discos mínimos equidistantes (tablero de Galton), separación s > 0.07
+$TP3 generate --obstacle-algorithm lattice --obstacle-spacing 0.12 --out TP3/generated/galton_ic.txt
+
+# Mesa elíptica (focos en 0.3 y 0.9) con un objeto en cada foco: none | disc | line | lens
+$TP3 generate --obstacle-algorithm ellipse --obstacle-focus-shape lens --obstacle-focus-size 0.10 \
+    --obstacle-lens-width 0.05 --out TP3/generated/elipse_ic.txt
 
 # Un disco en cada palo de los arcos
 $TP3 generate --obstacle-algorithm posts --obstacle-radius 0.04 --out TP3/generated/palos_ic.txt
@@ -233,6 +242,9 @@ python3 TP3/scripts/animate.py TP3/generated/idea.txt --out TP3/generated/idea.m
 |---|---|---|
 | `central_cuenco_Rf0.30.txt` | Disco central R=0.32 + cuenco Rf=0.30 en ambos arcos | 13.5 ± 1.5 s |
 | `central_R0.32.txt` | Disco central R=0.32: dos cámaras | 16.4 ± 1.9 s |
+| `esquinas_R0.10.txt` | Un disco R=0.10 en cada esquina | 29.0 ± 2.9 s |
+| `galton_s0.25.txt`, `galton_s0.10.txt` | Red de Galton de discos mínimos, s=0.25 y s=0.10 | 23.6 ± 3.1 s / 48.7 ± 7.4 s |
+| `embudo_min_a0.05.txt` | Embudo a=0.05 con frontera de discos mínimos | 22.8 ± 2.6 s |
 | `central_embudo_a0.05.txt` | Disco central + embudo recto a=0.05 | 17.4 ± 1.8 s |
 | `central_palos_Rp0.02.txt` | Disco central + palos Rp=0.02 | 22.4 ± 2.6 s |
 | `funnel.txt` | Embudo recto a=0.30, sin disco central | 30.3 ± 3.7 s (10 real.) |

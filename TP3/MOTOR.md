@@ -273,6 +273,14 @@ Por simetría, cada punto se lleva a la esquina superior izquierda con
 según el producto vectorial con la recta; su distancia a la zona libre es la distancia
 al segmento palo–pared. Exige `a ≤ L/2` para que las esquinas no se superpongan.
 
+Con `edgeRadius` (`--obstacle-edge-radius`), antes del relleno coloca sobre cada segmento
+palo–pared una cadena de discos de ese radio centrados en la recta: desde donde el disco
+toca la pared corta (`x = ρ`) hasta donde toca la larga (`y = W - ρ`), a 1e-9 m de ellas
+por redondeo. Usa la mayor cantidad de discos que no se solapan, equiespaciados, y verifica
+que los huecos entre ellos sean menores que 2r. Después rellena el interior de las esquinas
+con `RegionFill`, que recibe la cadena como obstáculos existentes y queda detrás de ella:
+todo disco que asoma a la cancha es de radio ρ.
+
 ### `engine/obstacles/SemicircleObstacleGenerator.java`: semicírculo libre
 
 [Ver código](src/main/java/ar/edu/itba/sds/tp3/engine/obstacles/SemicircleObstacleGenerator.java).
@@ -288,6 +296,42 @@ el semicírculo queda recortado por las paredes largas.
 
 Cuatro discos de radio R en `(R, W/2 ± (d/2 + R))` y `(L - R, W/2 ± (d/2 + R))`: tangentes
 a la pared corta y con su punto más bajo o más alto a la altura del palo.
+
+### `engine/obstacles/LatticeObstacleGenerator.java`: red de Galton
+
+[Ver código](src/main/java/ar/edu/itba/sds/tp3/engine/obstacles/LatticeObstacleGenerator.java).
+
+Discos de radio ρ (r por defecto) en una red triangular de lado s: columnas en
+`x = L/2 + k·s√3/2`, con discos en `y = W/2 + (j + |k| mod 2 · 1/2)·s`. Todo disco queda a
+distancia s de sus seis vecinos y la red es simétrica respecto de ambos ejes de la mesa.
+Exige `s - 2ρ > 2r` (con tolerancia relativa 1e-6): si el paso entre vecinos fuera 2r,
+cada celda de la red quedaría cerrada. Por la misma razón omite los discos a menos de
+2r de una pared o de un obstáculo existente.
+
+### `engine/obstacles/EllipseObstacleGenerator.java` y `DiscChain.java`: mesa elíptica
+
+[Ver código](src/main/java/ar/edu/itba/sds/tp3/engine/obstacles/EllipseObstacleGenerator.java).
+
+Elipse centrada en (L/2, W/2) con semieje mayor a = L/2, es decir con vértices en los arcos,
+y focos en `x = focusX` y `x = L - focusX`: c = L/2 - focusX y b = √(a² - c²). Con los valores
+por defecto (focos en 0.3 y 0.9), b ≈ 0.52 > W/2 y la elipse solo recorta las esquinas.
+Propiedad usada: una trayectoria que pasa por un foco rebota en el borde y pasa por el otro.
+
+El borde se muestrea con 20000 puntos; los tramos donde un disco de radio ρ cabe en la mesa
+forman las cadenas de `DiscChain`. Cerca de los vértices la elipse está a menos de ρ de la
+pared corta, así que la boca del arco queda libre. El exterior de la elipse, y el interior
+de las lentes, se rellenan con `RegionFill`. La distancia de un punto a la elipse se calcula
+con el método de bisección de Eberly (`distance`), que es exacto hasta el redondeo.
+
+Objetos por foco: `DISC`, un disco de radio focusSize centrado en el foco; `LINE`, una cadena
+vertical de semilargo focusSize; `LENS`, la intersección de dos círculos de radio
+R = (h² + w²)/(2w) centrados en `fx ± (R - w)`, con contorno de discos e interior relleno.
+
+`DiscChain.along` reparte n discos uniformemente por longitud de arco sobre una polilínea
+abierta o cerrada. Empieza con el mayor n posible y lo reduce hasta que ningún par de discos
+se solapa; si para lograrlo un hueco entre discos consecutivos llega a 2r, falla, porque una
+partícula podría atravesar la cadena. Esto ocurre, por ejemplo, con lentes muy finas y altas,
+cuyas puntas son demasiado agudas.
 
 ### Combinación con obstáculos existentes
 
@@ -652,11 +696,11 @@ Una corrida de 100 partículas durante 3 segundos verifica energía, paredes y
 solapamientos en los estados emitidos cada 50 eventos.
 
 [ObstacleGenerationTest.java](src/test/java/ar/edu/itba/sds/tp3/engine/ObstacleGenerationTest.java)
-agrega 10 pruebas sobre reproducibilidad del algoritmo aleatorio, geometría,
+agrega 13 pruebas sobre reproducibilidad del algoritmo aleatorio, geometría,
 configuraciones inválidas, límite de intentos, selección por CLI, carga desde
 archivo, semillas independientes, el obstáculo único, opciones rechazadas por
 cada algoritmo, exportación de la configuración, `posts`, el cuenco y el
-relleno que respeta obstáculos existentes. Para `funnel` y `semicircle`
+relleno que respeta obstáculos existentes la frontera de discos mínimos del embudo la red de Galton y la mesa elíptica con sus objetos en los focos. Para `funnel` y `semicircle`
 comprueba en una grilla de 0.4 mm que ningún punto de la región bloqueada admite
 el centro de una partícula y que se pueden ubicar 100 partículas.
 
@@ -669,6 +713,6 @@ mvn -f TP3/pom.xml test
 mvn -f TP3/pom.xml package
 ```
 
-La última compilación de esta implementación completó las 24 pruebas sin fallos.
+La última compilación de esta implementación completó las 27 pruebas sin fallos.
 Estas pruebas respaldan los casos cubiertos; no constituyen una solución ni una
 verificación exhaustiva de impactos colectivos simultáneos.

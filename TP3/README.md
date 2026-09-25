@@ -48,6 +48,7 @@ Ver [scripts/README.md](scripts/README.md) para opciones y límites de interpola
 | `configs/funnel.txt` | Embudos hacia ambos arcos (`funnel`, largo 0.30 m), K=28. |
 | `configs/semicircle_70.txt` | 70 % izquierdo bloqueado; libre solo el semicírculo de 0.36 m del arco derecho, K=31. |
 | `configs/central_R0.32.txt` | Disco central de radio 0.32 m: divide la mesa en dos cámaras. |
+| `configs/esquinas_R0.10.txt` | Un disco de radio 0.10 m en cada esquina, tangente a ambas paredes. |
 | `configs/central_embudo_a0.05.txt`, `central_cuenco_Rf0.30.txt`, `central_palos_Rp0.02.txt` | Disco central con el mejor valor de cada planteo de embudo. |
 | `scripts/sweep.py` | Barrido de parámetros: realizaciones, ⟨t90⟩ ± σ, goles y tiempo de ejecución. |
 | `scripts/plot_sweep.py` | Gráfico de un barrido: ⟨t90⟩, runtime o goles ± σ vs el parámetro, con referencia opcional. |
@@ -118,13 +119,27 @@ Cada algoritmo vive en un archivo separado dentro de `engine/obstacles/`:
   obstáculo grande sobre el eje longitudinal.
 - `FunnelObstacleGenerator.java` (`funnel`): embudos hacia ambos arcos. Bloquea las cuatro
   esquinas detrás de rectas que van de cada palo del arco a la pared larga, a
-  `--obstacle-funnel-length` (0.30 m) de la pared corta; debe ser ≤ L/2.
+  `--obstacle-funnel-length` (0.30 m) de la pared corta; debe ser ≤ L/2. Con
+  `--obstacle-edge-radius ρ`, la recta que da a la cancha es una cadena de discos de radio ρ
+  (por ejemplo r = 0.0175, el mínimo) y solo el interior de las esquinas usa discos más grandes.
 - `SemicircleObstacleGenerator.java` (`semicircle`): deja libre solo el semicírculo de
   radio `--obstacle-free-radius` (0.36 m = 0.3 L) centrado en el arco derecho y bloquea
   el resto, arco izquierdo incluido. Con `--obstacle-goals both` deja libre un semicírculo
   en cada arco: un cuenco, es decir un embudo de pared curva.
 - `PostsObstacleGenerator.java` (`posts`): un disco de radio `--obstacle-radius` (0.05) en
   cada palo de ambos arcos, tangente a la pared corta; estrecha la entrada del arco.
+- `LatticeObstacleGenerator.java` (`lattice`): red triangular de discos equidistantes
+  (tablero de Galton), separados `--obstacle-spacing` (0.1) y de radio `--obstacle-radius`
+  (r, el mínimo por defecto). Centrada y simétrica; omite discos que dejarían un paso ≤ 2r
+  contra una pared o un obstáculo existente, y rechaza separaciones sin paso entre vecinos.
+- `EllipseObstacleGenerator.java` (`ellipse`): mesa elíptica con vértices en los arcos y focos
+  en x = `--obstacle-focus-x` (0.3) y L − focus-x. El borde es una cadena de discos de radio
+  `--obstacle-edge-radius` (r) y el exterior se rellena. En cada foco, `--obstacle-focus-shape`:
+  `none`, `disc` (disco concéntrico de radio `--obstacle-focus-size`), `line` (recta vertical
+  de discos mínimos de semilargo focus-size) o `lens` (lente biconvexa vertical de semialto
+  focus-size y semiancho `--obstacle-lens-width`, 0.03).
+- `DiscChain.java`: cadena de discos iguales sobre una curva, sin solapes y con huecos menores
+  que 2r; la usan la elipse, la lente y la recta.
 - `RegionFill.java`: relleno que usan `funnel` y `semicircle` (ver abajo).
 - `ObstacleGenerators.java`: registro de nombres y de las opciones que acepta cada uno.
 
