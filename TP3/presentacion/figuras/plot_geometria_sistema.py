@@ -24,6 +24,7 @@ COLOR_USADA = "#C0392B"
 COLOR_OBSTACULO = "#BFBFBF"
 COLOR_GRIS = "#4D4D4D"
 COLOR_BORDE = "#050505"
+COLOR_ARCO = "#2CA02C"
 
 FONT_SIZE = 15  # grande a propósito: la figura se inserta angosta (ver
                 # nota de tamaño de fuente en figuras/README.md).
@@ -52,7 +53,7 @@ for x_pared in (0.0, L):
 # ---------- arcos (línea punteada sobre la pared, no un bloque sólido) ----------
 for x_arco in (0.0, L):
     ax.plot([x_arco, x_arco], [W / 2 - d / 2, W / 2 + d / 2],
-             color=COLOR_USADA, linewidth=2.2, linestyle=(0, (1.6, 1.6)),
+             color=COLOR_ARCO, linewidth=2.2, linestyle=(0, (1.6, 1.6)),
              solid_capstyle="butt", zorder=2)
 
 # "d" con flecha doble y tick punteado hacia el arco izquierdo
@@ -72,12 +73,12 @@ TICK_LEN = 0.07
 for x_pared, signo in ((0.0, -1), (L, 1)):
     x_tick = x_pared + signo * TICK_LEN
     ax.plot([x_pared, x_tick], [W / 2 + d / 2, W / 2 + d / 2],
-             color=COLOR_USADA, lw=1.0, linestyle=(0, (1.4, 1.4)))
+             color=COLOR_ARCO, lw=1.0, linestyle=(0, (1.4, 1.4)))
     ax.plot([x_pared, x_tick], [W / 2 - d / 2, W / 2 - d / 2],
-             color=COLOR_USADA, lw=1.0, linestyle=(0, (1.4, 1.4)))
+             color=COLOR_ARCO, lw=1.0, linestyle=(0, (1.4, 1.4)))
 
 ax.text(-TICK_LEN-0.03, W / 2 + d / 2 + 0.03, "arco", ha="center", va="bottom",
-        fontsize=FONT_SIZE, color=COLOR_USADA)
+        fontsize=FONT_SIZE, color=COLOR_ARCO)
 
 # "W" con flecha doble a la derecha del dominio
 w_x = L + 0.20

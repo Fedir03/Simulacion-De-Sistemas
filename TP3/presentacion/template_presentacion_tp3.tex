@@ -82,7 +82,7 @@
 \institute{Instituto Tecnológico de Buenos Aires}
 \date{2026 2C --- Grupo N.º 02}
 
-% URLs de las animaciones (diapositivas 16 y 26).
+% URLs de las animaciones (diapositivas 16 y 27).
 % COMPLETAR cuando los videos estén subidos a YouTube.
 \newcommand{\animacionVaciaURL}{https://youtu.be/COMPLETAR}
 \newcommand{\animacionElegidaURL}{https://youtu.be/COMPLETAR}
@@ -99,7 +99,7 @@
 % ---------- Barra superior por sección ----------
 % Rangos de diapositivas:
 % Introducción 2--5 (incluye Modelo, fusionado -- ver TP2) | Implementación 6--9
-% Simulaciones 10--13 | Resultados 14--29 | Conclusiones 30--32
+% Simulaciones 10--13 | Resultados 14--30 | Conclusiones 31--33
 % Cada rango incluye su \sectiondivider como primera diapositiva del
 % bloque. Si se agregan o quitan diapositivas hay que renumerar estos
 % rangos a mano.
@@ -152,8 +152,8 @@
     \navblock{0.21}{Introducción}{2}{5}%
     \navblock{0.19}{Implementación}{6}{9}%
     \navblock{0.17}{Simulaciones}{10}{13}%
-    \navblock{0.26}{Resultados}{14}{29}%
-    \navblock{0.17}{Conclusiones}{30}{32}%
+    \navblock{0.26}{Resultados}{14}{30}%
+    \navblock{0.17}{Conclusiones}{31}{33}%
   }%
 }
 
@@ -364,21 +364,23 @@
       ya convirtió.
     \end{column}
     \begin{column}{0.44\textwidth}
-      \maybeimage{figuras/sistema_real.jpg}{4.2cm}{Insertar imagen ilustrativa del sistema}
+      \maybeimage{figuras/sistema_real.jpg}{4.2cm}{Insertar imagen ilustrativa del sistema}\par
+      \vspace{0.6cm}
+      \maybeimage{figuras/sistema_real2.png}{4.2cm}{Insertar imagen}
     \end{column}
   \end{columns}
 \end{frame}
 
 % 4
-\begin{frame}{Movimiento Libre y Tiempos de Contacto}
+\begin{frame}{Movimiento Libre y Choque contra Pared}
   \small
   Entre choques, cada partícula describe un MRU:
   \[
     \bm{r}_i(t+\Delta t) = \bm{r}_i(t) + \bm{v}_i\,\Delta t
   \]
-  \vspace{-0.15cm}
+  \vspace{-0.1cm}
 
-  \textbf{Contra una pared} --- coordenada $q$, velocidad $u$, radio $R$,
+  \textbf{Tiempo de contacto} --- coordenada $q$, velocidad $u$, radio $R$,
   dimensión $S$ del dominio:
   \[
     t_c =
@@ -388,9 +390,17 @@
       \infty,               & u = 0.
     \end{cases}
   \]
-  \vspace{-0.15cm}
+  \vspace{-0.1cm}
 
-  \textbf{Entre dos discos} --- con $\sigma = r_i + r_j$,
+  \textbf{Resolución:} invierte la componente normal, conserva la tangencial
+  ($v_x^d = -v_x^a$ en las paredes verticales, $v_y^d = -v_y^a$ en las
+  horizontales).
+\end{frame}
+
+% 5
+\begin{frame}{Choque entre Partículas y Obstáculos}
+  \small
+  \textbf{Tiempo de contacto} --- con $\sigma = r_i + r_j$,
   $\Delta\bm{r} = \bm{r}_j - \bm{r}_i$, $\Delta\bm{v} = \bm{v}_j - \bm{v}_i$:
   \[
     t_c = -\,\frac{\Delta\bm{v}\cdot\Delta\bm{r} + \sqrt{d}}{\Delta\bm{v}\cdot\Delta\bm{v}},
@@ -398,38 +408,28 @@
     d = (\Delta\bm{v}\cdot\Delta\bm{r})^2 - (\Delta\bm{v}\cdot\Delta\bm{v})\left(\Delta\bm{r}\cdot\Delta\bm{r} - \sigma^2\right)
   \]
   {\scriptsize No hay choque si $\Delta\bm{v}\cdot\Delta\bm{r} \geq 0$ o $d < 0$.\par}
-\end{frame}
+  \vspace{0.05cm}
 
-% 5
-\begin{frame}{Resolución de los Choques}
-  \small
-  \textbf{Pared:} invierte normal, conserva tangencial
-  ($v_x^d = -v_x^a$ en las paredes verticales, $v_y^d = -v_y^a$ en
-  las horizontales).
-  \vspace{0.12cm}
-
-  \textbf{Entre dos partículas} --- por conservación del impulso:
+  \textbf{Resolución} --- por conservación del impulso:
   \begin{align*}
     J &= \frac{2\,m_i\,m_j\,(\Delta\bm{v}\cdot\Delta\bm{r})}{\sigma\,(m_i + m_j)},
     &J_x &= J\,\frac{\Delta x}{\sigma},
     &J_y &= J\,\frac{\Delta y}{\sigma}
   \end{align*}
-  \vspace{-0.45cm}
+  \vspace{-0.4cm}
   \begin{align*}
     v_{x_i}^{d} &= v_{x_i}^{a} + \frac{J_x}{m_i}, &
     v_{x_j}^{d} &= v_{x_j}^{a} - \frac{J_x}{m_j}, \\
     v_{y_i}^{d} &= v_{y_i}^{a} + \frac{J_y}{m_i}, &
     v_{y_j}^{d} &= v_{y_j}^{a} - \frac{J_y}{m_j}
   \end{align*}
-  \vspace{-0.2cm}
+  \vspace{-0.15cm}
 
   \textbf{Obstáculo fijo:} límite $m_j \to \infty$
   ($\tfrac{m_i m_j}{m_i + m_j} \to m_i$) $\Rightarrow$
   $J = \tfrac{2\,m_i\,(\Delta\bm{v}\cdot\Delta\bm{r})}{\sigma}$.
-  \vspace{0.1cm}
 
-  {\scriptsize ($\Delta\bm{r}$, $\Delta\bm{v}$, $\sigma$: diapositiva anterior). En este
-  trabajo $m_i = m_j$ para todas las partículas.
+  {\scriptsize En este trabajo $m_i = m_j$ para todas las partículas.
   Estado: \textcolor{TPFresca}{fresca} $\rightarrow$ \textcolor{TPUsada}{usada}
   en el primer contacto con un arco; la transición es irreversible y $N$ se
   mantiene constante.\par}
@@ -560,7 +560,7 @@
   \end{itemize}
   Parámetros de entrada variables:
   \begin{itemize}
-    \item $N$ ($N = 100$ fijo a partir del estudio de configuraciones)
+    \item $N = 100$ (fijado por el enunciado a partir del punto 1.2)
     \item $t_f = 30$ s (tiempo de ejecución)
     \item $K$, $(x_k, y_k, R_k)$: $R_k \geq r$, sin solapamiento
   \end{itemize}
@@ -578,9 +578,12 @@
   \[
     F_u(t) = \frac{N_g(t)}{N},
     \qquad
-    t_{90} = \min\{\,t : F_u(t) \geq 0.9\,\}
+    t_{90,r} = \min\{\,t : F_u(t) \geq 0.9\,\}
   \]
-  {\scriptsize Si no llega a 0.9: se reporta $N_g(t_{\max})$.\par}
+  {\scriptsize Si no llega a 0.9 en la realización $r$: se reporta $N_g(t_{\max})$.
+  Se reporta el promedio entre $M$ realizaciones,
+  $\langle t_{90}\rangle = \frac{1}{M}\sum_{r=1}^{M} t_{90,r}$, con su desvío
+  muestral.\par}
   \vspace{0.15cm}
 
   \textbf{Difusión:} DCM, partículas móviles (frescas+usadas), 1 realización:
@@ -679,35 +682,41 @@
 \end{frame}
 
 % 26
-\begin{frame}[c]{Configuración Elegida --- Evolución del Sistema}
-  \animacionsimple{figuras/elegida_frame.png}{5.1cm}{\animacionElegidaURL}
-    {Insertar fotograma representativo de la configuración elegida}
-    {\item $N = 100$ \item $K = $ COMPLETAR \item $t_{\max} = 100$ s}
+\begin{frame}[c]{Comparación de Arquetipos de Obstáculos}
+  \resultadofigura{figuras/t90-vs-arquetipo.pdf}{4.7cm}{Insertar $\langle t_{90}\rangle$ por arquetipo (embudo, cuenco, palos, disco solo) vs.\ mesa vacía}
+    {\item $N = 100$ \item Base común: disco central $R = 0.32$ m (salvo cuenco fino) \item Realizaciones: 50}{}{}
 \end{frame}
 
 % 27
+\begin{frame}[c]{Configuración Elegida --- Evolución del Sistema}
+  \animacionsimple{figuras/elegida_frame.png}{5.1cm}{\animacionElegidaURL}
+    {Insertar fotograma representativo de la configuración elegida}
+    {\item $N = 100$ \item Disco central $R = 0.32$ m \item Cuenco $R_f = 0.30$ m (ambos arcos) \item $t_{\max} = 100$ s}
+\end{frame}
+
+% 28
 \begin{frame}[c]{Configuración Elegida --- Comparación contra la Mesa Vacía}
   \resultadofigura{figuras/fu-temporal-elegida.pdf}{4.7cm}{Insertar $F_u(t)$ de la configuración elegida y de la mesa vacía}
     {\item $N = 100$ \item Realizaciones: 5}{}{}
 \end{frame}
 
-% 28
+% 29
 \begin{frame}[c]{Desplazamiento Cuadrático Medio y Ajuste Lineal}
   \resultadofigura{figuras/dcm-ajuste.pdf}{4.7cm}{Insertar $z(t)$ con el ajuste superpuesto}
     {\item $N = 100$ \item Una realización \item $z = c\,t$, $D = c/2$}{}{}
 \end{frame}
 
-% 29
+% 30
 \begin{frame}[c]{Coeficiente de Difusión}
   \resultadofigura{figuras/d-vs-t90.pdf}{4.7cm}{Insertar $D$ vs.\ $\langle t_{90}\rangle$ por configuración}
     {\item $N = 100$ \item Barras de error solo en $\langle t_{90}\rangle$}{}{}
 \end{frame}
 
 % ---------------- CONCLUSIONES ----------------
-% 30
+% 31
 \sectiondivider{Conclusiones}
 
-% 31
+% 32
 % RECORDATORIOS (correcciones reales de TP2):
 %  - Aclarar SIEMPRE a qué configuración se refiere cada afirmación.
 %    Nunca "el sistema depende de K" sin decir cómo y en qué configuración.
@@ -726,12 +735,16 @@
   \end{itemize}
 \end{frame}
 
-% 32. Cierre
+% 33. Cierre
 \begin{frame}{}
   \vfill
   \begin{beamercolorbox}[wd=0.86\paperwidth,ht=0.72cm,dp=0.20cm,center]{frametitle}
     \LARGE Muchas gracias
   \end{beamercolorbox}
+  \vspace{0.4cm}
+  \begin{center}
+    \maybeimage{figuras/muchas_gracias.jpeg}{3.1cm}{Insertar imagen de cierre}
+  \end{center}
   \vfill
 \end{frame}
 

@@ -258,6 +258,7 @@ python3 TP3/scripts/animate.py TP3/generated/idea.txt --out TP3/generated/idea.m
 | Archivo | Descripción | ⟨t90⟩ (50 realizaciones) |
 |---|---|---|
 | `central_cuenco_Rf0.30.txt` | Disco central R=0.32 + cuenco Rf=0.30 en ambos arcos | 13.5 ± 1.5 s |
+| `cuenco_fino_R0.34.txt` | Cuenco R_f=0.34 con frontera de discos mínimos, sin disco central | 13.3 ± 1.6 s |
 | `central_R0.32.txt` | Disco central R=0.32: dos cámaras | 16.4 ± 1.9 s |
 | `esquinas_R0.10.txt` | Un disco R=0.10 en cada esquina | 29.0 ± 2.9 s |
 | `galton_s0.25.txt`, `galton_s0.10.txt` | Red de Galton de discos mínimos, s=0.25 y s=0.10 | 23.6 ± 3.1 s / 48.7 ± 7.4 s |
