@@ -1,4 +1,4 @@
-"""Comparación de arquetipos de obstáculos (Comparación de Arquetipos, diapositiva 26).
+"""Comparación de arquetipos de obstáculos (Comparación de Arquetipos, diapositiva 28).
 
 Datos tomados de la tabla "Configuraciones guardadas" de TP3/GUIA.md (no de una
 corrida en vivo): 50 realizaciones por arquetipo, disco central R=0.32 fijo,

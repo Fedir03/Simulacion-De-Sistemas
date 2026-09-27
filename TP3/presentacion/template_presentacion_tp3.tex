@@ -674,49 +674,62 @@
 \end{frame}
 
 % 25
-% Barrido en curso (cuenco_fino_radio): R_f de 0.28 a 0.58 m, frontera de
+\begin{frame}[c]{Cuenco --- Evolución del Sistema}
+  \animacionsimple{figuras/elegida_frame.png}{5.1cm}{\animacionElegidaURL}
+    {Insertar fotograma representativo del cuenco fino}
+    {\item $N = 100$ \item Cuenco fino $R_f = 0.34$ m (ambos arcos) \item Frontera de discos $R_k = r$, $K = 72$ \item $t_{90} = 13.36$ s}
+\end{frame}
+
+% 26
+\begin{frame}[c]{Cuenco --- Fracción de Partículas Usadas}
+  \resultadofigura{figuras/fu-temporal-cuenco.pdf}{4.7cm}{Insertar $F_u(t)$ de una realización del cuenco fino}
+    {\item $N = 100$ \item Cuenco fino $R_f = 0.34$ m \item Una realización}{}{}
+\end{frame}
+
+% 27
+% Barrido cuenco_fino_radio: R_f de 0.28 a 0.58 m, frontera de
 % discos de radio r, centro en el arco.
 \begin{frame}[c]{Cuenco --- Radio Libre}
   \resultadofigura{figuras/t90-vs-rf-cuenco.png}{4.7cm}{Insertar $\langle t_{90}\rangle$ vs.\ $R_f$}
     {\item $N = 100$ \item Centro en el arco \item Frontera de discos $R_k = r$ \item Realizaciones: 50}{}{}
 \end{frame}
 
-% 26
+% 28
 \begin{frame}[c]{Comparación de Arquetipos de Obstáculos}
   \resultadofigura{figuras/t90-vs-arquetipo.pdf}{4.7cm}{Insertar $\langle t_{90}\rangle$ por arquetipo (embudo, cuenco, palos, disco solo) vs.\ mesa vacía}
     {\item $N = 100$ \item Base común: disco central $R = 0.32$ m (salvo cuenco fino) \item Realizaciones: 50}{}{}
 \end{frame}
 
-% 27
+% 29
+% Solo fotograma: la animación ya se mostró en la diapositiva 25 (misma corrida, semilla 140).
 \begin{frame}[c]{Configuración Elegida --- Evolución del Sistema}
-  \animacionsimple{figuras/elegida_frame.png}{5.1cm}{\animacionElegidaURL}
-    {Insertar fotograma representativo de la configuración elegida}
-    {\item $N = 100$ \item Disco central $R = 0.32$ m \item Cuenco $R_f = 0.30$ m (ambos arcos) \item $t_{\max} = 100$ s}
+  \resultadofigura{figuras/elegida_frame.png}{5.1cm}{Insertar fotograma representativo de la configuración elegida}
+    {\item $N = 100$ \item Cuenco fino $R_f = 0.34$ m (ambos arcos) \item Frontera de discos $R_k = r$, $K = 72$ \item (misma corrida que en Resultados 1.2)}{}{}
 \end{frame}
 
-% 28
+% 30
 \begin{frame}[c]{Configuración Elegida --- Comparación contra la Mesa Vacía}
   \resultadofigura{figuras/fu-temporal-elegida.pdf}{4.7cm}{Insertar $F_u(t)$ de la configuración elegida y de la mesa vacía}
-    {\item $N = 100$ \item Realizaciones: 5}{}{}
+    {\item $N = 100$ \item Cuenco fino $R_f = 0.34$ m \item $\langle t_{90}\rangle = 13.3 \pm 1.6$ s \item Realizaciones: 5}{}{}
 \end{frame}
 
-% 29
+% 31
 \begin{frame}[c]{Desplazamiento Cuadrático Medio y Ajuste Lineal}
   \resultadofigura{figuras/dcm-ajuste.pdf}{4.7cm}{Insertar $z(t)$ con el ajuste superpuesto}
     {\item $N = 100$ \item Una realización \item $z = c\,t$, $D = c/2$}{}{}
 \end{frame}
 
-% 30
+% 32
 \begin{frame}[c]{Coeficiente de Difusión}
   \resultadofigura{figuras/d-vs-t90.pdf}{4.7cm}{Insertar $D$ vs.\ $\langle t_{90}\rangle$ por configuración}
     {\item $N = 100$ \item Barras de error solo en $\langle t_{90}\rangle$}{}{}
 \end{frame}
 
 % ---------------- CONCLUSIONES ----------------
-% 31
+% 33
 \sectiondivider{Conclusiones}
 
-% 32
+% 34
 % RECORDATORIOS (correcciones reales de TP2):
 %  - Aclarar SIEMPRE a qué configuración se refiere cada afirmación.
 %    Nunca "el sistema depende de K" sin decir cómo y en qué configuración.
@@ -735,7 +748,7 @@
   \end{itemize}
 \end{frame}
 
-% 33. Cierre
+% 35. Cierre
 \begin{frame}{}
   \vfill
   \begin{beamercolorbox}[wd=0.86\paperwidth,ht=0.72cm,dp=0.20cm,center]{frametitle}

@@ -16,7 +16,7 @@ antes de exportarlas — no depender de que Beamer las achique bien al
 insertarlas. Verificar contraste y legibilidad proyectando a pantalla
 completa, no solo mirando el archivo en el editor.
 
-**Ojo con las diapositivas de Resultados (15–30):** ahí la figura vive en
+**Ojo con las diapositivas de Resultados (15–32):** ahí la figura vive en
 una columna de `0.70\textwidth`, no en el ancho completo del frame (el
 costado de `0.27\textwidth` es la caja de parámetros fijos). Eso reduce el
 ancho disponible en pantalla a un factor ~0.68 del ancho anterior. Compensar
@@ -53,12 +53,13 @@ arregle después en el `.tex` de la presentación.
 | `t90-vs-separacion-galton.png`, `mapa-galton.png` | 22 | ✅ ⟨t₉₀⟩ vs. separación de la red (`generated/galton.png`) |
 | `t90-vs-rf-central-cuenco.png`, `mapa-central-cuenco.png` | 23 | ✅ ⟨t₉₀⟩ vs. R_f, disco central + cuenco (`generated/central32_cuenco.png`) |
 | `t90-vs-desplazamiento-cuenco.png`, `mapa-cuenco-desplazado.png` | 24 | ✅ ⟨t₉₀⟩ vs. desplazamiento del centro del cuenco (`generated/cuenco_R0.35_offset.png`) |
-| `t90-vs-rf-cuenco.png` | 25 | ⟨t₉₀⟩ vs. R_f, cuenco de frontera fina (barrido `cuenco_fino_radio`) |
-| `t90-vs-arquetipo.pdf` | 26 | ✅ Ya incluida. ⟨t₉₀⟩ por arquetipo (disco solo, +embudo, +palos, +cuenco) + cuenco fino R_f = 0.34 sin disco, vs. mesa vacía. Generada por `plot_arquetipos.py` con los datos de `TP3/GUIA.md` (regenerar con `python3 figuras/plot_arquetipos.py` si esos números cambian) |
-| `elegida_frame.png` | 27 | Fotograma representativo, configuración elegida (disco central + cuenco) |
-| `fu-temporal-elegida.pdf` | 28 | F_u(t): configuración elegida vs. mesa vacía |
-| `dcm-ajuste.pdf` | 29 | DCM z(t) con el ajuste lineal superpuesto |
-| `d-vs-t90.pdf` | 30 | D por configuración, y D vs. ⟨t₉₀⟩ |
+| `elegida_frame.png` | 25, 29 | ✅ Fotograma de la configuración elegida: cuenco fino R_f = 0.34, semilla 140, t = 6.67 s (`generated/elegida_s140/elegida_s140.mp4`, cuadro 204, sin la franja de texto superior). En 25 con link; en 29 solo el fotograma |
+| `fu-temporal-cuenco.pdf` | 26 | ✅ F_u(t) de esa misma corrida. Generada por `plot_fu_cuenco.py` (comandos en su docstring) |
+| `t90-vs-rf-cuenco.png` | 27 | ⟨t₉₀⟩ vs. R_f, cuenco de frontera fina (barrido `cuenco_fino_radio`) |
+| `t90-vs-arquetipo.pdf` | 28 | ✅ Ya incluida. ⟨t₉₀⟩ por arquetipo (disco solo, +embudo, +palos, +cuenco) + cuenco fino R_f = 0.34 sin disco, vs. mesa vacía. Generada por `plot_arquetipos.py` con los datos de `TP3/GUIA.md` (regenerar con `python3 figuras/plot_arquetipos.py` si esos números cambian) |
+| `fu-temporal-elegida.pdf` | 30 | F_u(t): configuración elegida (cuenco fino R_f = 0.34) vs. mesa vacía |
+| `dcm-ajuste.pdf` | 31 | DCM z(t) con el ajuste lineal superpuesto |
+| `d-vs-t90.pdf` | 32 | D por configuración, y D vs. ⟨t₉₀⟩ |
 
-Las URLs de YouTube de las diapositivas 16 y 27 se completan en
+Las URLs de YouTube de las diapositivas 16 y 25 se completan en
 `\animacionVaciaURL` / `\animacionElegidaURL`, al principio del `.tex`.
