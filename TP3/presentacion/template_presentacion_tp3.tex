@@ -352,7 +352,7 @@
     \begin{column}{0.53\textwidth}
       \small
       Partículas sobre una mesa de metegol
-      \begin{itemize}
+      \begin{itemize}[label=\textcolor{TPBlue}{$\bullet$}]
         \item Movimiento rectilíneo uniforme entre choques
         \item Choques elásticos contra paredes, obstáculos y entre partículas
         \item Partícula \textcolor{TPFresca}{\textbf{fresca}} $\rightarrow$
@@ -455,7 +455,7 @@
       \end{beamercolorbox}
     \end{column}
     \begin{column}{0.41\textwidth}
-      \begin{itemize}
+      \begin{itemize}[label=\textcolor{TPBlue}{$\bullet$}]
         \item Java 21: motor de simulación
         \item Python 3: animación de trayectorias (matplotlib)
         \item \texttt{PriorityQueue} ordenada por tiempo absoluto
@@ -502,20 +502,20 @@
       etiqueta/.style={font=\scriptsize, inner sep=2pt},
     ]
 
-    \node[externa, minimum width=4.4cm] (ic)     at (0.0,3.1)  {\textbf{StageFile} --- condición inicial\\[1pt]{\footnotesize\itshape N partículas, K obstáculos}};
+    \node[externa, minimum width=4.4cm] (ic)     at (0.0,3.1)  {\textbf{Estado inicial del sistema}\\[1pt]{\footnotesize\itshape posiciones, velocidades y obstáculos}};
     \node[caja,    minimum width=4.4cm] (cola)   at (6.6,3.1)  {\textbf{PriorityQueue$\langle$Event$\rangle$}\\[1pt]{\footnotesize\itshape ordenada por tiempo absoluto}};
     \node[caja,    minimum width=4.2cm] (extrae) at (12.4,3.1) {\textbf{Extraer el mínimo}\\[1pt]{\footnotesize\itshape ¿\texttt{valid()}? contadores}};
     \node[caja,    minimum width=4.2cm] (avance) at (12.4,0.5) {\textbf{Avance del sistema}\\[1pt]{\footnotesize\itshape MRU de todas hasta $t_e$}};
     \node[caja,    minimum width=4.4cm] (resol)  at (6.6,0.5)  {\textbf{Resolución del choque}\\[1pt]{\footnotesize\itshape impulso $J$ / inversión normal}};
     \node[caja,    minimum width=4.4cm] (repred) at (0.0,0.5)  {\textbf{Repredicción}\\[1pt]{\footnotesize\itshape solo los afectados, $O(N+K)$}};
-    \node[externa, minimum width=4.4cm] (out)    at (6.6,-2.0) {\textbf{StageFile} --- trayectoria\\[1pt]{\footnotesize\itshape \texttt{tp3-v1}, cada $n$ choques}};
+    \node[externa, minimum width=4.4cm] (out)    at (6.6,-2.0) {\textbf{Registro de eventos}\\[1pt]{\footnotesize\itshape se guardan los eventos de la simulación}};
 
     \draw[flecha] (ic)     -- node[etiqueta, above, align=center] {predicción\\inicial} (cola);
     \draw[flecha] (cola)   -- (extrae);
     \draw[flecha] (extrae) -- node[etiqueta, right] {válido} (avance);
     \draw[flecha] (avance) -- (resol);
     \draw[flecha] (resol)  -- (repred);
-    \draw[flecha] (repred) -- node[etiqueta, left] {encola} (cola);
+    \draw[flecha] (repred) -- node[etiqueta, right, xshift=4mm] {encola} (cola);
     \draw[flechagris] (extrae.north) to[out=110,in=70]
       node[etiqueta, above] {obsoleto: se descarta} (cola.north);
     \draw[flechagris] (resol) -- (out);
@@ -614,7 +614,7 @@
 \begin{frame}[c]{Mesa Vacía --- Evolución del Sistema}
   \animacionsimple{figuras/vacia_frame.png}{5.1cm}{\animacionVaciaURL}
     {Insertar fotograma representativo de la mesa vacía}
-    {\item $N = 100$ \item $K = 0$ \item $t_{90} = 22.44$ s \item Flechas: solo dirección de $\bm{v}$}
+    {\item $N = 100$ \item $K = 0$ \item $t_{90} = 22.44$ s \item Flechas: dirección y sentido de $\bm{v}$}
 \end{frame}
 
 % 17
@@ -632,7 +632,7 @@
 % 19
 \begin{frame}[c]{Un Obstáculo en el Centro --- Radio}
   \resultadofigura{figuras/t90-vs-r-central.png}{4.7cm}{Insertar $\langle t_{90}\rangle$ vs.\ $R$}
-    {\item $N = 100$ \item $K = 1$ \item Centro de la mesa \item Realizaciones: 50}
+    {\item $N = 100$ \item $K = 1$ \item Realizaciones: 50}
     {figuras/mapa-central.png}{Ej.: $R = 0.34$ m}
 \end{frame}
 
@@ -641,14 +641,14 @@
 % (frontera lisa) o relleno libre (discos grandes asomando).
 \begin{frame}[c]{Embudos hacia los Arcos}
   \resultadofigura{figuras/t90-vs-largo-embudo.png}{4.7cm}{Insertar $\langle t_{90}\rangle$ vs.\ $a$}
-    {\item $N = 100$ \item Embudo en ambos arcos \item Realizaciones: 50}
+    {\item $N = 100$ \item Realizaciones: 50}
     {figuras/mapa-embudo.png}{Ej.: $a = 0.30$ m}
 \end{frame}
 
 % 21
 \begin{frame}[c]{Red de Obstáculos Mínimos (Galton)}
   \resultadofigura{figuras/t90-vs-separacion-galton.png}{4.7cm}{Insertar $\langle t_{90}\rangle$ vs.\ $s$}
-    {\item $N = 100$ \item $R_k = r$ \item Red triangular \item Realizaciones: 50}
+    {\item $N = 100$ \item $R_k = r$ \item Realizaciones: 50}
     {figuras/mapa-galton.png}{Ej.: $s = 0.10$ m}
   \vspace{1mm}
   {\scriptsize\color{TPNavGray} Promedio sobre las corridas que alcanzan $t_{90}$ en 100 s:
@@ -659,7 +659,7 @@
 % Referencia: disco central R = 0.32 m solo (no la mesa vacía).
 \begin{frame}[c]{Disco Central y Cuenco}
   \resultadofigura{figuras/t90-vs-rf-central-cuenco.png}{4.7cm}{Insertar $\langle t_{90}\rangle$ vs.\ $R_f$}
-    {\item $N = 100$ \item Disco central\\ $R = 0.32$ m \item Semicírculo libre en cada arco \item Realizaciones: 50}
+    {\item $N = 100$ \item Disco central\\ $R = 0.32$ m \item Realizaciones: 50}
     {figuras/mapa-central-cuenco.png}{Ej.: $R_f = 0.30$ m}
 \end{frame}
 
