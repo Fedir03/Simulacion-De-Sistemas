@@ -24,6 +24,10 @@ TIME=${TIME:-100}    # tiempo máximo si no se llega al 90 % [s]
 EVERY=${EVERY:-100}  # estado completo cada EVERY eventos
 FPS=${FPS:-30}       # cuadros por segundo de video
 NO_OPEN=${NO_OPEN:-0} # 1 para no abrir los videos
+ARROWS=${ARROWS:-1}   # 0 para no dibujar el pico de dirección de cada partícula
+# Git Bash en Windows: animate.py con --jobs > 1 usa multiprocessing 'fork', que no existe ahí,
+# y la consola cp1252 no imprime σ. Se usa un proceso por video y salida UTF-8.
+case "$(uname -s)" in MINGW*|MSYS*|CYGWIN*) WINDOWS=1; export PYTHONUTF8=1 ;; *) WINDOWS=0 ;; esac
 
 MODULE="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 JAR="$MODULE/target/tp3.jar"
@@ -37,7 +41,9 @@ fi
 
 open_video() {
     [[ "$NO_OPEN" == 1 ]] && return
-    if grep -qi microsoft /proc/version 2>/dev/null && command -v explorer.exe >/dev/null; then
+    if (( WINDOWS )); then
+        cmd.exe //c start "" "$(cygpath -w "$1")"
+    elif grep -qi microsoft /proc/version 2>/dev/null && command -v explorer.exe >/dev/null; then
         explorer.exe "$(wslpath -w "$1")" || true  # explorer.exe devuelve 1 aunque abra el archivo
     elif command -v xdg-open >/dev/null; then
         xdg-open "$1" >/dev/null 2>&1 &
@@ -57,7 +63,8 @@ simulate_one() {
 
 animate_one() {
     local seed=$1 jobs=$2 video="$OUT/realizacion_s$1.mp4"
-    python3 "$MODULE/scripts/animate.py" "$OUT/sim_s$seed.txt" --out "$video" --fps "$FPS" --jobs "$jobs" > /dev/null 2>&1
+    python3 "$MODULE/scripts/animate.py" "$OUT/sim_s$seed.txt" --out "$video" --fps "$FPS" --jobs "$jobs" \
+        $( (( ARROWS )) && echo --arrows ) > /dev/null
     echo "  video listo: $(basename "$video")"
     open_video "$video"
 }
@@ -97,10 +104,11 @@ EOF
 echo "Resultados: $OUT/runs.csv y summary.csv"
 
 echo "Animando la primera realización..."
-animate_one "${SEEDS[0]}" "$(nproc)"
+if (( WINDOWS )); then first_jobs=1; else first_jobs=$(nproc); fi
+animate_one "${SEEDS[0]}" "$first_jobs"
 if (( REALIZATIONS > 1 )); then
     echo "Animando las otras $((REALIZATIONS - 1)) en paralelo..."
-    jobs_each=$(( $(nproc) / (REALIZATIONS - 1) )); (( jobs_each >= 1 )) || jobs_each=1
+    jobs_each=$(( $(nproc) / (REALIZATIONS - 1) )); (( jobs_each >= 1 && ! WINDOWS )) || jobs_each=1
     pids=()
     for seed in "${SEEDS[@]:1}"; do animate_one "$seed" "$jobs_each" & pids+=($!); done
     for pid in "${pids[@]}"; do wait "$pid" || status=1; done
