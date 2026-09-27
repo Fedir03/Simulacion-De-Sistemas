@@ -4,6 +4,7 @@ import ar.edu.itba.sds.tp3.engine.*;
 import ar.edu.itba.sds.tp3.engine.obstacles.ObstacleGenerators;
 import ar.edu.itba.sds.tp3.io.StageFile;
 import ar.edu.itba.sds.tp3.models.Obstacle;
+import ar.edu.itba.sds.tp3.models.Particle;
 import java.io.*;
 import java.nio.file.*;
 import java.util.*;
@@ -106,10 +107,20 @@ public final class Main {
                  BufferedWriter log = eventsOut == null ? null : StageFile.writer(eventsOut)) {
                 StageFile.header(w, stage);
                 if (log != null) StageFile.eventHeader(log);
+                // Goles y t90 en vivo, con el mismo criterio de t90 que CollisionSimulator.
+                int n = stage.particles().size(), target = (int) Math.ceil(0.9 * n);
+                int[] goals = {(int) stage.particles().stream().filter(Particle::used).count()};
+                CollisionSimulator.EventSink fileLog = log == null ? CollisionSimulator.EventSink.NONE
+                        : (t, i, type, a, b, goal) -> StageFile.event(log, t, i, type, a, b, goal);
                 long start = System.nanoTime();
                 var result = new CollisionSimulator(stage).run(endTime, every,
                         (t, e, g, p) -> StageFile.frame(w, t, e, g, p),
-                        log == null ? CollisionSimulator.EventSink.NONE : (t, i, type, a, b, goal) -> StageFile.event(log, t, i, type, a, b, goal),
+                        (t, i, type, a, b, goal) -> {
+                            fileLog.event(t, i, type, a, b, goal);
+                            if (!goal) return;
+                            System.out.printf(Locale.ROOT, "gol %d/%d t=%.4f s (partícula %d)%n", ++goals[0], n, t, a);
+                            if (goals[0] == target) System.out.printf(Locale.ROOT, "t90 alcanzado: t=%.4f s (%d/%d)%n", t, goals[0], n);
+                        },
                         until.equals("t90"));
                 // Tiempo de ejecución del ciclo de eventos, escritura incluida; excluye arranque de la JVM y lectura.
                 double runtime = (System.nanoTime() - start) / 1e9;
