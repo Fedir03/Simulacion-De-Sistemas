@@ -6,6 +6,7 @@
 #   REALIZATIONS=3 EVERY=50 NO_OPEN=1 bash TP3/scripts/demo_mejor.sh
 #   REALIZATIONS=3 bash TP3/scripts/demo_mejor.sh --only-initial
 #   NO_OPEN=1 bash TP3/scripts/demo_mejor.sh --input condicion.txt
+#   bash TP3/scripts/demo_mejor.sh --no-anim   # solo t90, <t90>, σ y σ/√n; sin videos
 #
 # Etapas:
 #   1. Todas las semillas en paralelo: generate con el mapa de MAP_ARGS y simulate hasta t90
@@ -14,6 +15,7 @@
 #      Cada t90 se informa apenas termina y se escriben runs.csv y summary.csv.
 #   2. Se anima la primera semilla con todos los núcleos y se abre en cuanto está lista.
 #   3. Se animan las demás en paralelo; cada video se abre al terminar.
+# Con --no-anim termina después de la etapa 1, sin generar videos.
 # Los videos terminan en t90: un cuadro cada EVERY eventos, sin interpolar.
 # Salidas en TP3/generated/demo_mejor/<fecha>_<id>/; conserva ic_s<seed>.txt.
 set -euo pipefail
@@ -28,15 +30,17 @@ FPS=${FPS:-30}       # cuadros por segundo de video
 NO_OPEN=${NO_OPEN:-0} # 1 para no abrir los videos
 ARROWS=${ARROWS:-1}   # 0 para no dibujar el pico de dirección de cada partícula
 ONLY_INITIAL=0
+ANIMATE=1
 INPUT=""
 usage() {
     cat <<'EOF'
-Uso: demo_mejor.sh [--only-initial | --input archivo.txt]
+Uso: demo_mejor.sh [--only-initial | --input archivo.txt] [--no-anim]
 
   Sin flags       Genera, simula y anima REALIZATIONS corridas (por defecto 5).
   --only-initial  Genera únicamente REALIZATIONS archivos de condición inicial.
   --input ARCHIVO Simula y anima una sola condición inicial existente; ignora
                   REALIZATIONS y el mapa predeterminado. Conserva una copia.
+  --no-anim       Simula e informa t90, <t90>, σ y σ/√n, sin generar videos.
   -h, --help      Muestra esta ayuda.
 
 Siempre se conservan los archivos ic_s<semilla>.txt en la carpeta de resultados.
@@ -47,6 +51,7 @@ fail() { echo "Error: $*" >&2; exit 1; }
 while (( $# )); do
     case "$1" in
         --only-initial) ONLY_INITIAL=1; shift ;;
+        --no-anim) ANIMATE=0; shift ;;
         --input)
             (( $# >= 2 )) && [[ -n "$2" && "$2" != --* ]] || fail "Falta el archivo para --input."
             [[ -z "$INPUT" ]] || fail "--input solo puede indicarse una vez."
@@ -146,18 +151,18 @@ status=0
 for pid in "${pids[@]}"; do wait "$pid" || status=1; done
 [[ $status == 0 ]] || { echo "Falló alguna realización; ver $OUT" >&2; exit 1; }
 
-python3 - "$MODULE/scripts" "$OUT" "${SEEDS[@]}" <<'EOF'
+python3 - "$MODULE/scripts" "$OUT" "$ANIMATE" "${SEEDS[@]}" <<'EOF'
 import math
 import sys
 from pathlib import Path
 sys.path.insert(0, sys.argv[1])
 import sweep
 
-out, seeds = Path(sys.argv[2]), [int(s) for s in sys.argv[3:]]
+out, animate, seeds = Path(sys.argv[2]), sys.argv[3] == '1', [int(s) for s in sys.argv[4:]]
 rows = []
 for seed in seeds:
     rows.append({'param': '', 'value': '', 'seed': seed, 'status': 'ok', 'K': sweep.count_obstacles(out / f'ic_s{seed}.txt'),
-                 **sweep.parse_result(out / f'sim_s{seed}.txt'), 'video': f'realizacion_s{seed}.mp4',
+                 **sweep.parse_result(out / f'sim_s{seed}.txt'), 'video': f'realizacion_s{seed}.mp4' if animate else '',
                  'trajectory': f'sim_s{seed}.txt', 'events_log': f'sim_s{seed}_events.txt',
                  'initial_condition': f'ic_s{seed}.txt'})
 summary = sweep.summarize(rows)
@@ -170,6 +175,12 @@ print(f"<t90> = {s['t90_mean']:.2f} ± {s['t90_sem']:.2f} s (± = σ/√n, n = {
 print(f"σ(t90) = {s['t90_std']:.2f} s (desvío estándar entre realizaciones)")
 EOF
 echo "Resultados: $OUT/runs.csv y summary.csv"
+
+if (( ! ANIMATE )); then
+    echo "Listo (sin animar): $OUT"
+    echo "  ic_s*.txt (condición inicial), sim_s*.txt (estado cada $EVERY eventos hasta t90), sim_s*_events.txt (todos los eventos hasta t90)"
+    exit 0
+fi
 
 echo "Animando la primera realización..."
 if (( WINDOWS )); then first_jobs=1; else first_jobs=$(nproc); fi

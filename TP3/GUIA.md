@@ -148,6 +148,8 @@ $TP3 simulate --input TP3/generated/mi_mapa_ic.txt --time 100 --every 1000000000
 - `--time`: tiempo simulado en segundos (30 por defecto; la competencia usa 100).
 - La consola muestra `eventos`, `goles`, `t90` (NaN si no se llegó al 90 %) y `runtime`,
   el tiempo real del ciclo de eventos en segundos. Lo mismo queda en la última línea del archivo.
+- Durante la corrida, la consola muestra cada gol (`gol k/N t=...`) y, al llegar al 90 %,
+  `t90 alcanzado: t=...`.
 - Qué estados se escriben:
   - `--every n`: el estado completo cada n choques (100 por defecto). Un n enorme, como
     arriba, escribe solo el estado inicial y el final: lo más rápido si solo interesa t90.
@@ -186,6 +188,8 @@ python3 TP3/scripts/animate.py TP3/generated/mi_mapa_anim.txt --out TP3/generate
   conserva una copia en la nueva carpeta de resultados e ignora `REALIZATIONS`.
   Admite `TIME`, `EVERY`, `FPS` y `ARROWS` como el modo normal.
   Los flags `--only-initial` y `--input` son excluyentes.
+- `bash TP3/scripts/demo_mejor.sh --no-anim` simula e informa cada t90, ⟨t90⟩ ± σ/√n y σ,
+  sin generar videos. Se puede combinar con `--input`.
 
 ### Reproducir en video una realización de un barrido
 
