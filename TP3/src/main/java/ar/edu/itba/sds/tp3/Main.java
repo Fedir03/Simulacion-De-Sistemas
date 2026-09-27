@@ -35,12 +35,11 @@ public final class Main {
                              [--obstacles archivo.txt (con --obstacle-algorithm, el algoritmo agrega obstáculos a los del archivo)]
                              [--length 1.2] [--width 0.68] [--goal-width 0.2]
                              [--radius 0.0175] [--mass 0.025] [--speed 1.0]
-                    simulate --input archivo.txt [--time 30] [--every 100 | --dt 0.01] [--out archivo.txt]
+                    simulate --input archivo.txt [--time 30] [--every 100] [--out archivo.txt]
                              [--events-out <salida>_events.txt | none] [--until time | t90]
                              --every k escribe el estado completo cada k eventos; --events-out guarda
                              una línea por evento (t, tipo, participantes, gol), sin el estado
                              --until t90 termina al llegar al 90 % de partículas usadas (--time es el máximo)
-                             --dt escribe estados exactos cada dt segundos en vez de cada --every eventos
                     Salidas predeterminadas: TP3/generated/initial.txt, TP3/generated/simulation.txt
                     y TP3/generated/simulation_events.txt
                     """);
@@ -51,7 +50,7 @@ public final class Main {
                     "obstacle-algorithm", "obstacle-count", "obstacle-radius", "obstacle-seed", "obstacle-x", "obstacle-y",
                     "obstacle-funnel-length", "obstacle-edge-radius", "obstacle-free-radius", "obstacle-center-offset", "obstacle-goals", "obstacle-max-radius", "obstacle-grid", "obstacle-spacing",
                     "obstacle-focus-x", "obstacle-focus-shape", "obstacle-focus-size", "obstacle-lens-width");
-            case "simulate" -> Set.of("input", "time", "every", "dt", "out", "events-out", "until");
+            case "simulate" -> Set.of("input", "time", "every", "out", "events-out", "until");
             default -> throw new IllegalArgumentException("Comando desconocido: " + args[0]);
         };
         Map<String, String> options = new HashMap<>();
@@ -92,10 +91,7 @@ public final class Main {
                     || Files.exists(out) && Files.isSameFile(input, out)) throw new IllegalArgumentException("Entrada y salida deben ser distintas");
             double endTime = value(options, "time", "30");
             int every = Integer.parseInt(options.getOrDefault("every", "100"));
-            double dt = value(options, "dt", "0");
             if (!Double.isFinite(endTime) || endTime < 0 || every <= 0) throw new IllegalArgumentException("Tiempo o frecuencia inválidos");
-            if (options.containsKey("dt") && (options.containsKey("every") || !(dt > 0)))
-                throw new IllegalArgumentException("--dt debe ser positivo y excluye --every");
             // Registro de todos los eventos: por defecto <salida>_events.txt; "none" lo desactiva.
             String eventsOption = options.getOrDefault("events-out", out.getFileName().toString().replaceFirst("(\\.txt)?$", "_events.txt"));
             Path eventsOut = eventsOption.equals("none") ? null
@@ -111,13 +107,13 @@ public final class Main {
                 StageFile.header(w, stage);
                 if (log != null) StageFile.eventHeader(log);
                 long start = System.nanoTime();
-                var result = new CollisionSimulator(stage).run(endTime, every, dt,
+                var result = new CollisionSimulator(stage).run(endTime, every,
                         (t, e, g, p) -> StageFile.frame(w, t, e, g, p),
                         log == null ? CollisionSimulator.EventSink.NONE : (t, i, type, a, b, goal) -> StageFile.event(log, t, i, type, a, b, goal),
                         until.equals("t90"));
                 // Tiempo de ejecución del ciclo de eventos, escritura incluida; excluye arranque de la JVM y lectura.
                 double runtime = (System.nanoTime() - start) / 1e9;
-                w.write("# tf=" + result.time() + (dt > 0 ? " outputInterval=" + dt : " outputEvery=" + every) + " events=" + result.events() + " Ng=" + result.goals()
+                w.write("# tf=" + result.time() + " outputEvery=" + every + " events=" + result.events() + " Ng=" + result.goals()
                         + " t90=" + result.t90() + " runtime=" + runtime);
                 w.newLine();
                 if (eventsOut != null) System.out.println("Eventos: " + eventsOut);

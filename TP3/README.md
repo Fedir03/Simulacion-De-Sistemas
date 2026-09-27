@@ -91,11 +91,6 @@ en el archivo inicial. `simulate` toma esos parámetros del archivo, con tiempo
 final `--time` en segundos (30 por defecto) y frecuencia `--every` en cantidad
 de colisiones válidas (100 por defecto). Además escribe todos los eventos, uno por
 línea, en `--events-out` (`<salida>_events.txt` por defecto; `none` lo desactiva).
-Alternativamente, `--dt` escribe los estados
-en t = k·dt, exactos porque entre eventos el movimiento es rectilíneo uniforme;
-excluye `--every`. Se calculan sobre copias: la dinámica, y por lo tanto t90, es
-idéntica con o sin `--dt`. Sirve para el DCM, que requiere tiempos uniformes; las
-animaciones usan estados guardados por evento (`--every`).
 
 Cada obstáculo se define con una línea `x y radio`, en metros, compatible con
 el entregable de competencia. Se aceptan líneas vacías y comentarios `#`.
@@ -314,7 +309,6 @@ coincide con el de la corrida completa; `Ng` del resultado queda en 90.
 `runtime` es el tiempo real en segundos del ciclo de eventos, escritura incluida,
 sin el arranque de la JVM ni la lectura de la condición inicial.
 
-Con `--dt`, el comentario dice `outputInterval=<dt>` en lugar de `outputEvery`.
 Los números del comentario son ilustrativos. `t90=NaN` indica que no se alcanzó
 el 90%. Los intervalos entre bloques son variables: deben utilizarse los tiempos
 escritos, no un dt constante. En contactos simultáneos pueden aparecer bloques

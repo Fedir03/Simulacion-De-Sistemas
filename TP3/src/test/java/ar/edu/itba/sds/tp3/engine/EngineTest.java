@@ -165,10 +165,10 @@ class EngineTest {
     }
     @Test void stopAtT90EndsAtTheSameT90AsTheFullRun() throws Exception {
         var initial = StageGeneration.generate(C, 100, 7, List.of());
-        var full = new CollisionSimulator(initial).run(100, Integer.MAX_VALUE, 0, (t, e, g, ps) -> { }, CollisionSimulator.EventSink.NONE);
+        var full = new CollisionSimulator(initial).run(100, Integer.MAX_VALUE, (t, e, g, ps) -> { }, CollisionSimulator.EventSink.NONE);
         List<double[]> frames = new ArrayList<>();
         List<Double> events = new ArrayList<>();
-        var cut = new CollisionSimulator(initial).run(100, 100, 0, (t, e, g, ps) -> frames.add(new double[]{t, g}),
+        var cut = new CollisionSimulator(initial).run(100, 100, (t, e, g, ps) -> frames.add(new double[]{t, g}),
                 (t, i, type, a, b, goal) -> events.add(t), true);
         assertTrue(Double.isFinite(full.t90()));
         assertEquals(full.t90(), cut.t90());
@@ -180,31 +180,5 @@ class EngineTest {
         assertEquals(cut.t90(), frames.getLast()[0]);
         assertEquals(90, frames.getLast()[1]);
         assertThrows(IllegalArgumentException.class, () -> Main.execute(new String[]{"simulate", "--input", "x.txt", "--until", "t80"}));
-    }
-    @Test void sampledOutputWritesExactStatesAtFixedTimes() throws Exception {
-        // Choca con la pared derecha, dentro del arco, en t = L - r - 0.2 = 0.9825 s.
-        var sim = new CollisionSimulator(stage(List.of(particle(1, 0.2, 0.34, 1, 0)), List.of()));
-        List<double[]> frames = new ArrayList<>();
-        var result = sim.run(1.5, 1, 0.25, (t, e, g, ps) -> frames.add(new double[]{t, e, g, ps.getFirst().x()}));
-        double[] times = {0, 0.25, 0.5, 0.75, 1.0, 1.25, 1.5};
-        assertEquals(times.length, frames.size());
-        for (int i = 0; i < times.length; i++) {
-            double t = times[i], x = t <= 0.9825 ? 0.2 + t : 1.1825 - (t - 0.9825);
-            assertEquals(t, frames.get(i)[0], EPS);
-            assertEquals(x, frames.get(i)[3], EPS);
-            assertEquals(t > 0.9825 ? 1 : 0, frames.get(i)[1]);
-            assertEquals(t > 0.9825 ? 1 : 0, frames.get(i)[2]);
-        }
-        assertEquals(1, result.events());
-        assertThrows(IllegalArgumentException.class, () -> Main.execute(new String[]{"simulate", "--input", "x.txt", "--dt", "0.1", "--every", "2"}));
-        assertThrows(IllegalArgumentException.class, () -> Main.execute(new String[]{"simulate", "--input", "x.txt", "--dt", "0"}));
-    }
-    @Test void sampledOutputDoesNotChangeTheDynamics() throws Exception {
-        var initial = StageGeneration.generate(C, 100, 7, List.of(new Obstacle(0.6, 0.34, 0.1)));
-        var plain = new CollisionSimulator(initial).run(10, Integer.MAX_VALUE, (t, e, g, ps) -> { });
-        List<Double> xs = new ArrayList<>();
-        var sampled = new CollisionSimulator(initial).run(10, 1, 0.01, (t, e, g, ps) -> xs.add(ps.getFirst().x()));
-        assertEquals(plain, sampled);
-        assertEquals(1001, xs.size());
     }
 }

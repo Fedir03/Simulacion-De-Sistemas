@@ -378,7 +378,6 @@ Sus métodos principales son:
 | Método | Responsabilidad |
 |---|---|
 | `run(endTime, outputEvery, output)` | Coordinar el ciclo de eventos y calcular resultados |
-| `run(endTime, outputEvery, outputInterval, output)` | Igual, pero con `outputInterval > 0` escribe en t = k·outputInterval |
 | `advance(next)` | Mover todas las partículas hasta el nuevo tiempo |
 | `predict(p, skip)` | Predecir choques de p contra paredes, partículas y obstáculos |
 | `add(...)` | Insertar predicciones finitas dentro del tiempo de simulación |
@@ -435,13 +434,6 @@ mientras haya eventos:
 avanzar hasta el tiempo final si falta
 escribir el estado final si aún no quedó escrito
 ```
-
-Con salida por intervalo (`--dt`), antes de resolver cada evento se escriben las
-muestras pendientes `k·dt ≤ tiempoDelEvento`: se copian las partículas, se avanzan las
-copias hasta la muestra y se escriben. No se avanza el sistema real: partir un tramo en
-dos cambia el redondeo, y en un sistema caótico eso altera la trayectoria y t90. Como entre eventos el movimiento es rectilíneo uniforme, esos estados son
-exactos. Una muestra que coincide con un evento muestra el estado previo al choque.
-Los tiempos se calculan como `k·dt`, sin acumular sumas, para evitar deriva.
 
 Solamente se insertan eventos cuyo tiempo no supera el límite de la corrida.
 Por eso, al vaciarse la cola se puede avanzar directamente al tiempo final.
@@ -708,8 +700,8 @@ comentada incluye t90, que puede no coincidir con el tiempo de un fotograma guar
 
 [EngineTest.java](src/test/java/ar/edu/itba/sds/tp3/engine/EngineTest.java)
 contiene 14 pruebas de predicción, conservación de energía y momento, invalidación,
-goles únicos, rebotes, esquinas, reproducibilidad, formato, errores, comandos y
-salida exacta a intervalos fijos de tiempo, que no altera la dinámica.
+goles únicos, rebotes, esquinas, reproducibilidad, formato, errores, comandos,
+registro de eventos y corte en t90.
 Una corrida de 100 partículas durante 3 segundos verifica energía, paredes y
 solapamientos en los estados emitidos cada 50 eventos.
 

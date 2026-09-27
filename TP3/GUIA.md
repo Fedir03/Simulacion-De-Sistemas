@@ -156,8 +156,6 @@ $TP3 simulate --input TP3/generated/mi_mapa_ic.txt --time 100 --every 1000000000
     `--events-out none` lo desactiva.
   - `--until t90`: termina en el choque que alcanza el 90 % de partículas usadas (`--time`
     queda como máximo). t90 es idéntico al de la corrida completa; el último estado escrito es el de t90.
-  - `--dt 0.01`: el estado en t = 0, 0.01, 0.02, …. Puede usarse para el DCM; no para
-    animar, que va por eventos. No altera la dinámica: el t90 es idéntico al de la corrida sin `--dt`.
 - El resultado depende solo de la condición inicial: misma entrada, mismo t90.
 
 ## 4. Animar
