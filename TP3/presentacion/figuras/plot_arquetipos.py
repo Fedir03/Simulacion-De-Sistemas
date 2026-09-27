@@ -1,10 +1,12 @@
-"""Comparación de arquetipos de obstáculos (Comparación de Arquetipos, diapositiva 28).
+"""Comparación de arquetipos de obstáculos (Comparación de Arquetipos, diapositiva 27).
 
 Datos tomados de la tabla "Configuraciones guardadas" de TP3/GUIA.md (no de una
 corrida en vivo): 50 realizaciones por arquetipo, disco central R=0.32 fijo,
 variando qué se agrega en los arcos, más 50 realizaciones de la mesa vacía como
-referencia (semillas 101-150). Se agrega el cuenco fino R_f=0.34 (sin disco
-central, mejor mapa de demo_mejor.sh) con las mismas semillas, en otro color.
+referencia (semillas 101-150). Se agrega el cuenco R_f=0.34 (sin disco central,
+el mapa elegido, el de demo_mejor.sh) con las mismas semillas, en otro color.
+El disco central + cuenco R_f=0.30 (13.5 ± 1.5 s) no se muestra: la presentación
+usa un solo cuenco, el de mejor <t90>.
 Si se vuelve a correr el barrido y los números de GUIA.md cambian, actualizar
 las listas de abajo.
 
@@ -25,12 +27,12 @@ COLOR_BARRA = "#3939B5"  # TPBlue, igual que el resto de la deck
 COLOR_SIN_DISCO = "#9A9AD8"  # misma familia, más claro: no comparte la base
 COLOR_REF = "#4D4D4D"
 
-# Las 4 primeras: disco central R=0.32 fijo, solo cambia qué se agrega en los
-# arcos. La última: cuenco fino R_f=0.34 sin disco central.
-categorias = ["Disco solo", "+ Embudo", "+ Palos", "+ Cuenco", "Cuenco fino\n(sin disco)"]
-medias = [16.4, 17.4, 22.4, 13.5, 13.3]
-desvios = [1.9, 1.8, 2.6, 1.5, 1.6]
-colores = [COLOR_BARRA] * 4 + [COLOR_SIN_DISCO]
+# Las 3 primeras: disco central R=0.32 fijo, solo cambia qué se agrega en los
+# arcos. La última: cuenco R_f=0.34 sin disco central.
+categorias = ["Disco solo", "+ Embudo", "+ Palos", "Cuenco"]
+medias = [16.4, 17.4, 22.4, 13.3]
+desvios = [1.9, 1.8, 2.6, 1.6]
+colores = [COLOR_BARRA] * 3 + [COLOR_SIN_DISCO]
 
 # Mesa vacía, 50 realizaciones (semillas 101-150).
 ref_media, ref_desvio = 22.6, 2.6
