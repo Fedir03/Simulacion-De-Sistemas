@@ -5,16 +5,16 @@ import unittest
 from contextlib import nullcontext
 from unittest.mock import patch
 
-from animate import render_animation
+from animate import ARROW_REACH, render_animation
 
 from simulation_io import parse_simulation
 
 HEADER = 'format=tp3-v1 N=1 K=1 L=1.2 W=0.68 d=0.2\nobstacle 0.6 0.34 0.08\n'
 
 
-def block(t, x, used=False):
+def block(t, x, used=False, v=(1, 0)):
     return (f't={t} events={int(t)} Ng={int(used)} Fu={float(used)}\n'
-            f'1 {x} 0.2 1 0 0.0175 0.025 ' + ('255 0 0' if used else '0 0 255') + '\n')
+            f'1 {x} 0.2 {v[0]} {v[1]} 0.0175 0.025 ' + ('255 0 0' if used else '0 0 255') + '\n')
 
 
 class SimulationTests(unittest.TestCase):
@@ -81,6 +81,36 @@ class SimulationTests(unittest.TestCase):
                             self.assertIn(f't = {frame.time:.3f} s', actual[3])
                             self.assertIn(f'Goles: {frame.goals}/1', actual[3])
                             self.assertIn(f'Eventos: {frame.events}', actual[3])
+
+    def test_velocity_is_parsed(self):
+        data = self.parse(HEADER + block(0, 0.1, v=(0.6, -0.8)))
+        self.assertEqual(data.frames[0].particles[0][5:7], (0.6, -0.8))
+
+    def test_arrows_follow_particle_direction(self):
+        # En cada cuadro el pico sale del centro, apunta según (vx, vy) y mide ARROW_REACH radios,
+        # sin importar el módulo de la velocidad.
+        import matplotlib
+        matplotlib.use('Agg')
+        import matplotlib.pyplot as plt
+
+        data = self.parse(HEADER + block(0, 0.1) + block(1, 0.5, v=(0, -2)) + block(2, 0.3, v=(-3, 4)))
+        captured = []
+
+        def capture():
+            quiver = plt.gcf().axes[0].collections[-1]
+            captured.append((tuple(quiver.get_offsets()[0]), float(quiver.U[0]), float(quiver.V[0])))
+
+        with tempfile.TemporaryDirectory() as directory, patch('matplotlib.animation.PillowWriter') as gif:
+            gif.return_value.saving.return_value = nullcontext()
+            gif.return_value.grab_frame.side_effect = capture
+            render_animation(data, Path(directory) / 'animation.gif', arrows=True, progress=False)
+
+        reach = ARROW_REACH * 0.0175
+        expected = [((0.1, 0.2), reach, 0), ((0.5, 0.2), 0, -reach), ((0.3, 0.2), -0.6 * reach, 0.8 * reach)]
+        self.assertEqual(len(captured), len(expected))
+        for (offset, u, v), (e_offset, e_u, e_v) in zip(captured, expected):
+            for actual, wanted in zip((*offset, u, v), (*e_offset, e_u, e_v)):
+                self.assertAlmostEqual(actual, wanted)
 
     def test_invalid_files(self):
         for text in (HEADER, HEADER + 't=0 events=0 Ng=0 Fu=0\n',

@@ -12,7 +12,21 @@ import tempfile
 from simulation_io import parse_simulation
 
 
-def render_animation(data, output, *, fps=30, speed=1.0, dpi=120, progress=True):
+ARROW_REACH = 1.8  # largo del pico medido desde el centro, en radios: asoma 0.8 r del borde
+
+
+def arrow_components(particles):
+    """Dirección de cada velocidad (no su módulo), escalada a ARROW_REACH radios."""
+    u, v = [], []
+    for p in particles:
+        speed = math.hypot(p[5], p[6])
+        reach = ARROW_REACH * p[3] / speed if speed > 0 else 0.0
+        u.append(p[5] * reach)
+        v.append(p[6] * reach)
+    return u, v
+
+
+def render_animation(data, output, *, fps=30, speed=1.0, dpi=120, progress=True, arrows=False):
     if not all(math.isfinite(value) and value > 0 for value in (fps, dpi, speed, fps * speed)):
         raise ValueError('fps, dpi y speed deben ser positivos y finitos')
     output = Path(output)
@@ -46,10 +60,18 @@ def render_animation(data, output, *, fps=30, speed=1.0, dpi=120, progress=True)
                         (data.width + data.goal_width) / 2],
                 color='#16a34a', linewidth=6, clip_on=False, zorder=4)
     circles = []
-    for pid, x, y, radius, color in data.frames[0].particles:
-        circle = Circle((x, y), radius, facecolor=color, edgecolor='white', linewidth=0.4)
+    for pid, x, y, radius, color, *_ in data.frames[0].particles:
+        circle = Circle((x, y), radius, facecolor=color, edgecolor='white', linewidth=0.4, zorder=3)
         ax.add_patch(circle)
         circles.append(circle)
+    # Pico de dirección: flecha desde el centro dibujada debajo del disco, así solo asoma la punta.
+    quiver = None
+    if arrows:
+        first = data.frames[0].particles
+        width = 0.3 * first[0][3]
+        quiver = ax.quiver([p[1] for p in first], [p[2] for p in first], *arrow_components(first),
+                           angles='xy', scale_units='xy', scale=1, units='xy', width=width,
+                           headwidth=4, headlength=3, headaxislength=2.7, color='black', zorder=2)
     ax.legend(handles=[Line2D([], [], marker='o', linestyle='', color=color, label=label)
                        for color, label in [('blue', 'Fresca'), ('red', 'Usada'),
                                             ('#475569', 'Obstáculo'), ('#16a34a', 'Arco')]],
@@ -63,6 +85,9 @@ def render_animation(data, output, *, fps=30, speed=1.0, dpi=120, progress=True)
                     circle.center = (p[1], p[2])
                     circle.set_radius(p[3])
                     circle.set_facecolor(p[4])
+                if quiver is not None:
+                    quiver.set_offsets([(p[1], p[2]) for p in frame.particles])
+                    quiver.set_UVC(*arrow_components(frame.particles))
                 title.set_text(f'TP3 · t = {frame.time:.3f} s · Goles: {frame.goals}/{len(circles)}'
                                f' · Fu = {frame.goals / len(circles):.1%} · Eventos: {frame.events}')
                 writer.grab_frame()
@@ -75,22 +100,22 @@ def render_animation(data, output, *, fps=30, speed=1.0, dpi=120, progress=True)
 
 
 def _render_part(task):
-    data, output, fps, speed, dpi = task
-    render_animation(data, output, fps=fps, speed=speed, dpi=dpi, progress=False)
+    data, output, fps, speed, dpi, arrows = task
+    render_animation(data, output, fps=fps, speed=speed, dpi=dpi, progress=False, arrows=arrows)
     return output
 
 
-def render_parallel(data, output, *, jobs, fps=30, speed=1.0, dpi=120):
+def render_parallel(data, output, *, jobs, fps=30, speed=1.0, dpi=120, arrows=False):
     """Renderiza tramos contiguos de frames en paralelo y los concatena sin recodificar.
     El video tiene exactamente los mismos cuadros, en el mismo orden, que con un solo proceso."""
     output = Path(output)
     jobs = min(jobs, len(data.frames))
     if jobs <= 1 or output.suffix.lower() != '.mp4':
-        return render_animation(data, output, fps=fps, speed=speed, dpi=dpi)
+        return render_animation(data, output, fps=fps, speed=speed, dpi=dpi, arrows=arrows)
     bounds = [len(data.frames) * k // jobs for k in range(jobs + 1)]
     output.parent.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix='animate_', dir=output.parent) as tmp:
-        tasks = [(dataclasses.replace(data, frames=data.frames[a:b]), Path(tmp) / f'part_{k:03d}.mp4', fps, speed, dpi)
+        tasks = [(dataclasses.replace(data, frames=data.frames[a:b]), Path(tmp) / f'part_{k:03d}.mp4', fps, speed, dpi, arrows)
                  for k, (a, b) in enumerate(zip(bounds, bounds[1:]))]
         with multiprocessing.get_context('fork').Pool(jobs) as pool:
             for done, _ in enumerate(pool.imap_unordered(_render_part, tasks), 1):
@@ -112,6 +137,8 @@ def main(argv=None):
     parser.add_argument('--dpi', type=int, default=120, help='resolución (120)')
     parser.add_argument('--jobs', type=int, default=1,
                         help='procesos para MP4: renderiza tramos en paralelo y los concatena (1)')
+    parser.add_argument('--arrows', action='store_true',
+                        help='dibuja un pico en la dirección de la velocidad de cada partícula')
     args = parser.parse_args(argv)
     output = args.out or args.input.with_suffix('.mp4')
     try:
@@ -120,7 +147,8 @@ def main(argv=None):
         data = parse_simulation(args.input)
         if args.jobs < 1:
             raise ValueError('--jobs debe ser positivo')
-        render_parallel(data, output, jobs=args.jobs, fps=args.fps, speed=args.speed, dpi=args.dpi)
+        render_parallel(data, output, jobs=args.jobs, fps=args.fps, speed=args.speed, dpi=args.dpi,
+                        arrows=args.arrows)
     except (OSError, ValueError, RuntimeError, subprocess.CalledProcessError) as exc:
         print(f'Error: {exc}', file=sys.stderr)
         return 1

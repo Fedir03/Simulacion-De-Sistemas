@@ -78,7 +78,7 @@ def parse_simulation(path):
                     rgb = tuple(int(v) for v in row[7:])
                     if radius <= 0 or mass <= 0 or rgb not in ((0, 0, 255), (255, 0, 0)):
                         raise ValueError('radio, masa o color inválido')
-                    particles.append((pid, x, y, radius, tuple(v / 255 for v in rgb)))
+                    particles.append((pid, x, y, radius, tuple(v / 255 for v in rgb), vx, vy))
                 particles.sort()
                 current_ids = tuple(p[0] for p in particles)
                 if len(set(current_ids)) != n or (ids is not None and current_ids != ids):
