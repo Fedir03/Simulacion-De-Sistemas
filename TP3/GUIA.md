@@ -176,7 +176,16 @@ python3 TP3/scripts/animate.py TP3/generated/mi_mapa_anim.txt --out TP3/generate
 - `--jobs n` renderiza tramos de cuadros en paralelo y los concatena: mismos cuadros, mismo orden.
 - Para ver todos los demás eventos, usar el registro `<salida>_events.txt`.
 - `bash TP3/scripts/demo_mejor.sh` corre 5 realizaciones del mejor mapa con semillas al azar,
-  las anima y deja `runs.csv` y `summary.csv` en `TP3/generated/demo_mejor/<fecha>/`.
+  las anima y deja `runs.csv` y `summary.csv` en `TP3/generated/demo_mejor/<fecha>_<id>/`.
+  Conserva la condición inicial `ic_s<semilla>.txt` de cada corrida, referenciada en
+  la columna `initial_condition` de `runs.csv`, además de las trayectorias, eventos y videos.
+- `REALIZATIONS=3 bash TP3/scripts/demo_mejor.sh --only-initial` genera solo tres
+  archivos de condición inicial, sin simular, animar ni generar los CSV.
+- `NO_OPEN=1 bash TP3/scripts/demo_mejor.sh --input ruta/ic_s42.txt` simula y anima
+  una sola condición inicial existente. Usa el mapa y las partículas del archivo,
+  conserva una copia en la nueva carpeta de resultados e ignora `REALIZATIONS`.
+  Admite `TIME`, `EVERY`, `FPS` y `ARROWS` como el modo normal.
+  Los flags `--only-initial` y `--input` son excluyentes.
 
 ### Reproducir en video una realización de un barrido
 
