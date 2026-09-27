@@ -65,6 +65,8 @@ def main(argv=None):
     import matplotlib
     matplotlib.use('Agg')
     import matplotlib.pyplot as plt
+    # Letra comparable a la de la diapositiva: la figura va en una columna de 0.66 del ancho.
+    plt.rcParams.update({'font.size': 14})
 
     fig, ax = plt.subplots(figsize=(6.4, 4.2))
     labeled = bool(args.labels) or bool(args.reference)
@@ -97,7 +99,7 @@ def main(argv=None):
         ax.legend(loc='best')
     ax.grid(alpha=0.3)
     fig.tight_layout()
-    fig.savefig(args.out, dpi=150)
+    fig.savefig(args.out, dpi=200)
     print(f'Figura: {args.out}')
     return 0
 
