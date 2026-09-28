@@ -28,7 +28,9 @@ from pathlib import Path
 
 plt.rcParams.update({"font.size": 14})
 
-COLORES = ["#3939B5", "#4D4D4D"]  # TPBlue y gris de referencia, como el resto de la deck
+# Series en la paleta de los barridos (TPBlue primero); la última curva es la referencia, en gris.
+COLORES = ["#3939B5", "#E08E0B", "#2E8B57", "#C0392B"]
+COLOR_REF = "#4D4D4D"
 N = 100
 
 
@@ -57,7 +59,7 @@ def main():
         tiempos = goles(events)
         fu = [k / N for k in range(len(tiempos))]
         t90 = tiempos[next(k for k, v in enumerate(fu) if v >= 0.9)]
-        color = COLORES[i % len(COLORES)]
+        color = COLOR_REF if len(pares) > 1 and i == len(pares) - 1 else COLORES[i % len(COLORES)]
         ax.step(tiempos, fu, where="post", color=color, linewidth=1.8, zorder=3,
                 label=rf"{etiqueta}: $t_{{90}} = {t90:.2f}$ s")
         ax.axvline(t90, color=color, linestyle=":", linewidth=1.2, zorder=2)
