@@ -27,6 +27,18 @@ enlaces, animaciones y tiempo antes de la entrega del 28/09/2026.
 
 El PDF se genera en `generated/`, que no se versiona.
 
+## Versión para Google Slides
+
+Después de compilar el PDF, ejecutar `python3 create_google_slides_sources.py`
+desde esta carpeta. Requiere LibreOffice, el módulo Python `uno` y las herramientas
+`pdftoppm` y `pdftotext` (Poppler).
+
+Genera `generated/google-slides/TP3_Billar_Metegol_imagenes.pptx`, listo para
+importar en Google Slides. Cada diapositiva es una imagen de 2400 × 1800 píxeles,
+con el diseño original y sin texto editable. Las diapositivas que contienen URLs
+de YouTube abren el video al hacer clic en la imagen. Los enlaces se extraen del
+PDF, por lo que siguen las URLs y el orden de la presentación actual.
+
 ## Figuras
 
 Ver `figuras/README.md` para la lista de archivos que espera el `.tex` y las
