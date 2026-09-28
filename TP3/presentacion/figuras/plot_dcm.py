@@ -26,6 +26,7 @@ import sys
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+from matplotlib.ticker import FixedLocator, FormatStrFormatter, NullFormatter
 from pathlib import Path
 
 HERE = Path(__file__).parent
@@ -105,11 +106,18 @@ def main():
         color = COLOR_ELEGIDA if nombre.startswith("cuenco") else COLOR_REF
         ax.errorbar(media, c / 2, xerr=desvio, fmt="o", color=color, capsize=4, markersize=7)
         # "Disco solo" y "+ Embudo" caen casi en el mismo punto: una etiqueta abajo y otra arriba.
-        dx, dy, ha = (6, -18, "left") if etiqueta == "Disco solo" else (6, 6, "left")
+        # "Mesa vacía" va abajo a la izquierda para no chocar con el borde superior.
+        dx, dy, ha = {"Disco solo": (6, -18, "left"), "Mesa vacía": (-6, -18, "right")}.get(etiqueta, (6, 6, "left"))
         ax.annotate(etiqueta, (media, c / 2), textcoords="offset points", xytext=(dx, dy), ha=ha, fontsize=12)
     ax.set_xlabel(r"$\langle t_{90} \rangle$ [s]")
     ax.set_ylabel(r"$D$ [m$^2$/s]")
-    ax.set_ylim(0, None)
+    # Escala log: con eje lineal hasta 0.05 (mesa vacía) los otros cuatro puntos quedan
+    # apretados entre 0.01 y 0.02.
+    ax.set_yscale("log")
+    ax.set_ylim(0.01, 0.06)
+    ax.yaxis.set_major_locator(FixedLocator([0.01, 0.015, 0.02, 0.03, 0.04, 0.05]))
+    ax.yaxis.set_major_formatter(FormatStrFormatter("%g"))  # "%.2f" redondearía 0.015
+    ax.yaxis.set_minor_formatter(NullFormatter())
     ax.grid(alpha=0.3)
     fig.tight_layout(pad=0.3)
     fig.savefig(HERE / "d-vs-t90.pdf")

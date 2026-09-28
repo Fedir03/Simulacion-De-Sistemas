@@ -41,6 +41,9 @@
 % (0.27\textwidth) -- el itemize default de beamer queda con demasiado
 % margen y espaciado para una caja tan chica.
 \usepackage{enumitem}
+% enumitem reemplaza el símbolo de beamer por uno vacío: sin esto los itemize
+% sin label explícito (D8, D12, Conclusiones) salen sin viñeta.
+\setlist[itemize]{label=\textcolor{TPBlue}{$\bullet$}}
 
 % ---------- Colores ----------
 \definecolor{TPBlue}{HTML}{3939B5}
@@ -82,7 +85,7 @@
 \institute{Instituto Tecnológico de Buenos Aires}
 \date{2026 2C --- Grupo N.º 02}
 
-% URLs de las animaciones (diapositivas 16 y 27).
+% URLs de las animaciones (diapositivas 17 y 25).
 % COMPLETAR cuando los videos estén subidos a YouTube.
 \newcommand{\animacionVaciaURL}{https://youtu.be/COMPLETAR}
 \newcommand{\animacionElegidaURL}{https://youtu.be/COMPLETAR}
@@ -98,8 +101,8 @@
 
 % ---------- Barra superior por sección ----------
 % Rangos de diapositivas:
-% Introducción 2--5 (incluye Modelo, fusionado -- ver TP2) | Implementación 6--9
-% Simulaciones 10--13 | Resultados 14--30 | Conclusiones 31--33
+% Introducción 2--6 (incluye Modelo, fusionado -- ver TP2) | Implementación 7--10
+% Simulaciones 11--14 | Resultados 15--32 | Conclusiones 33--34
 % Cada rango incluye su \sectiondivider como primera diapositiva del
 % bloque. Si se agregan o quitan diapositivas hay que renumerar estos
 % rangos a mano.
@@ -149,11 +152,11 @@
 % entre las dos ramas de \TPheadline (con y sin franja de relleno).
 \newcommand{\TPnavrow}{%
   \makebox[\paperwidth][l]{%
-    \navblock{0.21}{Introducción}{2}{5}%
-    \navblock{0.19}{Implementación}{6}{9}%
-    \navblock{0.17}{Simulaciones}{10}{13}%
-    \navblock{0.26}{Resultados}{14}{30}%
-    \navblock{0.17}{Conclusiones}{31}{33}%
+    \navblock{0.21}{Introducción}{2}{6}%
+    \navblock{0.19}{Implementación}{7}{10}%
+    \navblock{0.17}{Simulaciones}{11}{14}%
+    \navblock{0.26}{Resultados}{15}{32}%
+    \navblock{0.17}{Conclusiones}{33}{34}%
   }%
 }
 
@@ -380,13 +383,13 @@
   \]
   \vspace{-0.1cm}
 
-  \textbf{Tiempo de contacto} --- coordenada $q$, velocidad $u$, radio $R$,
+  \textbf{Tiempo de contacto} --- coordenada $q$, velocidad $u$, radio $r$,
   dimensión $S$ del dominio:
   \[
     t_c =
     \begin{cases}
-      \dfrac{S - R - q}{u}, & u > 0,\\[2.2mm]
-      \dfrac{R - q}{u},     & u < 0,\\[1.6mm]
+      \dfrac{S - r - q}{u}, & u > 0,\\[2.2mm]
+      \dfrac{r - q}{u},     & u < 0,\\[1.6mm]
       \infty,               & u = 0.
     \end{cases}
   \]
@@ -395,10 +398,14 @@
   \textbf{Resolución:} invierte la componente normal, conserva la tangencial
   ($v_x^d = -v_x^a$ en las paredes verticales, $v_y^d = -v_y^a$ en las
   horizontales).
+
+  \textbf{Arco:} choque con pared vertical en $|y - W/2| \leq d/2$. La
+  partícula rebota igual y, si era \textcolor{TPFresca}{fresca}, pasa a
+  \textcolor{TPUsada}{usada}.
 \end{frame}
 
 % 5
-\begin{frame}{Choque entre Partículas y Obstáculos}
+\begin{frame}{Choque entre Partículas}
   \small
   \textbf{Tiempo de contacto} --- con $\sigma = r_i + r_j$,
   $\Delta\bm{r} = \bm{r}_j - \bm{r}_i$, $\Delta\bm{v} = \bm{v}_j - \bm{v}_i$:
@@ -425,21 +432,51 @@
   \end{align*}
   \vspace{-0.15cm}
 
-  \textbf{Obstáculo fijo:} límite $m_j \to \infty$
-  ($\tfrac{m_i m_j}{m_i + m_j} \to m_i$) $\Rightarrow$
-  $J = \tfrac{2\,m_i\,(\Delta\bm{v}\cdot\Delta\bm{r})}{\sigma}$.
+  {\scriptsize En este trabajo $m_i = m_j$ para todas las partículas.\par}
+\end{frame}
 
-  {\scriptsize En este trabajo $m_i = m_j$ para todas las partículas.
-  Estado: \textcolor{TPFresca}{fresca} $\rightarrow$ \textcolor{TPUsada}{usada}
-  en el primer contacto con un arco; la transición es irreversible y $N$ se
-  mantiene constante.\par}
+% 6
+% Mismo flujo que la diapositiva anterior (tiempo de contacto -> resolución),
+% para el otro tipo de choque: el obstáculo k está fijo (v_k = 0, m_k -> inf).
+\begin{frame}{Choque contra Obstáculo Fijo}
+  \small
+  \textbf{Tiempo de contacto} --- la misma expresión que entre partículas, con
+  el obstáculo quieto ($\bm{v}_k = \bm{0}$):
+  \[
+    \sigma = r_i + R_k,
+    \qquad
+    \Delta\bm{r} = \bm{r}_k - \bm{r}_i,
+    \qquad
+    \Delta\bm{v} = -\,\bm{v}_i
+  \]
+  \[
+    t_c = -\,\frac{\Delta\bm{v}\cdot\Delta\bm{r} + \sqrt{d}}{\Delta\bm{v}\cdot\Delta\bm{v}},
+    \qquad
+    d = (\Delta\bm{v}\cdot\Delta\bm{r})^2 - (\Delta\bm{v}\cdot\Delta\bm{v})\left(\Delta\bm{r}\cdot\Delta\bm{r} - \sigma^2\right)
+  \]
+  {\scriptsize No hay choque si $\Delta\bm{v}\cdot\Delta\bm{r} \geq 0$ o $d < 0$.\par}
+  \vspace{0.15cm}
+
+  \textbf{Resolución} --- límite $m_k \to \infty$
+  ($\tfrac{m_i m_k}{m_i + m_k} \to m_i$); el obstáculo no se mueve y solo
+  cambia la partícula:
+  \begin{align*}
+    J &= \frac{2\,m_i\,(\Delta\bm{v}\cdot\Delta\bm{r})}{\sigma},
+    &J_x &= J\,\frac{\Delta x}{\sigma},
+    &J_y &= J\,\frac{\Delta y}{\sigma}
+  \end{align*}
+  \vspace{-0.4cm}
+  \begin{align*}
+    v_{x_i}^{d} &= v_{x_i}^{a} + \frac{J_x}{m_i}, &
+    v_{y_i}^{d} &= v_{y_i}^{a} + \frac{J_y}{m_i}
+  \end{align*}
 \end{frame}
 
 % ---------------- IMPLEMENTACIÓN ----------------
-% 6
+% 7
 \sectiondivider{Implementación}
 
-% 7
+% 8
 \begin{frame}{Motor Dirigido por Eventos}
   \small
   \begin{columns}[T,onlytextwidth]
@@ -466,7 +503,7 @@
   \end{columns}
 \end{frame}
 
-% 8
+% 9
 \begin{frame}{Invalidación Perezosa de Eventos}
   \small
   Un choque invalida las predicciones de sus participantes.
@@ -486,36 +523,38 @@
   \end{databox}
 \end{frame}
 
-% 9
+% 10
 \begin{frame}[c]{Diagrama del Motor}
   \centering
   \resizebox{0.96\linewidth}{!}{%
   \begin{tikzpicture}[
       node distance=0pt,
       caja/.style={rectangle, rounded corners=2pt, draw=TPBlue, thick,
-        fill=TPPlaceholder, align=center, minimum height=1.15cm,
-        font=\small, inner sep=4pt},
+        fill=TPPlaceholder, align=center, minimum height=1.4cm,
+        text width=3.6cm, font=\small, inner sep=3pt,
+        execute at begin node=\hyphenpenalty10000\relax},
       externa/.style={rectangle, rounded corners=2pt, draw=TPNavGray, dashed,
-        align=center, minimum height=1.05cm, font=\small, inner sep=4pt},
+        align=center, minimum height=1.4cm, text width=3.6cm, font=\small,
+        inner sep=3pt, execute at begin node=\hyphenpenalty10000\relax},
       flecha/.style={-{Latex[length=2.4mm]}, draw=TPBlue, thick},
       flechagris/.style={-{Latex[length=2.4mm]}, draw=TPNavGray, thick},
-      etiqueta/.style={font=\scriptsize, inner sep=2pt},
+      etiqueta/.style={font=\footnotesize, inner sep=2pt},
     ]
 
-    \node[externa, minimum width=4.4cm] (ic)     at (0.0,3.1)  {\textbf{Estado inicial del sistema}\\[1pt]{\footnotesize\itshape posiciones, velocidades y obstáculos}};
-    \node[caja,    minimum width=4.4cm] (cola)   at (6.6,3.1)  {\textbf{PriorityQueue$\langle$Event$\rangle$}\\[1pt]{\footnotesize\itshape ordenada por tiempo absoluto}};
-    \node[caja,    minimum width=4.2cm] (extrae) at (12.4,3.1) {\textbf{Extraer el mínimo}\\[1pt]{\footnotesize\itshape ¿\texttt{valid()}? contadores}};
-    \node[caja,    minimum width=4.2cm] (avance) at (12.4,0.5) {\textbf{Avance del sistema}\\[1pt]{\footnotesize\itshape MRU de todas hasta $t_e$}};
-    \node[caja,    minimum width=4.4cm] (resol)  at (6.6,0.5)  {\textbf{Resolución del choque}\\[1pt]{\footnotesize\itshape impulso $J$ / inversión normal}};
-    \node[caja,    minimum width=4.4cm] (repred) at (0.0,0.5)  {\textbf{Repredicción}\\[1pt]{\footnotesize\itshape solo los afectados, $O(N+K)$}};
-    \node[externa, minimum width=4.4cm] (out)    at (6.6,-2.0) {\textbf{Registro de eventos}\\[1pt]{\footnotesize\itshape se guardan los eventos de la simulación}};
+    \node[externa] (ic)     at (0.0,2.6)  {\textbf{Estado inicial del sistema}\\[1pt]{\footnotesize\itshape posiciones, velocidades y obstáculos}};
+    \node[caja]    (cola)   at (5.4,2.6)  {\textbf{PriorityQueue$\langle$Event$\rangle$}\\[1pt]{\footnotesize\itshape ordenada por tiempo absoluto}};
+    \node[caja]    (extrae) at (9.9,2.6)  {\textbf{Extraer el mínimo}\\[1pt]{\footnotesize\itshape ¿\texttt{valid()}? contadores}};
+    \node[caja]    (avance) at (9.9,0.2)  {\textbf{Avance del sistema}\\[1pt]{\footnotesize\itshape MRU de todas hasta $t_e$}};
+    \node[caja]    (resol)  at (5.4,0.2)  {\textbf{Resolución del choque}\\[1pt]{\footnotesize\itshape impulso $J$ / inversión normal}};
+    \node[caja]    (repred) at (0.0,0.2)  {\textbf{Repredicción}\\[1pt]{\footnotesize\itshape solo los afectados, $O(N+K)$}};
+    \node[externa] (out)    at (5.4,-2.1) {\textbf{Registro de eventos}\\[1pt]{\footnotesize\itshape se guardan los eventos de la simulación}};
 
     \draw[flecha] (ic)     -- node[etiqueta, above, align=center] {predicción\\inicial} (cola);
     \draw[flecha] (cola)   -- (extrae);
     \draw[flecha] (extrae) -- node[etiqueta, right] {válido} (avance);
     \draw[flecha] (avance) -- (resol);
     \draw[flecha] (resol)  -- (repred);
-    \draw[flecha] (repred) -- node[etiqueta, right, xshift=4mm] {encola} (cola);
+    \draw[flecha] (repred) -- node[etiqueta, right, xshift=3mm] {encola} (cola);
     \draw[flechagris] (extrae.north) to[out=110,in=70]
       node[etiqueta, above] {obsoleto: se descarta} (cola.north);
     \draw[flechagris] (resol) -- (out);
@@ -525,10 +564,10 @@
 \end{frame}
 
 % ---------------- SIMULACIONES ----------------
-% 10
+% 11
 \sectiondivider{Simulaciones}
 
-% 11
+% 12
 % Esquema generado por figuras/plot_geometria_sistema.py (matplotlib) --
 % marca L, W, d, r y R_k sobre el dibujo (corrección real de TP2, D9/D11).
 % Posiciones de partículas y obstáculos son ilustrativas, no de una
@@ -548,20 +587,21 @@
   {\small\color{TPNavGray} gol si $|y - W/2| \leq d/2$ sobre una pared corta\par}
 \end{frame}
 
-% 12
+% 13
 \begin{frame}{Parámetros}
   \small
   Parámetros de entrada fijos:
-  \begin{itemize}
+  \begin{itemize}[itemsep=1pt,topsep=2pt]
     \item $L = 1.20$ m, $W = 0.68$ m
     \item $d = 0.20$ m
     \item $r = 0.0175$ m, $m = 0.025$ kg
     \item $v_0 = 1$ m/s, dirección $\sim U[0,2\pi)$
   \end{itemize}
   Parámetros de entrada variables:
-  \begin{itemize}
+  \begin{itemize}[itemsep=1pt,topsep=2pt]
     \item $N = 100$ (fijado por el enunciado a partir del punto 1.2)
-    \item $t_f = 30$ s (tiempo de ejecución)
+    \item $t_f = 30$ s (medición del tiempo de ejecución)
+    \item $t_{\max} = 100$ s (corridas de $\langle t_{90}\rangle$)
     \item $K$, $(x_k, y_k, R_k)$: $R_k \geq r$, sin solapamiento
   \end{itemize}
   \vspace{0.1cm}
@@ -571,19 +611,20 @@
   \end{databox}
 \end{frame}
 
-% 13
+% 14
 \begin{frame}{Observables}
   \small
   \textbf{Conversión:} $N_g(t)$ = goles acumulados.
   \[
     F_u(t) = \frac{N_g(t)}{N},
     \qquad
-    t_{90,r} = \min\{\,t : F_u(t) \geq 0.9\,\}
+    t_{90,\ell} = \min\{\,t : F_u(t) \geq 0.9\,\}
   \]
-  {\scriptsize Si no llega a 0.9 en la realización $r$: se reporta $N_g(t_{\max})$.
-  Se reporta el promedio entre $M$ realizaciones,
-  $\langle t_{90}\rangle = \frac{1}{M}\sum_{r=1}^{M} t_{90,r}$, con su desvío
-  muestral.\par}
+  {\scriptsize $\ell$: índice de realización. Si en la realización $\ell$ no se
+  alcanza 0.9 antes de $t_{\max} = 100$ s, queda fuera del promedio y se informa
+  $N_g(t_{\max})$. Se reporta el promedio sobre las $M'$ realizaciones que lo
+  alcanzan, $\langle t_{90}\rangle = \frac{1}{M'}\sum_{\ell} t_{90,\ell}$, con su
+  desvío muestral.\par}
   \vspace{0.15cm}
 
   \textbf{Difusión:} DCM, partículas móviles (frescas+usadas), 1 realización:
@@ -601,42 +642,42 @@
 \end{frame}
 
 % ---------------- RESULTADOS ----------------
-% 14
+% 15
 \sectiondivider{Resultados}
 
-% 15
+% 16
 \begin{frame}[c]{Tiempo de Ejecución en Función de $N$}
   \resultadofigura{figuras/tiempo-ejecucion-vs-n.png}{4.9cm}{Insertar tiempo de ejecución vs.\ $N$}
     {\item Mesa vacía \item $t_f = 30$ s \item Realizaciones: 10}{}{}
 \end{frame}
 
-% 16
+% 17
 \begin{frame}[c]{Mesa Vacía --- Evolución del Sistema}
   \animacionsimple{figuras/vacia_frame.png}{5.1cm}{\animacionVaciaURL}
     {Insertar fotograma representativo de la mesa vacía}
     {\item $N = 100$ \item $K = 0$ \item $t_{90} = 22.44$ s \item Flechas: dirección y sentido de $\bm{v}$}
 \end{frame}
 
-% 17
+% 18
 \begin{frame}[c]{Mesa Vacía --- Fracción de Partículas Usadas}
   \resultadofigura{figuras/fu-temporal-vacia.pdf}{4.9cm}{Insertar $F_u(t)$ y la lectura de $t_{90}$}
     {\item $N = 100$ \item $K = 0$ \item Una realización}{}{}
 \end{frame}
 
-% 18
+% 19
 \begin{frame}[c]{Un Obstáculo sobre el Eje Longitudinal}
   \resultadofigura{figuras/t90-vs-xk.png}{4.7cm}{Insertar $\langle t_{90}\rangle$ vs.\ $x_k$}
     {\item $N = 100$ \item $K = 1$, $R = 0.30$ m \item $y_k = W/2$ \item Realizaciones: 50}{}{}
 \end{frame}
 
-% 19
+% 20
 \begin{frame}[c]{Un Obstáculo en el Centro --- Radio}
   \resultadofigura{figuras/t90-vs-r-central.png}{4.7cm}{Insertar $\langle t_{90}\rangle$ vs.\ $R$}
     {\item $N = 100$ \item $K = 1$ \item Realizaciones: 50}
     {figuras/mapa-central.png}{Ej.: $R = 0.34$ m}
 \end{frame}
 
-% 20
+% 21
 % Dos bordes para el mismo embudo: discos de radio r sobre la recta
 % (frontera lisa) o relleno libre (discos grandes asomando).
 \begin{frame}[c]{Embudos hacia los Arcos}
@@ -645,7 +686,7 @@
     {figuras/mapa-embudo.png}{Ej.: $a = 0.30$ m}
 \end{frame}
 
-% 21
+% 22
 \begin{frame}[c]{Red de Obstáculos Mínimos (Galton)}
   \resultadofigura{figuras/t90-vs-separacion-galton.png}{4.7cm}{Insertar $\langle t_{90}\rangle$ vs.\ $s$}
     {\item $N = 100$ \item $R_k = r$ \item Realizaciones: 50}
@@ -655,7 +696,7 @@
   41/50 en $s = 0.075$ m y 49/50 en $s = 0.09$ m. Las restantes llegan a 86--89 goles.\par}
 \end{frame}
 
-% 22
+% 23
 % Referencia: disco central R = 0.32 m solo (no la mesa vacía).
 \begin{frame}[c]{Disco Central y Cuenco}
   \resultadofigura{figuras/t90-vs-rf-central-cuenco.png}{4.7cm}{Insertar $\langle t_{90}\rangle$ vs.\ $R_f$}
@@ -663,27 +704,27 @@
     {figuras/mapa-central-cuenco.png}{Ej.: $R_f = 0.30$ m}
 \end{frame}
 
-% 23
+% 24
 \begin{frame}[c]{Cuenco --- Centro Desplazado}
   \resultadofigura{figuras/t90-vs-desplazamiento-cuenco.png}{4.7cm}{Insertar $\langle t_{90}\rangle$ vs.\ $s$}
     {\item $N = 100$ \item $R_f = 0.35$ m \item Centro a $s$ del arco \item Realizaciones: 50}
     {figuras/mapa-cuenco-desplazado.png}{Ej.: $s = 0.20$ m}
 \end{frame}
 
-% 24
+% 25
 \begin{frame}[c]{Cuenco --- Evolución del Sistema}
   \animacionsimple{figuras/elegida_frame.png}{5.1cm}{\animacionElegidaURL}
     {Insertar fotograma representativo del cuenco}
     {\item $N = 100$ \item Cuenco $R_f = 0.34$ m \item Borde: $R_k = r$ \item $K = 72$ \item $t_{90} = 13.36$ s}
 \end{frame}
 
-% 25
+% 26
 \begin{frame}[c]{Cuenco --- Fracción de Partículas Usadas}
   \resultadofigura{figuras/fu-temporal-cuenco.pdf}{4.7cm}{Insertar $F_u(t)$ de una realización del cuenco}
     {\item $N = 100$ \item Cuenco $R_f = 0.34$ m \item Una realización}{}{}
 \end{frame}
 
-% 26
+% 27
 % Barrido cuenco_fino_radio (el cuenco elegido): R_f de 0.28 a 0.58 m,
 % frontera de discos de radio r, centro en el arco.
 \begin{frame}[c]{Cuenco --- Radio Libre}
@@ -691,42 +732,42 @@
     {\item $N = 100$ \item Centro en el arco \item Borde: $R_k = r$ \item Realizaciones: 50}{}{}
 \end{frame}
 
-% 27
+% 28
 \begin{frame}[c]{Comparación de Arquetipos de Obstáculos}
   \resultadofigura{figuras/t90-vs-arquetipo.pdf}{4.7cm}{Insertar $\langle t_{90}\rangle$ por arquetipo (disco solo, embudo, palos, cuenco) vs.\ mesa vacía}
     {\item $N = 100$ \item Disco central $R = 0.32$ m (salvo cuenco) \item Realizaciones: 50}{}{}
 \end{frame}
 
-% 28
-% Solo fotograma: la animación ya se mostró en la diapositiva 24 (misma corrida, semilla 140).
+% 29
+% Solo fotograma: la animación ya se mostró en la diapositiva 25 (misma corrida, semilla 140).
 \begin{frame}[c]{Configuración Elegida --- Evolución del Sistema}
   \resultadofigura{figuras/elegida_frame.png}{5.1cm}{Insertar fotograma representativo de la configuración elegida}
     {\item $N = 100$ \item Cuenco $R_f = 0.34$ m \item $K = 72$ \item (misma corrida que en Resultados 1.2)}{}{}
 \end{frame}
 
-% 29
+% 30
 \begin{frame}[c]{Config.\ Elegida vs.\ Mesa Vacía}
   \resultadofigura{figuras/fu-temporal-elegida.pdf}{4.7cm}{Insertar $F_u(t)$ de la configuración elegida y de la mesa vacía}
     {\item $N = 100$ \item Cuenco $R_f = 0.34$ m \item $\langle t_{90}\rangle = 13.3 \pm 1.6$ s \item Una realización de cada una}{}{}
 \end{frame}
 
-% 30
+% 31
 \begin{frame}[c]{Desplazamiento Cuadrático Medio y Ajuste Lineal}
   \resultadofigura{figuras/dcm-ajuste.pdf}{4.7cm}{Insertar $z(t)$ con el ajuste superpuesto}
     {\item $N = 100$ \item Una realización \item $z = c\,t$, $D = c/2$ \item Ajuste: $0 < t \leq 1$ s}{}{}
 \end{frame}
 
-% 31
+% 32
 \begin{frame}[c]{Coeficiente de Difusión}
   \resultadofigura{figuras/d-vs-t90.pdf}{4.7cm}{Insertar $D$ vs.\ $\langle t_{90}\rangle$ por configuración}
-    {\item $N = 100$ \item Barras de error solo en $\langle t_{90}\rangle$}{}{}
+    {\item $N = 100$ \item Barras de error solo en $\langle t_{90}\rangle$ \item Eje $D$ logarítmico}{}{}
 \end{frame}
 
 % ---------------- CONCLUSIONES ----------------
-% 32
+% 33
 \sectiondivider{Conclusiones}
 
-% 33
+% 34
 % RECORDATORIOS (correcciones reales de TP2):
 %  - Aclarar SIEMPRE a qué configuración se refiere cada afirmación.
 %    Nunca "el sistema depende de K" sin decir cómo y en qué configuración.
@@ -736,10 +777,15 @@
 %  - Nada de hipótesis explicativas que no se hayan estudiado explícitamente.
 \begin{frame}{Conclusiones}
   \begin{itemize}
-    \item COMPLETAR --- configuración que minimiza $\langle t_{90}\rangle$ y
-      cuánto mejora respecto de la mesa vacía.
-    \item COMPLETAR --- cómo depende $\langle t_{90}\rangle$ de la variable
-      explorada, indicando la configuración.
+    \item Entre las configuraciones exploradas, la que minimiza
+      $\langle t_{90}\rangle$ es el cuenco de $R_f = 0.34$ m centrado en cada
+      arco: $13.3 \pm 1.6$ s contra $22.6 \pm 2.6$ s de la mesa vacía
+      (41\,\% menos).
+    \item Cuenco centrado en el arco: $\langle t_{90}\rangle$ es mínimo para
+      $R_f \approx 0.30$--$0.34$~m y crece para radios mayores ($19.8$~s en
+      $R_f = 0.58$~m); desplazar su centro hacia la mesa lo empeora
+      ($14.1 \rightarrow 23.2$ s). Disco central solo: $\langle t_{90}\rangle$
+      baja al crecer $R$ ($21.0$~s en $R = 0.10$~m, $15.8$~s en $R = 0.34$~m).
     \item $D$ no predice $\langle t_{90}\rangle$ de forma directa: «+ Palos»
       y el cuenco tienen $D$ parecido ($0.0149$ y $0.0132$ m$^2$/s), pero
       $\langle t_{90}\rangle$ de «+ Palos» es un 70\,\% mayor ($22.4$ vs.\
@@ -747,7 +793,7 @@
   \end{itemize}
 \end{frame}
 
-% 34. Cierre
+% 35. Cierre
 \begin{frame}{}
   \vfill
   \begin{beamercolorbox}[wd=0.86\paperwidth,ht=0.72cm,dp=0.20cm,center]{frametitle}
