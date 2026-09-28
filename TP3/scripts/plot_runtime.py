@@ -35,6 +35,7 @@ def main():
     plt.rcParams.update({'font.size': 16, 'axes.spines.top': False, 'axes.spines.right': False})
     # Tamaño cercano al de la columna de la presentación (0.66 del ancho): una figura
     # más ancha se achica al insertarla y la letra queda ilegible al proyectar.
+    # Barras: desvío estándar, como pide el punto 1.1.
     fig, ax = plt.subplots(figsize=(7.0, 4.4), layout='constrained')
     ax.errorbar(ns, means, yerr=stds, fmt='o-', color='#3939B5',
                 capsize=5, linewidth=1.8, markersize=6)
@@ -48,7 +49,8 @@ def main():
     plt.close(fig)
     lines = ['# Tiempo de ejecución en función de N', '',
              'Mesa sin obstáculos; tiempo absoluto final tf = 30 s, sin corte por t90. '
-             '10 realizaciones por N, semillas 1–10; ejecución secuencial (--jobs 1).', '',
+             f'10 realizaciones por N, semillas {meta["seed_base"]}–{meta["seed_base"] + 9}; '
+             'ejecución secuencial (--jobs 1).', '',
              'Se mide el tiempo de pared informado por el motor: inicialización del simulador '
              'y ciclo de eventos, incluida la escritura de los estados inicial y final. '
              'No incluye generación de partículas, arranque de Java ni lectura de la entrada. '
@@ -60,11 +62,11 @@ def main():
         lines.append(f'| {n} | {len(groups[n])} | {mean:.4f} | {std:.4f} |')
     lines += ['', 'Regenerar desde TP3:', '', '```bash',
               f'python3 scripts/sweep.py --name {shlex.quote(args.data.name)} --out-dir {shlex.quote(str(args.data))} '
-              f'--param n --values {" ".join(map(str, ns))} --realizations 10 --seed-base 1 '
+              f'--param n --values {" ".join(map(str, ns))} --realizations 10 --seed-base {meta["seed_base"]} '
               '--time 30 --jobs 1 -- --obstacle-algorithm none',
               f'../.venv/bin/python scripts/plot_runtime.py --data {shlex.quote(str(args.data))}', '```', '',
               'Datos individuales: runs.csv. Resumen: summary.csv. Parámetros: meta.json.']
-    (args.data/'README.md').write_text('\n'.join(lines)+'\n')
+    (args.data/'README.md').write_text('\n'.join(lines)+'\n', encoding='utf-8')
     print('\n'.join(lines[8:18]))
     print(f'Figuras: {args.data}')
 

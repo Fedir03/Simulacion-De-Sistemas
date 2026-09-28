@@ -76,10 +76,11 @@ def render_animation(data, output, *, fps=30, speed=1.0, dpi=120, progress=True,
         quiver = ax.quiver([p[1] for p in first], [p[2] for p in first], *arrow_components(first),
                            angles='xy', scale_units='xy', scale=1, units='xy', width=width,
                            headwidth=4, headlength=3, headaxislength=2.7, color='black', zorder=2)
-    ax.legend(handles=[Line2D([], [], marker='o', linestyle='', color=color, label=label)
-                       for color, label in [('blue', 'Fresca'), ('red', 'Usada'),
-                                            ('#475569', 'Obstáculo'), ('#16a34a', 'Arco')]],
-              loc='upper center', bbox_to_anchor=(0.5, -0.16), ncol=4, fontsize=16, markerscale=1.6)
+    # «Obstáculo» solo si la mesa tiene obstáculos.
+    entries = [('blue', 'Fresca'), ('red', 'Usada')] + ([('#475569', 'Obstáculo')] if data.obstacles else []) \
+        + [('#16a34a', 'Arco')]
+    ax.legend(handles=[Line2D([], [], marker='o', linestyle='', color=color, label=label) for color, label in entries],
+              loc='upper center', bbox_to_anchor=(0.5, -0.16), ncol=len(entries), fontsize=16, markerscale=1.6)
     title = ax.set_title('', loc='left', fontsize=15)
     t90_label = ax.set_title('', loc='right', color='#16a34a', fontweight='bold', fontsize=15)
     fig.subplots_adjust(bottom=0.24, top=0.88)

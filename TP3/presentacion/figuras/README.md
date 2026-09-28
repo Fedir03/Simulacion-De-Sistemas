@@ -42,7 +42,7 @@ arregle después en el `.tex` de la presentación.
 |---|---|---|
 | `sistema_real.jpg` | 3 | Foto de una mesa de metegol/billar real |
 | `geometria-sistema.png` | 12 | ✅ Esquema con L, W, d, r y R_k. `plot_geometria_sistema.py` |
-| `tiempo-ejecucion-vs-n.png` | 16 | ✅ ⟨t_ejec⟩ vs. N, mesa vacía (`generated/runtime.png`) |
+| `tiempo-ejecucion-vs-n.png` | 16 | ✅ ⟨t_ejec⟩ ± σ vs. N, mesa vacía (`scripts/plot_runtime.py` sobre `generated/sweeps/runtime_tf30`) |
 | `vacia_frame.png` | 17 | ✅ Fotograma de la mesa vacía, semilla 141, t = 11.27 s (`generated/vacia_s141/vacia_s141.mp4`, cuadro 96, con flechas, sin la franja de texto superior) |
 | `t90-vs-xk.png` | 18 | ✅ ⟨t₉₀⟩ vs. x_k, un disco R = 0.30 (barrido `xk`) |
 | `t90-vs-r-central.png`, `mapa-central.png` | 19 | ✅ ⟨t₉₀⟩ vs. R del disco central (barrido `centro_R`) |
@@ -50,7 +50,7 @@ arregle después en el `.tex` de la presentación.
 | `t90-vs-separacion-galton.png`, `mapa-galton.png` | 21 | ✅ ⟨t₉₀⟩ vs. separación de la red (barrido `galton`) |
 | `t90-vs-rf-central-cuenco.png`, `mapa-central-cuenco.png` | 22 | ✅ ⟨t₉₀⟩ vs. R_f, disco central + cuenco (barrido `central_cuenco`; referencia `arq_central_R0.32`) |
 | `t90-vs-desplazamiento-cuenco.png`, `mapa-cuenco-desplazado.png` | 23 | ✅ ⟨t₉₀⟩ vs. desplazamiento del centro del cuenco R_f = 0.35 (barrido `cuenco_desplazado`) |
-| `elegida_frame.png` | 24, 27 | ✅ Fotograma del cuenco R_f = 0.34, semilla 140, t = 6.67 s (`generated/elegida_s140/elegida_s140.mp4`, cuadro 204, con flechas, sin la franja superior). En 24 con link; en 27 solo el fotograma |
+| `elegida_frame.png` | 24, 27 | ✅ Fotograma del cuenco R_f = 0.34, semilla 140, t = 6.67 s (`generated/elegida_s140/elegida_s140.mp4`, cuadro 204, con flechas, sin la franja superior). En 25 con link; en 29 solo el fotograma |
 | `t90-vs-rf-cuenco.png` | 25 | ✅ ⟨t₉₀⟩ vs. R_f del cuenco (barrido `cuenco_fino_radio`) |
 | `t90-vs-arquetipo.pdf` | 26 | ✅ ⟨t₉₀⟩ por arquetipo: disco solo, embudo, palos y el cuenco R_f = 0.34 (sin disco), vs. mesa vacía. `plot_arquetipos.py` con los datos de `TP3/GUIA.md` |
 | `dcm-ajuste.pdf` | 28 | ✅ DCM z(t) con el ajuste lineal superpuesto |

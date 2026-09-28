@@ -86,7 +86,7 @@ def main():
     for nombre, color in (("vacia", COLOR_REF), ("cuenco_fino_R0.34", COLOR_ELEGIDA)):
         t, z, c, _, _, etiqueta = curvas[nombre]
         pares = [(tk, zk) for tk, zk in zip(t, z) if tk <= T_GRAFICO]
-        ax.plot(*zip(*pares), color=color, linewidth=1.6, label=rf"{etiqueta}: $D = {c / 2:.4f}$ m$^2$/s")
+        ax.plot(*zip(*pares), color=color, linewidth=1.6, label=etiqueta)
         ax.plot([0, T_AJUSTE], [0, c * T_AJUSTE], color=color, linestyle="--", linewidth=1.4)
     ax.axvspan(0, T_AJUSTE, color="0.5", alpha=0.12, lw=0)
     ax.set_xlabel(r"$t$ [s]")

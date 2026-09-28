@@ -66,7 +66,9 @@ def main(argv=None):
     matplotlib.use('Agg')
     import matplotlib.pyplot as plt
     # Letra comparable a la de la diapositiva: la figura va en una columna de 0.66 del ancho.
-    plt.rcParams.update({'font.size': 14})
+    # TPBlue primero, como el resto de las figuras.
+    plt.rcParams.update({'font.size': 14,
+                         'axes.prop_cycle': plt.cycler(color=['#3939B5', '#E08E0B', '#2E8B57'])})
 
     fig, ax = plt.subplots(figsize=(6.4, 4.2))
     labeled = bool(args.labels) or bool(args.reference)
@@ -87,7 +89,7 @@ def main(argv=None):
             parser.error(f'{args.reference}: se esperaba un barrido sin --param')
         mean_key, std_key, _ = COLUMNS[args.y]
         mean, std = float(row[mean_key]), float(row[std_key])
-        ax.axhline(mean, color='0.3', ls='--', label=f'{args.reference_label} (±σ)')
+        ax.axhline(mean, color='0.3', ls='--', label=args.reference_label)
         ax.axhspan(mean - std, mean + std, color='0.3', alpha=0.15, lw=0)
     ax.set_xlabel(args.xlabel)
     ax.set_ylabel(args.ylabel or COLUMNS[args.y][2])
