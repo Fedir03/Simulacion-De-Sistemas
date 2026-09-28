@@ -79,10 +79,10 @@ def render_animation(data, output, *, fps=30, speed=1.0, dpi=120, progress=True,
     ax.legend(handles=[Line2D([], [], marker='o', linestyle='', color=color, label=label)
                        for color, label in [('blue', 'Fresca'), ('red', 'Usada'),
                                             ('#475569', 'Obstáculo'), ('#16a34a', 'Arco')]],
-              loc='upper center', bbox_to_anchor=(0.5, -0.14), ncol=4)
-    title = ax.set_title('', loc='left')
-    t90_label = ax.set_title('', loc='right', color='#16a34a', fontweight='bold')
-    fig.subplots_adjust(bottom=0.22, top=0.88)
+              loc='upper center', bbox_to_anchor=(0.5, -0.16), ncol=4, fontsize=16, markerscale=1.6)
+    title = ax.set_title('', loc='left', fontsize=15)
+    t90_label = ax.set_title('', loc='right', color='#16a34a', fontweight='bold', fontsize=15)
+    fig.subplots_adjust(bottom=0.24, top=0.88)
     try:
         with writer.saving(fig, str(output), dpi):
             for i, frame in enumerate(data.frames):
