@@ -33,12 +33,15 @@ def main():
     matplotlib.use('Agg')
     import matplotlib.pyplot as plt
     plt.rcParams.update({'font.size': 16, 'axes.spines.top': False, 'axes.spines.right': False})
-    fig, ax = plt.subplots(figsize=(11 if len(ns) > 10 else 8, 5.4), layout='constrained')
+    # Tamaño cercano al de la columna de la presentación (0.66 del ancho): una figura
+    # más ancha se achica al insertarla y la letra queda ilegible al proyectar.
+    fig, ax = plt.subplots(figsize=(7.0, 4.4), layout='constrained')
     ax.errorbar(ns, means, yerr=stds, fmt='o-', color='#3939B5',
                 capsize=5, linewidth=1.8, markersize=6)
     ax.set(xlabel='N', ylabel='Tiempo de ejecución [s]', xticks=ns, ylim=(0, None))
     if len(ns) > 10:
-        ax.tick_params(axis='x', labelsize=12)
+        # Con muchos N (p. ej. saltos de 25) las etiquetas horizontales se pisan.
+        ax.tick_params(axis='x', labelsize=13, labelrotation=45)
     ax.grid(alpha=.25)
     for ext in ('png', 'pdf'):
         fig.savefig(args.data/f'tiempo-ejecucion-vs-n.{ext}', dpi=220)
