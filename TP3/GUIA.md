@@ -191,7 +191,7 @@ python3 TP3/scripts/animate.py TP3/generated/mi_mapa_anim.txt --out TP3/generate
   conserva una copia en la nueva carpeta de resultados e ignora `REALIZATIONS`.
   Admite `TIME`, `EVERY`, `FPS` y `ARROWS` como el modo normal.
   Los flags `--only-initial` y `--input` son excluyentes.
-- `bash TP3/scripts/demo_mejor.sh --no-anim` simula e informa cada t90 y ⟨t90⟩ ± σ,
+- `bash TP3/scripts/demo_mejor.sh --no-anim` simula e informa cada t90 y ⟨t90⟩ ± σ/√n,
   sin generar videos. Se puede combinar con `--input`.
 - `bash TP3/scripts/demo_mejor.sh --live --no-anim` es el comando de la competencia: corre
   las 5 realizaciones una por vez y muestra cada gol y el t90 de cada una.

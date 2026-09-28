@@ -6,7 +6,7 @@
 #   REALIZATIONS=3 EVERY=50 NO_OPEN=1 bash TP3/scripts/demo_mejor.sh
 #   REALIZATIONS=3 bash TP3/scripts/demo_mejor.sh --only-initial
 #   NO_OPEN=1 bash TP3/scripts/demo_mejor.sh --input condicion.txt
-#   bash TP3/scripts/demo_mejor.sh --no-anim   # solo t90, <t90> y σ; sin videos
+#   bash TP3/scripts/demo_mejor.sh --no-anim   # solo t90 y <t90> ± σ/√n; sin videos
 #   bash TP3/scripts/demo_mejor.sh --live --no-anim   # demo en vivo: una corrida por vez, cada gol visible
 #
 # Etapas:
@@ -43,7 +43,7 @@ Uso: demo_mejor.sh [--only-initial | --input archivo.txt] [--no-anim] [--live]
   --only-initial  Genera únicamente REALIZATIONS archivos de condición inicial.
   --input ARCHIVO Simula y anima una sola condición inicial existente; ignora
                   REALIZATIONS y el mapa predeterminado. Conserva una copia.
-  --no-anim       Simula e informa t90, <t90> y σ, sin generar videos.
+  --no-anim       Simula e informa t90 y <t90> ± σ/√n, sin generar videos.
   --live          Simula las realizaciones una por vez mostrando cada gol y
                   su t90 (salida del motor). Sin este flag corren en paralelo.
   -h, --help      Muestra esta ayuda.
@@ -175,6 +175,7 @@ fi
 [[ $status == 0 ]] || { echo "Falló alguna realización; ver $OUT" >&2; exit 1; }
 
 python3 - "$MODULE/scripts" "$OUT" "$ANIMATE" "${SEEDS[@]}" <<'EOF'
+import math
 import sys
 from pathlib import Path
 sys.path.insert(0, sys.argv[1])
@@ -190,9 +191,10 @@ for seed in seeds:
 summary = sweep.summarize(rows)
 s = summary[0]
 sweep.write_csv(out / 'runs.csv', sweep.RUN_FIELDS + ['video', 'trajectory', 'events_log', 'initial_condition'], rows)
-sweep.write_csv(out / 'summary.csv', sweep.SUMMARY_FIELDS, summary)
-# ± es el desvío estándar muestral de los t90 (n − 1), como en el resto de la presentación.
-print(f"<t90> = {s['t90_mean']:.2f} ± {s['t90_std']:.2f} s ({s['reached_t90']}/{s['realizations']} llegaron al 90 %)")
+# Error de la media: desvío muestral de los t90 sobre la raíz de las n realizaciones que llegaron al 90 %.
+s['t90_sem'] = s['t90_std'] / math.sqrt(s['reached_t90']) if s['reached_t90'] > 1 else math.nan
+sweep.write_csv(out / 'summary.csv', sweep.SUMMARY_FIELDS + ['t90_sem'], summary)
+print(f"<t90> = {s['t90_mean']:.2f} ± {s['t90_sem']:.2f} s (± = σ/√n, n = {s['reached_t90']}; {s['reached_t90']}/{s['realizations']} llegaron al 90 %)")
 EOF
 echo "Resultados: $OUT/runs.csv y summary.csv"
 
