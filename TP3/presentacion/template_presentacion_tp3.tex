@@ -85,7 +85,7 @@
 \institute{Instituto Tecnológico de Buenos Aires}
 \date{2026 2C --- Grupo N.º 02}
 
-% URLs de las animaciones (diapositivas 17 y 24).
+% URLs de las animaciones (diapositivas 17 y 25).
 % COMPLETAR cuando los videos estén subidos a YouTube.
 \newcommand{\animacionVaciaURL}{https://youtu.be/feUstyDSfhU}
 \newcommand{\animacionElegidaURL}{https://youtu.be/Zff6uPLhAY4}
@@ -102,7 +102,7 @@
 % ---------- Barra superior por sección ----------
 % Rangos de diapositivas:
 % Introducción 2--6 (incluye Modelo, fusionado -- ver TP2) | Implementación 7--10
-% Simulaciones 11--14 | Resultados 15--29 | Conclusiones 30--31
+% Simulaciones 11--14 | Resultados 15--31 | Conclusiones 32--33
 % Cada rango incluye su \sectiondivider como primera diapositiva del
 % bloque. Si se agregan o quitan diapositivas hay que renumerar estos
 % rangos a mano.
@@ -155,8 +155,8 @@
     \navblock{0.21}{Introducción}{2}{6}%
     \navblock{0.19}{Implementación}{7}{10}%
     \navblock{0.17}{Simulaciones}{11}{14}%
-    \navblock{0.26}{Resultados}{15}{29}%
-    \navblock{0.17}{Conclusiones}{30}{31}%
+    \navblock{0.26}{Resultados}{15}{31}%
+    \navblock{0.17}{Conclusiones}{32}{33}%
   }%
 }
 
@@ -480,23 +480,22 @@
 \begin{frame}{Motor Dirigido por Eventos}
   \small
   \begin{columns}[T,onlytextwidth]
-    \begin{column}{0.56\textwidth}
+    \begin{column}{0.64\textwidth}
       \begin{beamercolorbox}[wd=\linewidth,sep=1.5mm]{algorithm box}
         \textbf{Ciclo del motor}\\[1mm]
-        1. Predecir todos los choques posibles\\
-        2. Extraer el evento de menor tiempo\\
-        3. Avanzar \emph{todo} el sistema hasta $t_e$\\
-        4. Resolver el choque\\
-        5. Repredecir solo para los afectados\\
-        6. Repetir hasta $t_f$
+        1. Posiciones y velocidades iniciales\\
+        2. Tiempo hasta el primer choque, $t_c$\\
+        3. Evolucionar todas las partículas hasta $t_c$\\
+        4. Guardar el estado en $t = t_c$\\
+        5. Nuevas velocidades de las que chocaron\\
+        6. Ir al paso 2
       \end{beamercolorbox}
     \end{column}
-    \begin{column}{0.41\textwidth}
+    \begin{column}{0.33\textwidth}
       \begin{itemize}[label=\textcolor{TPBlue}{$\bullet$}]
         \item Java 21: motor de simulación
         \item Python 3: animación de trayectorias (matplotlib)
         \item \texttt{PriorityQueue} ordenada por tiempo absoluto
-        \item $t_e$ variable: lo fija el próximo evento, no un $\Delta t$ fijo
         \item Salida cada $n$ choques válidos
       \end{itemize}
     \end{column}
@@ -506,15 +505,12 @@
 % 9
 \begin{frame}{Invalidación Perezosa de Eventos}
   \small
-  Un choque invalida las predicciones de sus participantes.
-  \vspace{0.15cm}
   \begin{itemize}
-    \item Cada partícula lleva un \textbf{contador de choques}.
-    \item Cada evento guarda los contadores de sus participantes al crearse.
-    \item Al extraerlo, si los contadores no coinciden con los actuales, el
-      evento está obsoleto: se descarta sin avanzar el reloj.
-    \item Nunca se recorre la cola para borrar; solo se depura cuando supera un
-      umbral de tamaño.
+    \item Cada partícula lleva un \textbf{contador de choques}; cada evento
+      guarda los de sus participantes al crearse.
+    \item Al extraerlo, si no coinciden con los actuales, el evento está
+      obsoleto y se descarta sin avanzar el reloj.
+    \item La cola solo se depura cuando supera un umbral de tamaño.
   \end{itemize}
   \vspace{0.2cm}
   \begin{databox}{Costo computacional}
@@ -544,10 +540,10 @@
     \node[externa] (ic)     at (0.0,2.6)  {\textbf{Estado inicial del sistema}\\[1pt]{\footnotesize\itshape posiciones, velocidades y obstáculos}};
     \node[caja]    (cola)   at (5.4,2.6)  {\textbf{PriorityQueue$\langle$Event$\rangle$}\\[1pt]{\footnotesize\itshape ordenada por tiempo absoluto}};
     \node[caja]    (extrae) at (9.9,2.6)  {\textbf{Extraer el mínimo}\\[1pt]{\footnotesize\itshape ¿\texttt{valid()}? contadores}};
-    \node[caja]    (avance) at (9.9,0.2)  {\textbf{Avance del sistema}\\[1pt]{\footnotesize\itshape MRU de todas hasta $t_e$}};
+    \node[caja]    (avance) at (9.9,0.2)  {\textbf{Avance del sistema}\\[1pt]{\footnotesize\itshape MRU de todas hasta $t_c$}};
     \node[caja]    (resol)  at (5.4,0.2)  {\textbf{Resolución del choque}\\[1pt]{\footnotesize\itshape impulso $J$ / inversión normal}};
     \node[caja]    (repred) at (0.0,0.2)  {\textbf{Repredicción}\\[1pt]{\footnotesize\itshape solo los afectados, $O(N+K)$}};
-    \node[externa] (out)    at (5.4,-2.1) {\textbf{Registro de eventos}\\[1pt]{\footnotesize\itshape se guardan los eventos de la simulación}};
+    \node[externa] (out)    at (9.9,-2.1) {\textbf{Guardado del estado}};
 
     \draw[flecha] (ic)     -- node[etiqueta, above, align=center] {predicción\\inicial} (cola);
     \draw[flecha] (cola)   -- (extrae);
@@ -557,7 +553,7 @@
     \draw[flecha] (repred) -- node[etiqueta, right, xshift=3mm] {encola} (cola);
     \draw[flechagris] (extrae.north) to[out=110,in=70]
       node[etiqueta, above] {obsoleto: se descarta} (cola.north);
-    \draw[flechagris] (resol) -- (out);
+    \draw[flechagris] (avance) -- node[etiqueta, right] {cada $n$ eventos} (out);
 
   \end{tikzpicture}%
   }
@@ -620,11 +616,10 @@
     \qquad
     t_{90,\ell} = \min\{\,t : F_u(t) \geq 0.9\,\}
   \]
-  {\scriptsize $\ell$: índice de realización. Si en la realización $\ell$ no se
-  alcanza 0.9 antes de $t_{\max} = 100$ s, queda fuera del promedio y se informa
-  $N_g(t_{\max})$. Se reporta el promedio sobre las $M'$ realizaciones que lo
-  alcanzan, $\langle t_{90}\rangle = \frac{1}{M'}\sum_{\ell} t_{90,\ell}$, con su
-  desvío muestral.\par}
+  {\scriptsize $\ell$: realización. Promedio sobre las $M'$ realizaciones que
+  alcanzan 0.9 antes de $t_{\max} = 100$ s,
+  $\langle t_{90}\rangle = \frac{1}{M'}\sum_{\ell} t_{90,\ell}$, con su desvío
+  muestral.\par}
   \vspace{0.15cm}
 
   \textbf{Difusión:} DCM, partículas móviles (frescas+usadas), 1 realización:
@@ -667,13 +662,19 @@
 \end{frame}
 
 % 19
+\begin{frame}[c]{Un Obstáculo --- Evolución Temporal}
+  \resultadofigura{figuras/fu-temporal-xk.pdf}{5.1cm}{Insertar $F_u(t)$ de $x_k$}
+    {\item $K = 1$, $x_k = 0.55$ m}{}{}
+\end{frame}
+
+% 20
 \begin{frame}[c]{Un Obstáculo en el Centro --- Radio}
   \resultadofigura{figuras/t90-vs-r-central.png}{5.1cm}{Insertar $\langle t_{90}\rangle$ vs.\ $R$}
     {\item $K = 1$}
     {figuras/mapa-central.png}{Ej.: $R = 0.34$ m}
 \end{frame}
 
-% 20
+% 21
 % Dos bordes para el mismo embudo: discos de radio r sobre la recta
 % (frontera lisa) o relleno libre (discos grandes asomando).
 \begin{frame}[c]{Embudos hacia los Arcos}
@@ -682,73 +683,80 @@
     {figuras/mapa-embudo.png}{Ej.: $a = 0.30$ m\\[1mm] $a$: largo del embudo}
 \end{frame}
 
-% 21
+% 22
 \begin{frame}[c]{Red de Obstáculos Mínimos (Galton)}
   \resultadofigura{figuras/t90-vs-separacion-galton.png}{5.1cm}{Insertar $\langle t_{90}\rangle$ vs.\ $s$}
     {\item $R_k = r$}
-    {figuras/mapa-galton.png}{Ej.: $s = 0.10$ m\\[1mm] $s$: separación equidistante entre obstáculos}
+    {figuras/mapa-galton.png}{Ej.: $s = 0.10$ m\\[1mm] $s$: separación entre obstáculos\\[1mm]}
 \end{frame}
 
-% 22
+% 23
 % Referencia: disco central R = 0.32 m solo (no la mesa vacía).
 \begin{frame}[c]{Disco Central y Cuenco}
   \resultadofigura{figuras/t90-vs-rf-central-cuenco.png}{5.1cm}{Insertar $\langle t_{90}\rangle$ vs.\ $R_f$}
     {\item Disco central\\ $R = 0.32$ m}
-    {figuras/mapa-central-cuenco.png}{Ej.: $R_f = 0.30$ m}
-\end{frame}
-
-% 23
-\begin{frame}[c]{Cuenco --- Centro Desplazado}
-  \resultadofigura{figuras/t90-vs-desplazamiento-cuenco.png}{5.1cm}{Insertar $\langle t_{90}\rangle$ vs.\ $s$}
-    {\item $R_f = 0.35$ m}
-    {figuras/mapa-cuenco-desplazado.png}{Ej.: $s = 0.20$ m\\[1mm] $s$: distancia del centro del cuenco al arco}
+    {figuras/mapa-central-cuenco.png}{Ej.: $R_f = 0.30$ m\\[1mm] $R_f$: radio del cuenco}
 \end{frame}
 
 % 24
+\begin{frame}[c]{Cuenco --- Centro Desplazado}
+  \resultadofigura{figuras/t90-vs-desplazamiento-cuenco.png}{5.1cm}{Insertar $\langle t_{90}\rangle$ vs.\ $\delta$}
+    {\item $R_f = 0.35$ m}
+    {figuras/mapa-cuenco-desplazado.png}{Ej.: $\delta = 0.20$ m\\[1mm] $\delta$: distancia del centro del cuenco al arco}
+\end{frame}
+
+% 25
 \begin{frame}[c]{Cuenco --- Evolución del Sistema}
   \animacionsimple{figuras/elegida_frame.png}{5.1cm}{\animacionElegidaURL}
     {Insertar fotograma representativo del cuenco}
     {\item Cuenco $R_f = 0.34$ m \item Borde: $R_k = r$ \item $K = 72$ \item $t_{90} = 13.36$ s}
 \end{frame}
 
-% 25
+% 26
+\begin{frame}[c]{Cuenco --- Evolución Temporal}
+  \resultadofigura{figuras/fu-temporal-elegida.pdf}{5.1cm}{Insertar $F_u(t)$ del cuenco}
+    {\item Cuenco $R_f = 0.34$ m}{}{}
+\end{frame}
+
+% 27
 % Barrido cuenco_fino_radio (el cuenco elegido): R_f de 0.28 a 0.58 m,
 % frontera de discos de radio r, centro en el arco.
 \begin{frame}[c]{Cuenco --- Radio Libre}
-  \resultadofigura{figuras/map_cuenco_fino_R0.28.png}{5.1cm}{Insertar $\langle t_{90}\rangle$ vs.\ $R_f$}
-    {\item Centro en el arco \item Borde: $R_k = r$}{}{}
+  \resultadofigura{figuras/t90-vs-rf-cuenco.png}{5.1cm}{Insertar $\langle t_{90}\rangle$ vs.\ $R_f$}
+    {\item Centro en el arco \item Borde: $R_k = r$}
+    {figuras/mapa-cuenco-fino.png}{Ej.: $R_f = 0.28$ m}
 \end{frame}
 
-% 26
+% 28
 \begin{frame}[c]{Comparación de Arquetipos de Obstáculos}
   \centering
   \maybeimage{figuras/t90-vs-arquetipo.pdf}{6.7cm}{Insertar $\langle t_{90}\rangle$ por arquetipo (disco solo, embudo, palos, cuenco) vs.\ mesa vacía}
 \end{frame}
 
-% 27
-% Solo fotograma: la animación ya se mostró en la diapositiva 24 (misma corrida, semilla 140).
+% 29
+% Solo fotograma: la animación ya se mostró en la diapositiva 25 (misma corrida, semilla 140).
 \begin{frame}[c]{Configuración Elegida --- Evolución del Sistema}
   \resultadofigura{figuras/elegida_frame.png}{5.1cm}{Insertar fotograma representativo de la configuración elegida}
     {\item Cuenco $R_f = 0.34$ m \item $K = 72$}{}{}
 \end{frame}
 
-% 28
+% 30
 \begin{frame}[c]{Desplazamiento Cuadrático Medio y Ajuste Lineal}
   \resultadofigura{figuras/dcm-ajuste.pdf}{5.1cm}{Insertar $z(t)$ con el ajuste superpuesto}
     {\item Ajuste lineal:\\ $0 < t \leq 1$~s}{}{}
 \end{frame}
 
-% 29
+% 31
 \begin{frame}[c]{Coeficiente de Difusión}
   \centering
   \maybeimage{figuras/d-vs-t90.pdf}{6.7cm}{Insertar $D$ vs.\ $\langle t_{90}\rangle$ por configuración}
 \end{frame}
 
 % ---------------- CONCLUSIONES ----------------
-% 30
+% 32
 \sectiondivider{Conclusiones}
 
-% 31
+% 33
 % RECORDATORIOS (correcciones reales de TP2):
 %  - Aclarar SIEMPRE a qué configuración se refiere cada afirmación.
 %    Nunca "el sistema depende de K" sin decir cómo y en qué configuración.
@@ -758,16 +766,16 @@
 %  - Nada de hipótesis explicativas que no se hayan estudiado explícitamente.
 \begin{frame}{Conclusiones}
   \begin{itemize}
-    \item Entre las configuraciones exploradas, la que minimiza
-      $\langle t_{90}\rangle$ es el cuenco de $R_f = 0.34$ m, con un 41\,\% menos que la mesa vacía.
+    \item Entre las configuraciones exploradas, el menor $\langle t_{90}\rangle$ medido
+      es el cuenco de $R_f = 0.34$ m, con un 41\,\% menos que la mesa vacía.
     \item Cuenco centrado en el arco: $\langle t_{90}\rangle$ es mínimo para
       $R_f \approx 0.30$--$0.34$~m y crece para radios mayores; desplazar su centro hacia la mesa lo empeora.
-    \item $D$ no predice $\langle t_{90}\rangle$ de forma directa: «Palos»
-      y el cuenco tienen $D$ similar, pero $\langle t_{90}\rangle$ de «Palos» es un 70\,\% mayor.
+    \item $D$ no predice $\langle t_{90}\rangle$: «Embudo»
+      y el cuenco tienen $D$ similar, pero $\langle t_{90}\rangle$ de «Embudo» es un 70\,\% mayor.
   \end{itemize}
 \end{frame}
 
-% 32. Cierre
+% 34. Cierre
 \begin{frame}{}
   \vfill
   \begin{beamercolorbox}[wd=0.86\paperwidth,ht=0.72cm,dp=0.20cm,center]{frametitle}

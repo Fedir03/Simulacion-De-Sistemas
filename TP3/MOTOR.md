@@ -420,17 +420,26 @@ La escritura de trayectorias es incremental: no acumula todos los estados en mem
 
 El reloj no aumenta con un dt fijo. Aumenta hasta el próximo choque válido.
 
+Sigue el algoritmo de la teórica (Simulación Dirigida por Eventos):
+
+- A1) Se definen las posiciones y velocidades iniciales.
+- A2) Se calcula el tiempo hasta el primer choque (evento) (t_c).
+- A3) Se evolucionan todas las partículas según sus ecuaciones de movimiento hasta t_c.
+- A4) Se guarda el estado del sistema (posiciones y velocidades) en t = t_c.
+- A5) Se determinan las nuevas velocidades después del choque, solo para las partículas que chocaron.
+- A6) Ir a A2.
+
 ```text
-escribir estado inicial
+escribir estado inicial                                  (A1)
 predecir eventos de todas las partículas
 mientras haya eventos:
-    sacar el evento de menor tiempo
+    sacar el evento de menor tiempo                      (A2)
     si está invalidado, descartarlo
-    avanzar todas las partículas hasta ese tiempo
-    resolver el choque y actualizar contadores
-    actualizar goles y t90
-    predecir nuevos choques de los participantes
-    si corresponde por la frecuencia, escribir el estado
+    avanzar todas las partículas hasta ese tiempo        (A3)
+    si corresponde por la frecuencia, escribir el estado (A4)
+    resolver el choque y actualizar contadores y goles   (A5)
+    registrar el evento y actualizar t90
+    predecir nuevos choques de los participantes         (A6)
 avanzar hasta el tiempo final si falta
 escribir el estado final si aún no quedó escrito
 ```
