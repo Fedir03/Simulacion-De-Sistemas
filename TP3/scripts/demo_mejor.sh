@@ -6,7 +6,8 @@
 #   REALIZATIONS=3 EVERY=50 NO_OPEN=1 bash TP3/scripts/demo_mejor.sh
 #   REALIZATIONS=3 bash TP3/scripts/demo_mejor.sh --only-initial
 #   NO_OPEN=1 bash TP3/scripts/demo_mejor.sh --input condicion.txt
-#   bash TP3/scripts/demo_mejor.sh --no-anim   # solo t90, <t90>, σ y σ/√n; sin videos
+#   bash TP3/scripts/demo_mejor.sh --no-anim   # solo t90, <t90> y σ; sin videos
+#   bash TP3/scripts/demo_mejor.sh --live --no-anim   # demo en vivo: una corrida por vez, cada gol visible
 #
 # Etapas:
 #   1. Todas las semillas en paralelo: generate con el mapa de MAP_ARGS y simulate hasta t90
@@ -16,6 +17,7 @@
 #   2. Se anima la primera semilla con todos los núcleos y se abre en cuanto está lista.
 #   3. Se animan las demás en paralelo; cada video se abre al terminar.
 # Con --no-anim termina después de la etapa 1, sin generar videos.
+# Con --live la etapa 1 corre las semillas una por vez y muestra la salida del motor (cada gol y t90).
 # Los videos terminan en t90: un cuadro cada EVERY eventos, sin interpolar.
 # Salidas en TP3/generated/demo_mejor/<fecha>_<id>/; conserva ic_s<seed>.txt.
 set -euo pipefail
@@ -31,16 +33,19 @@ NO_OPEN=${NO_OPEN:-0} # 1 para no abrir los videos
 ARROWS=${ARROWS:-1}   # 0 para no dibujar el pico de dirección de cada partícula
 ONLY_INITIAL=0
 ANIMATE=1
+LIVE=0
 INPUT=""
 usage() {
     cat <<'EOF'
-Uso: demo_mejor.sh [--only-initial | --input archivo.txt] [--no-anim]
+Uso: demo_mejor.sh [--only-initial | --input archivo.txt] [--no-anim] [--live]
 
   Sin flags       Genera, simula y anima REALIZATIONS corridas (por defecto 5).
   --only-initial  Genera únicamente REALIZATIONS archivos de condición inicial.
   --input ARCHIVO Simula y anima una sola condición inicial existente; ignora
                   REALIZATIONS y el mapa predeterminado. Conserva una copia.
-  --no-anim       Simula e informa t90, <t90>, σ y σ/√n, sin generar videos.
+  --no-anim       Simula e informa t90, <t90> y σ, sin generar videos.
+  --live          Simula las realizaciones una por vez mostrando cada gol y
+                  su t90 (salida del motor). Sin este flag corren en paralelo.
   -h, --help      Muestra esta ayuda.
 
 Siempre se conservan los archivos ic_s<semilla>.txt en la carpeta de resultados.
@@ -52,6 +57,7 @@ while (( $# )); do
     case "$1" in
         --only-initial) ONLY_INITIAL=1; shift ;;
         --no-anim) ANIMATE=0; shift ;;
+        --live) LIVE=1; shift ;;
         --input)
             (( $# >= 2 )) && [[ -n "$2" && "$2" != --* ]] || fail "Falta el archivo para --input."
             [[ -z "$INPUT" ]] || fail "--input solo puede indicarse una vez."
@@ -60,6 +66,7 @@ while (( $# )); do
         *) fail "Argumento desconocido: $1. Usá --help para ver las opciones." ;;
     esac
 done
+(( ! (LIVE && ONLY_INITIAL) )) || fail "--live y --only-initial no se pueden combinar."
 if [[ -n "$INPUT" ]]; then
     (( ONLY_INITIAL == 0 )) || fail "--only-initial y --input no se pueden combinar."
     [[ -f "$INPUT" && -r "$INPUT" ]] || fail "No se puede leer: $INPUT"
@@ -113,7 +120,12 @@ simulate_one() {
     else
         generate_one "$seed" || return
     fi
-    java -jar "$JAR" simulate --input "$ic" --time "$TIME" --until t90 --every "$EVERY" --out "$sim" > /dev/null || return
+    if (( LIVE )); then
+        # UTF-8 explícito: en Windows la consola de Java usa cp1252 y "partícula" sale mal en Git Bash.
+        java -Dstdout.encoding=UTF-8 -jar "$JAR" simulate --input "$ic" --time "$TIME" --until t90 --every "$EVERY" --out "$sim" || return
+    else
+        java -jar "$JAR" simulate --input "$ic" --time "$TIME" --until t90 --every "$EVERY" --out "$sim" > /dev/null || return
+    fi
     echo "  semilla $seed: t90 = $(t90_of "$sim") s"
 }
 
@@ -144,15 +156,25 @@ if (( ONLY_INITIAL )); then
     echo "  ic_s*.txt (condiciones iniciales; sin simulaciones ni videos)"
     exit 0
 fi
-echo "Simulando $REALIZATIONS realizaciones hasta t90..."
-pids=()
-for seed in "${SEEDS[@]}"; do simulate_one "$seed" & pids+=($!); done
 status=0
-for pid in "${pids[@]}"; do wait "$pid" || status=1; done
+if (( LIVE )); then
+    echo "Simulando $REALIZATIONS realizaciones hasta t90, una por vez..."
+    k=0
+    for seed in "${SEEDS[@]}"; do
+        k=$((k + 1))
+        echo; echo "=== Realización $k/$REALIZATIONS (semilla $seed) ==="
+        simulate_one "$seed" || { status=1; break; }
+    done
+    echo
+else
+    echo "Simulando $REALIZATIONS realizaciones hasta t90..."
+    pids=()
+    for seed in "${SEEDS[@]}"; do simulate_one "$seed" & pids+=($!); done
+    for pid in "${pids[@]}"; do wait "$pid" || status=1; done
+fi
 [[ $status == 0 ]] || { echo "Falló alguna realización; ver $OUT" >&2; exit 1; }
 
 python3 - "$MODULE/scripts" "$OUT" "$ANIMATE" "${SEEDS[@]}" <<'EOF'
-import math
 import sys
 from pathlib import Path
 sys.path.insert(0, sys.argv[1])
@@ -167,12 +189,10 @@ for seed in seeds:
                  'initial_condition': f'ic_s{seed}.txt'})
 summary = sweep.summarize(rows)
 s = summary[0]
-# Error de la media (SEM): desvío estándar entre realizaciones sobre raíz de la cantidad que llegó al 90 %.
-s['t90_sem'] = s['t90_std'] / math.sqrt(s['reached_t90']) if s['reached_t90'] > 1 else math.nan
 sweep.write_csv(out / 'runs.csv', sweep.RUN_FIELDS + ['video', 'trajectory', 'events_log', 'initial_condition'], rows)
-sweep.write_csv(out / 'summary.csv', sweep.SUMMARY_FIELDS + ['t90_sem'], summary)
-print(f"<t90> = {s['t90_mean']:.2f} ± {s['t90_sem']:.2f} s (± = σ/√n, n = {s['reached_t90']}; {s['reached_t90']}/{s['realizations']} llegaron al 90 %)")
-print(f"σ(t90) = {s['t90_std']:.2f} s (desvío estándar entre realizaciones)")
+sweep.write_csv(out / 'summary.csv', sweep.SUMMARY_FIELDS, summary)
+# ± es el desvío estándar muestral de los t90 (n − 1), como en el resto de la presentación.
+print(f"<t90> = {s['t90_mean']:.2f} ± {s['t90_std']:.2f} s ({s['reached_t90']}/{s['realizations']} llegaron al 90 %)")
 EOF
 echo "Resultados: $OUT/runs.csv y summary.csv"
 
