@@ -1,4 +1,5 @@
 """Pruebas del formato y de los tiempos de una simulación por eventos."""
+import math
 import tempfile
 from pathlib import Path
 import unittest
@@ -62,7 +63,8 @@ class SimulationTests(unittest.TestCase):
                             ax = plt.gcf().axes[0]
                             particle = ax.patches[-1]
                             captured.append((particle.center, particle.get_radius(),
-                                             particle.get_facecolor()[:3], ax.get_title()))
+                                             particle.get_facecolor()[:3], ax.get_title('left'),
+                                             ax.get_title('right')))
 
                         with tempfile.TemporaryDirectory() as directory, \
                                 patch('matplotlib.animation.PillowWriter') as gif, \
@@ -75,12 +77,69 @@ class SimulationTests(unittest.TestCase):
                             self.assertEqual(writer.call_args.kwargs['fps'], 30 * speed)
 
                         self.assertEqual(len(captured), len(data.frames))
-                        for actual, frame in zip(captured, data.frames):
+                        for i, (actual, frame) in enumerate(zip(captured, data.frames)):
                             particle = frame.particles[0]
                             self.assertEqual(actual[:3], (particle[1:3], particle[3], particle[4]))
-                            self.assertIn(f't = {frame.time:.3f} s', actual[3])
-                            self.assertIn(f'Goles: {frame.goals}/1', actual[3])
-                            self.assertIn(f'Eventos: {frame.events}', actual[3])
+                            self.assertEqual(actual[3], f't = {frame.time:.3f} s · Partículas convertidas: {frame.goals}')
+                            # Sin comentario final no hay t90: el último cuadro lo informa.
+                            self.assertEqual(actual[4], 't90 no alcanzado' if i == len(data.frames) - 1 else '')
+
+    def render_titles(self, data, **kwargs):
+        """Títulos (izquierdo, derecho) de cada cuadro grabado en un GIF simulado."""
+        import matplotlib
+        matplotlib.use('Agg')
+        import matplotlib.pyplot as plt
+
+        captured = []
+
+        def capture():
+            ax = plt.gcf().axes[0]
+            captured.append((ax.get_title('left'), ax.get_title('right')))
+
+        with tempfile.TemporaryDirectory() as directory, patch('matplotlib.animation.PillowWriter') as gif:
+            gif.return_value.saving.return_value = nullcontext()
+            gif.return_value.grab_frame.side_effect = capture
+            render_animation(data, Path(directory) / 'animation.gif', progress=False, **kwargs)
+        return captured
+
+    def test_t90_is_read_from_final_comment(self):
+        data = self.parse(HEADER + block(0, 0.1) + block(2, 0.5, True) + '# tf=2 outputEvery=1 events=2 Ng=1 t90=1.5 runtime=0.1\n')
+        self.assertEqual(data.t90, 1.5)
+        self.assertTrue(math.isnan(self.parse(HEADER + block(0, 0.1)).t90))
+
+    def test_final_frame_holds_t90(self):
+        data = self.parse(HEADER + block(0, 0.1) + block(2, 0.5, True) + block(3, 0.3, True) + '# tf=3 t90=1.5\n')
+        titles = self.render_titles(data, fps=10, hold=0.5)
+        # 3 cuadros más 0.5 s · 10 fps repeticiones del último; t90 solo en el último estado.
+        self.assertEqual(len(titles), 3 + 5)
+        self.assertEqual([right for _, right in titles[:2]], ['', ''])
+        self.assertEqual(set(titles[2:]), {('t = 3.000 s · Partículas convertidas: 1', 't90 = 1.500 s')})
+
+    def test_final_frame_without_t90(self):
+        data = self.parse(HEADER + block(0, 0.1) + '# tf=0 t90=NaN\n')
+        self.assertEqual(self.render_titles(data, fps=10, hold=0.2)[-1][1], 't90 no alcanzado')
+
+    def test_parallel_render_holds_only_the_last_part(self):
+        import animate
+
+        data = self.parse(HEADER + block(0, 0.1) + block(1, 0.2) + block(2, 0.3) + block(3, 0.4) + '# tf=3 t90=2.5\n')
+        calls = []
+
+        class InlinePool:
+            def __init__(self, jobs): pass
+            def __enter__(self): return self
+            def __exit__(self, *exc): return False
+            def imap_unordered(self, function, tasks): return map(function, tasks)
+
+        def fake_render(part, output, **kwargs):
+            calls.append(([f.time for f in part.frames], part.t90, kwargs['hold'], kwargs['final']))
+
+        with tempfile.TemporaryDirectory() as directory, \
+                patch.object(animate, 'render_animation', side_effect=fake_render), \
+                patch.object(animate.multiprocessing, 'get_context', return_value=type('Ctx', (), {'Pool': InlinePool})), \
+                patch.object(animate.subprocess, 'run'):
+            animate.render_parallel(data, Path(directory) / 'animation.mp4', jobs=2, hold=2.0)
+        self.assertEqual(sorted(calls), [([0, 1], 2.5, 2.0, False), ([2, 3], 2.5, 2.0, True)])
 
     def test_velocity_is_parsed(self):
         data = self.parse(HEADER + block(0, 0.1, v=(0.6, -0.8)))

@@ -19,15 +19,20 @@ class Simulation:
     goal_width: float
     obstacles: tuple
     frames: tuple
+    t90: float = math.nan  # del comentario final del motor; NaN si no se alcanzó o no está
 
 
 def parse_simulation(path):
     line_number = 0
+    footer = {}
     with Path(path).open(encoding='utf-8-sig') as source:
         def next_line():
             nonlocal line_number
             for raw in source:
                 line_number += 1
+                # Comentario final del motor: `# tf=... t90=... runtime=...`.
+                if raw.startswith('# tf='):
+                    footer.update(token.split('=', 1) for token in raw[1:].split() if '=' in token)
                 line = raw.split('#', 1)[0].strip()
                 if line:
                     return line
@@ -87,6 +92,6 @@ def parse_simulation(path):
                 frames.append(Frame(time, events, goals, tuple(particles)))
             if not frames:
                 raise ValueError('el archivo no contiene cuadros')
-            return Simulation(length, width, goal, tuple(obstacles), tuple(frames))
+            return Simulation(length, width, goal, tuple(obstacles), tuple(frames), float(footer.get('t90', 'nan')))
         except (ValueError, KeyError) as exc:
             raise ValueError(f'{path}:{line_number}: {exc}') from exc

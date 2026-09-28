@@ -172,6 +172,9 @@ python3 TP3/scripts/animate.py TP3/generated/mi_mapa_anim.txt --out TP3/generate
 - `--fps` (30) fija los cuadros por segundo; `--speed` multiplica esa cadencia
   (0.5 para la mitad, 2 para el doble). No representa tiempo real ni omite frames.
 - `--dpi` (120) controla la resolución.
+- Arriba se ve `t = ... s · Partículas convertidas: k`, que sube con cada conversión. El último
+  cuadro muestra en verde `t90 = ... s` (o `t90 no alcanzado`), leído del comentario final
+  de la trayectoria, y se sostiene `--hold` segundos (2 por defecto; 0 lo desactiva).
 - Con `.gif` en `--out` no hace falta ffmpeg, pero consume más memoria.
 - Un cuadro por estado guardado, es decir cada `--every` eventos. `--every 1` guarda todos
   (unos 2500 eventos por segundo simulado con N = 100): archivos enormes y videos de minutos.

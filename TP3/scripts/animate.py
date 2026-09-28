@@ -26,9 +26,13 @@ def arrow_components(particles):
     return u, v
 
 
-def render_animation(data, output, *, fps=30, speed=1.0, dpi=120, progress=True, arrows=False):
+def render_animation(data, output, *, fps=30, speed=1.0, dpi=120, progress=True, arrows=False, hold=0.0, final=True):
+    """Con final, el último cuadro muestra t90 y se repite durante hold segundos de video.
+    final=False es para los tramos intermedios del render en paralelo."""
     if not all(math.isfinite(value) and value > 0 for value in (fps, dpi, speed, fps * speed)):
         raise ValueError('fps, dpi y speed deben ser positivos y finitos')
+    if not (math.isfinite(hold) and hold >= 0):
+        raise ValueError('hold debe ser un número no negativo')
     output = Path(output)
     if output.suffix.lower() not in ('.mp4', '.gif'):
         raise ValueError('--out debe terminar en .mp4 o .gif')
@@ -76,7 +80,8 @@ def render_animation(data, output, *, fps=30, speed=1.0, dpi=120, progress=True,
                        for color, label in [('blue', 'Fresca'), ('red', 'Usada'),
                                             ('#475569', 'Obstáculo'), ('#16a34a', 'Arco')]],
               loc='upper center', bbox_to_anchor=(0.5, -0.14), ncol=4)
-    title = ax.set_title('')
+    title = ax.set_title('', loc='left')
+    t90_label = ax.set_title('', loc='right', color='#16a34a', fontweight='bold')
     fig.subplots_adjust(bottom=0.22, top=0.88)
     try:
         with writer.saving(fig, str(output), dpi):
@@ -88,11 +93,15 @@ def render_animation(data, output, *, fps=30, speed=1.0, dpi=120, progress=True,
                 if quiver is not None:
                     quiver.set_offsets([(p[1], p[2]) for p in frame.particles])
                     quiver.set_UVC(*arrow_components(frame.particles))
-                title.set_text(f'TP3 · t = {frame.time:.3f} s · Goles: {frame.goals}/{len(circles)}'
-                               f' · Fu = {frame.goals / len(circles):.1%} · Eventos: {frame.events}')
+                title.set_text(f't = {frame.time:.3f} s · Partículas convertidas: {frame.goals}')
+                if final and i == count - 1:
+                    t90_label.set_text(f't90 = {data.t90:.3f} s' if math.isfinite(data.t90) else 't90 no alcanzado')
                 writer.grab_frame()
                 if progress and (i % max(1, count // 100) == 0 or i == count - 1):
                     print(f'\rGenerando animación: {i + 1}/{count} cuadros', end='', flush=True)
+            # Pausa final sobre el último estado para que se lea t90.
+            for _ in range(round(hold * fps * speed) if final else 0):
+                writer.grab_frame()
         if progress:
             print()
     finally:
@@ -100,22 +109,24 @@ def render_animation(data, output, *, fps=30, speed=1.0, dpi=120, progress=True,
 
 
 def _render_part(task):
-    data, output, fps, speed, dpi, arrows = task
-    render_animation(data, output, fps=fps, speed=speed, dpi=dpi, progress=False, arrows=arrows)
+    data, output, fps, speed, dpi, arrows, hold, final = task
+    render_animation(data, output, fps=fps, speed=speed, dpi=dpi, progress=False, arrows=arrows, hold=hold, final=final)
     return output
 
 
-def render_parallel(data, output, *, jobs, fps=30, speed=1.0, dpi=120, arrows=False):
+def render_parallel(data, output, *, jobs, fps=30, speed=1.0, dpi=120, arrows=False, hold=0.0):
     """Renderiza tramos contiguos de frames en paralelo y los concatena sin recodificar.
     El video tiene exactamente los mismos cuadros, en el mismo orden, que con un solo proceso."""
     output = Path(output)
     jobs = min(jobs, len(data.frames))
     if jobs <= 1 or output.suffix.lower() != '.mp4':
-        return render_animation(data, output, fps=fps, speed=speed, dpi=dpi, arrows=arrows)
+        return render_animation(data, output, fps=fps, speed=speed, dpi=dpi, arrows=arrows, hold=hold)
     bounds = [len(data.frames) * k // jobs for k in range(jobs + 1)]
     output.parent.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix='animate_', dir=output.parent) as tmp:
-        tasks = [(dataclasses.replace(data, frames=data.frames[a:b]), Path(tmp) / f'part_{k:03d}.mp4', fps, speed, dpi, arrows)
+        # Solo el último tramo muestra t90 y agrega la pausa final.
+        tasks = [(dataclasses.replace(data, frames=data.frames[a:b]), Path(tmp) / f'part_{k:03d}.mp4', fps, speed, dpi, arrows,
+                  hold, k == jobs - 1)
                  for k, (a, b) in enumerate(zip(bounds, bounds[1:]))]
         with multiprocessing.get_context('fork').Pool(jobs) as pool:
             for done, _ in enumerate(pool.imap_unordered(_render_part, tasks), 1):
@@ -139,6 +150,8 @@ def main(argv=None):
                         help='procesos para MP4: renderiza tramos en paralelo y los concatena (1)')
     parser.add_argument('--arrows', action='store_true',
                         help='dibuja un pico en la dirección de la velocidad de cada partícula')
+    parser.add_argument('--hold', type=float, default=2.0,
+                        help='segundos de video que se sostiene el último cuadro mostrando t90 (2)')
     args = parser.parse_args(argv)
     output = args.out or args.input.with_suffix('.mp4')
     try:
@@ -148,7 +161,7 @@ def main(argv=None):
         if args.jobs < 1:
             raise ValueError('--jobs debe ser positivo')
         render_parallel(data, output, jobs=args.jobs, fps=args.fps, speed=args.speed, dpi=args.dpi,
-                        arrows=args.arrows)
+                        arrows=args.arrows, hold=args.hold)
     except (OSError, ValueError, RuntimeError, subprocess.CalledProcessError) as exc:
         print(f'Error: {exc}', file=sys.stderr)
         return 1
