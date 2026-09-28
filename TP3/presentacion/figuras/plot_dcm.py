@@ -10,7 +10,7 @@ tarde el confinamiento en la mesa satura z (mesa vacía: (L^2 + W^2)/6 ~ 0.32 m^
 <t90> y su desvío salen de los barridos arq_* (semillas 101-150).
 
 Uso, desde la raíz del repositorio:
-    for c in vacia central_R0.32 central_embudo_a0.05 central_palos_Rp0.02 cuenco_fino_R0.34; do
+    for c in vacia central_R0.32 central_embudo_a0.05 galton_s0.10 cuenco_fino_R0.34; do
         map="--obstacles TP3/configs/$c.txt"; [ $c = vacia ] && map="--obstacle-algorithm none"
         java -jar TP3/target/tp3.jar generate --seed 101 $map --out TP3/generated/dcm/ic_$c.txt
         java -jar TP3/target/tp3.jar simulate --input TP3/generated/dcm/ic_$c.txt --time 10 \\
@@ -46,7 +46,7 @@ CONFIGS = [
     ("vacia", "arq_vacia", "Mesa vacía"),
     ("central_R0.32", "arq_central_R0.32", "Disco solo"),
     ("central_embudo_a0.05", "arq_central_embudo_a0.05", "Embudo"),
-    ("central_palos_Rp0.02", "arq_central_palos_Rp0.02", "Palos"),
+    ("galton_s0.10", "arq_galton_s0.10", "Galton"),
     ("cuenco_fino_R0.34", "arq_cuenco_fino_R0.34", "Cuenco"),
 ]
 
