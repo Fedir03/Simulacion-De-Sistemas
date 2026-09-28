@@ -29,7 +29,7 @@ COLOR_REF = "#4D4D4D"
 
 # Las 3 primeras: disco central R=0.32 fijo, solo cambia qué se agrega en los
 # arcos. La última: cuenco R_f=0.34 sin disco central.
-categorias = ["Disco solo", "+ Embudo", "+ Palos", "Cuenco"]
+categorias = ["Disco solo", "Embudo", "Palos", "Cuenco"]
 medias = [16.4, 17.4, 22.4, 13.3]
 desvios = [1.9, 1.8, 2.6, 1.6]
 colores = [COLOR_BARRA] * 3 + [COLOR_SIN_DISCO]

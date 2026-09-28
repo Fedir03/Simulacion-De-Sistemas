@@ -45,8 +45,8 @@ COLOR_REF = "#4D4D4D"
 CONFIGS = [
     ("vacia", "arq_vacia", "Mesa vacía"),
     ("central_R0.32", "arq_central_R0.32", "Disco solo"),
-    ("central_embudo_a0.05", "arq_central_embudo_a0.05", "+ Embudo"),
-    ("central_palos_Rp0.02", "arq_central_palos_Rp0.02", "+ Palos"),
+    ("central_embudo_a0.05", "arq_central_embudo_a0.05", "Embudo"),
+    ("central_palos_Rp0.02", "arq_central_palos_Rp0.02", "Palos"),
     ("cuenco_fino_R0.34", "arq_cuenco_fino_R0.34", "Cuenco"),
 ]
 
@@ -105,7 +105,7 @@ def main():
         _, _, c, media, desvio, etiqueta = curvas[nombre]
         color = COLOR_ELEGIDA if nombre.startswith("cuenco") else COLOR_REF
         ax.errorbar(media, c / 2, xerr=desvio, fmt="o", color=color, capsize=4, markersize=7)
-        # "Disco solo" y "+ Embudo" caen casi en el mismo punto: una etiqueta abajo y otra arriba.
+        # "Disco solo" y "Embudo" caen casi en el mismo punto: una etiqueta abajo y otra arriba.
         # "Mesa vacía" va abajo a la izquierda para no chocar con el borde superior.
         dx, dy, ha = {"Disco solo": (6, -18, "left"), "Mesa vacía": (-6, -18, "right")}.get(etiqueta, (6, 6, "left"))
         ax.annotate(etiqueta, (media, c / 2), textcoords="offset points", xytext=(dx, dy), ha=ha, fontsize=12)

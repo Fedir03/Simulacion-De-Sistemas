@@ -75,7 +75,7 @@
 \setbeamerfont{itemize/enumerate subbody}{size=\small}
 
 % ---------- Metadatos ----------
-\title{Trabajo Práctico Nro.3: Simulación Dirigida por Eventos}
+\title{Trabajo Práctico Nro. 3: Simulación Dirigida por Eventos}
 \subtitle{72.25 - Simulación de Sistemas}
 \author{%
   Federico Ignacio Ruckauf\texorpdfstring{\textsuperscript{1}}{1}
@@ -85,9 +85,10 @@
 \institute{Instituto Tecnológico de Buenos Aires}
 \date{2026 2C --- Grupo N.º 02}
 
-% URLs de las animaciones (diapositivas 17 y 25).
-\newcommand{\animacionVaciaURL}{https://youtu.be/CCtC6M1u4Xg}
-\newcommand{\animacionElegidaURL}{https://youtu.be/fCzWG4fIm3Y}
+% URLs de las animaciones (diapositivas 17 y 24).
+% COMPLETAR cuando los videos estén subidos a YouTube.
+\newcommand{\animacionVaciaURL}{https://youtu.be/COMPLETAR}
+\newcommand{\animacionElegidaURL}{https://youtu.be/COMPLETAR}
 
 % Si existe logo_itba.png o logo_itba.pdf junto al .tex, se inserta.
 \newcommand{\institutionlogo}{%
@@ -101,7 +102,7 @@
 % ---------- Barra superior por sección ----------
 % Rangos de diapositivas:
 % Introducción 2--6 (incluye Modelo, fusionado -- ver TP2) | Implementación 7--10
-% Simulaciones 11--14 | Resultados 15--32 | Conclusiones 33--34
+% Simulaciones 11--14 | Resultados 15--29 | Conclusiones 30--31
 % Cada rango incluye su \sectiondivider como primera diapositiva del
 % bloque. Si se agregan o quitan diapositivas hay que renumerar estos
 % rangos a mano.
@@ -154,8 +155,8 @@
     \navblock{0.21}{Introducción}{2}{6}%
     \navblock{0.19}{Implementación}{7}{10}%
     \navblock{0.17}{Simulaciones}{11}{14}%
-    \navblock{0.26}{Resultados}{15}{32}%
-    \navblock{0.17}{Conclusiones}{33}{34}%
+    \navblock{0.26}{Resultados}{15}{29}%
+    \navblock{0.17}{Conclusiones}{30}{31}%
   }%
 }
 
@@ -287,9 +288,9 @@
       \maybeimage{#1}{#2}{#3}%
     \end{column}
     \begin{column}{0.31\textwidth}
-      \parambox{#4}%
+      \ifstrempty{#4}{}{\parambox{#4}\par\vspace{2mm}}%
       \ifstrempty{#5}{}{%
-        \par\vspace{2mm}\centering
+        \centering
         \maybeimage{#5}{3.2cm}{Mapa de ejemplo}\par
         {\scriptsize\color{TPNavGray}#6\par}%
       }%
@@ -598,15 +599,15 @@
   \end{itemize}
   Parámetros de entrada variables:
   \begin{itemize}[itemsep=1pt,topsep=2pt]
-    \item $N = 100$ (fijado por el enunciado a partir del punto 1.2)
-    \item $t_f = 30$ s (medición del tiempo de ejecución)
+    \item $N \in [25, 425]$ (tiempo de ejecución); $N = 100$ en el resto
+    \item $t_f = 30$ s (medición del tiempo de ejecución en función de $N$)
     \item $t_{\max} = 100$ s (corridas de $\langle t_{90}\rangle$)
     \item $K$, $(x_k, y_k, R_k)$: $R_k \geq r$, sin solapamiento
   \end{itemize}
   \vspace{0.1cm}
   \begin{databox}{Nro.\ de realizaciones}
     \centering
-    Tiempo de ejecución: 10 \hfill $\langle t_{90}\rangle$: 50 \hfill DCM: 1
+    Tiempo de ejecución en función de $N$: 10 \hfill $\langle t_{90}\rangle$: 50 \hfill DCM: 1
   \end{databox}
 \end{frame}
 
@@ -646,127 +647,114 @@
 
 % 16
 \begin{frame}[c]{Tiempo de Ejecución en Función de $N$}
-  \resultadofigura{figuras/tiempo-ejecucion-vs-n.png}{4.9cm}{Insertar tiempo de ejecución vs.\ $N$}
-    {\item Mesa vacía \item $t_f = 30$ s \item Realizaciones: 10}{}{}
+  \centering
+  \maybeimage{figuras/tiempo-ejecucion-vs-n.png}{6cm}{Insertar tiempo de ejecución vs.\ $N$}
+  \par\vspace{2mm}
+  \parambox{\item Mesa vacía}
 \end{frame}
 
 % 17
 \begin{frame}[c]{Mesa Vacía --- Evolución del Sistema}
   \animacionsimple{figuras/vacia_frame.png}{5.1cm}{\animacionVaciaURL}
     {Insertar fotograma representativo de la mesa vacía}
-    {\item $N = 100$ \item $K = 0$ \item $t_{90} = 22.44$ s \item Flechas: dirección y sentido de $\bm{v}$}
+    {\item $K = 0$ \item $t_{90} = 22.44$ s \item Flechas: dirección y sentido de $\bm{v}$}
 \end{frame}
 
 % 18
-\begin{frame}[c]{Mesa Vacía --- Fracción de Partículas Usadas}
-  \resultadofigura{figuras/fu-temporal-vacia.pdf}{4.9cm}{Insertar $F_u(t)$ y la lectura de $t_{90}$}
-    {\item $N = 100$ \item $K = 0$ \item Una realización}{}{}
+\begin{frame}[c]{Un Obstáculo sobre el Eje Longitudinal}
+  \resultadofigura{figuras/t90-vs-xk.png}{4.7cm}{Insertar $\langle t_{90}\rangle$ vs.\ $x_k$}
+    {\item $K = 1$, $R = 0.30$ m \item $y_k = W/2$}{}{}
 \end{frame}
 
 % 19
-\begin{frame}[c]{Un Obstáculo sobre el Eje Longitudinal}
-  \resultadofigura{figuras/t90-vs-xk.png}{4.7cm}{Insertar $\langle t_{90}\rangle$ vs.\ $x_k$}
-    {\item $N = 100$ \item $K = 1$, $R = 0.30$ m \item $y_k = W/2$ \item Realizaciones: 50}{}{}
-\end{frame}
-
-% 20
 \begin{frame}[c]{Un Obstáculo en el Centro --- Radio}
   \resultadofigura{figuras/t90-vs-r-central.png}{4.7cm}{Insertar $\langle t_{90}\rangle$ vs.\ $R$}
-    {\item $N = 100$ \item $K = 1$ \item Realizaciones: 50}
+    {\item $K = 1$}
     {figuras/mapa-central.png}{Ej.: $R = 0.34$ m}
 \end{frame}
 
-% 21
+% 20
 % Dos bordes para el mismo embudo: discos de radio r sobre la recta
 % (frontera lisa) o relleno libre (discos grandes asomando).
 \begin{frame}[c]{Embudos hacia los Arcos}
   \resultadofigura{figuras/t90-vs-largo-embudo.png}{4.7cm}{Insertar $\langle t_{90}\rangle$ vs.\ $a$}
-    {\item $N = 100$ \item Realizaciones: 50}
+    {}
     {figuras/mapa-embudo.png}{Ej.: $a = 0.30$ m}
+  \vspace{1mm}
+  {\scriptsize\color{TPNavGray} $a$: largo del embudo \par}
+\end{frame}
+
+% 21
+\begin{frame}[c]{Red de Obstáculos Mínimos (Galton)}
+  \resultadofigura{figuras/t90-vs-separacion-galton.png}{4.7cm}{Insertar $\langle t_{90}\rangle$ vs.\ $s$}
+    {\item $R_k = r$}
+    {figuras/mapa-galton.png}{Ej.: $s = 0.10$ m}
+  \vspace{1mm}
+  {\scriptsize\color{TPNavGray} $s$: separación equidistante entre obstáculos \par}
 \end{frame}
 
 % 22
-\begin{frame}[c]{Red de Obstáculos Mínimos (Galton)}
-  \resultadofigura{figuras/t90-vs-separacion-galton.png}{4.7cm}{Insertar $\langle t_{90}\rangle$ vs.\ $s$}
-    {\item $N = 100$ \item $R_k = r$ \item Realizaciones: 50}
-    {figuras/mapa-galton.png}{Ej.: $s = 0.10$ m}
-  \vspace{1mm}
-  {\scriptsize\color{TPNavGray} Promedio sobre las corridas que alcanzan $t_{90}$ en 100 s:
-  41/50 en $s = 0.075$ m y 49/50 en $s = 0.09$ m. Las restantes llegan a 86--89 goles.\par}
-\end{frame}
-
-% 23
 % Referencia: disco central R = 0.32 m solo (no la mesa vacía).
 \begin{frame}[c]{Disco Central y Cuenco}
   \resultadofigura{figuras/t90-vs-rf-central-cuenco.png}{4.7cm}{Insertar $\langle t_{90}\rangle$ vs.\ $R_f$}
-    {\item $N = 100$ \item Disco central\\ $R = 0.32$ m \item Realizaciones: 50}
+    {\item Disco central\\ $R = 0.32$ m}
     {figuras/mapa-central-cuenco.png}{Ej.: $R_f = 0.30$ m}
 \end{frame}
 
-% 24
+% 23
 \begin{frame}[c]{Cuenco --- Centro Desplazado}
   \resultadofigura{figuras/t90-vs-desplazamiento-cuenco.png}{4.7cm}{Insertar $\langle t_{90}\rangle$ vs.\ $s$}
-    {\item $N = 100$ \item $R_f = 0.35$ m \item Centro a $s$ del arco \item Realizaciones: 50}
+    {\item $R_f = 0.35$ m}
     {figuras/mapa-cuenco-desplazado.png}{Ej.: $s = 0.20$ m}
+    \vspace{1mm}
+  {\scriptsize\color{TPNavGray} $s$: distancia del centro del cuenco al arco\par}
 \end{frame}
 
-% 25
+% 24
 \begin{frame}[c]{Cuenco --- Evolución del Sistema}
   \animacionsimple{figuras/elegida_frame.png}{5.1cm}{\animacionElegidaURL}
     {Insertar fotograma representativo del cuenco}
-    {\item $N = 100$ \item Cuenco $R_f = 0.34$ m \item Borde: $R_k = r$ \item $K = 72$ \item $t_{90} = 13.36$ s}
+    {\item Cuenco $R_f = 0.34$ m \item Borde: $R_k = r$ \item $K = 72$ \item $t_{90} = 13.36$ s}
 \end{frame}
 
-% 26
-\begin{frame}[c]{Cuenco --- Fracción de Partículas Usadas}
-  \resultadofigura{figuras/fu-temporal-cuenco.pdf}{4.7cm}{Insertar $F_u(t)$ de una realización del cuenco}
-    {\item $N = 100$ \item Cuenco $R_f = 0.34$ m \item Una realización}{}{}
-\end{frame}
-
-% 27
+% 25
 % Barrido cuenco_fino_radio (el cuenco elegido): R_f de 0.28 a 0.58 m,
 % frontera de discos de radio r, centro en el arco.
 \begin{frame}[c]{Cuenco --- Radio Libre}
-  \resultadofigura{figuras/t90-vs-rf-cuenco.png}{4.7cm}{Insertar $\langle t_{90}\rangle$ vs.\ $R_f$}
-    {\item $N = 100$ \item Centro en el arco \item Borde: $R_k = r$ \item Realizaciones: 50}{}{}
+  \resultadofigura{figuras/map_cuenco_fino_R0.28.png}{4.7cm}{Insertar $\langle t_{90}\rangle$ vs.\ $R_f$}
+    {\item Centro en el arco \item Borde: $R_k = r$}{}{}
+\end{frame}
+
+% 26
+\begin{frame}[c]{Comparación de Arquetipos de Obstáculos}
+  \resultadofigura{figuras/t90-vs-arquetipo.pdf}{4.7cm}{Insertar $\langle t_{90}\rangle$ por arquetipo (disco solo, embudo, palos, cuenco) vs.\ mesa vacía}
+    {}{}{}
+\end{frame}
+
+% 27
+% Solo fotograma: la animación ya se mostró en la diapositiva 24 (misma corrida, semilla 140).
+\begin{frame}[c]{Configuración Elegida --- Evolución del Sistema}
+  \resultadofigura{figuras/elegida_frame.png}{5.1cm}{Insertar fotograma representativo de la configuración elegida}
+    {\item Cuenco $R_f = 0.34$ m \item $K = 72$}{}{}
 \end{frame}
 
 % 28
-\begin{frame}[c]{Comparación de Arquetipos de Obstáculos}
-  \resultadofigura{figuras/t90-vs-arquetipo.pdf}{4.7cm}{Insertar $\langle t_{90}\rangle$ por arquetipo (disco solo, embudo, palos, cuenco) vs.\ mesa vacía}
-    {\item $N = 100$ \item Disco central $R = 0.32$ m (salvo cuenco) \item Realizaciones: 50}{}{}
+\begin{frame}[c]{Desplazamiento Cuadrático Medio y Ajuste Lineal}
+  \resultadofigura{figuras/dcm-ajuste.pdf}{4.7cm}{Insertar $z(t)$ con el ajuste superpuesto}
+    {\item Ajuste lineal: $0 < t \leq 1$ s}{}{}
 \end{frame}
 
 % 29
-% Solo fotograma: la animación ya se mostró en la diapositiva 25 (misma corrida, semilla 140).
-\begin{frame}[c]{Configuración Elegida --- Evolución del Sistema}
-  \resultadofigura{figuras/elegida_frame.png}{5.1cm}{Insertar fotograma representativo de la configuración elegida}
-    {\item $N = 100$ \item Cuenco $R_f = 0.34$ m \item $K = 72$ \item (misma corrida que en Resultados 1.2)}{}{}
-\end{frame}
-
-% 30
-\begin{frame}[c]{Config.\ Elegida vs.\ Mesa Vacía}
-  \resultadofigura{figuras/fu-temporal-elegida.pdf}{4.7cm}{Insertar $F_u(t)$ de la configuración elegida y de la mesa vacía}
-    {\item $N = 100$ \item Cuenco $R_f = 0.34$ m \item $\langle t_{90}\rangle = 13.3 \pm 1.6$ s \item Una realización de cada una}{}{}
-\end{frame}
-
-% 31
-\begin{frame}[c]{Desplazamiento Cuadrático Medio y Ajuste Lineal}
-  \resultadofigura{figuras/dcm-ajuste.pdf}{4.7cm}{Insertar $z(t)$ con el ajuste superpuesto}
-    {\item $N = 100$ \item Una realización \item $z = c\,t$, $D = c/2$ \item Ajuste: $0 < t \leq 1$ s}{}{}
-\end{frame}
-
-% 32
 \begin{frame}[c]{Coeficiente de Difusión}
   \resultadofigura{figuras/d-vs-t90.pdf}{4.7cm}{Insertar $D$ vs.\ $\langle t_{90}\rangle$ por configuración}
-    {\item $N = 100$ \item Barras de error solo en $\langle t_{90}\rangle$ \item Eje $D$ logarítmico}{}{}
+  {}{}{}
 \end{frame}
 
 % ---------------- CONCLUSIONES ----------------
-% 33
+% 30
 \sectiondivider{Conclusiones}
 
-% 34
+% 31
 % RECORDATORIOS (correcciones reales de TP2):
 %  - Aclarar SIEMPRE a qué configuración se refiere cada afirmación.
 %    Nunca "el sistema depende de K" sin decir cómo y en qué configuración.
@@ -777,22 +765,15 @@
 \begin{frame}{Conclusiones}
   \begin{itemize}
     \item Entre las configuraciones exploradas, la que minimiza
-      $\langle t_{90}\rangle$ es el cuenco de $R_f = 0.34$ m centrado en cada
-      arco: $13.3 \pm 1.6$ s contra $22.6 \pm 2.6$ s de la mesa vacía
-      (41\,\% menos).
+      $\langle t_{90}\rangle$ es el cuenco de $R_f = 0.34$ m, con un 41\,\% menos que la mesa vacía.
     \item Cuenco centrado en el arco: $\langle t_{90}\rangle$ es mínimo para
-      $R_f \approx 0.30$--$0.34$~m y crece para radios mayores ($19.8$~s en
-      $R_f = 0.58$~m); desplazar su centro hacia la mesa lo empeora
-      ($14.1 \rightarrow 23.2$ s). Disco central solo: $\langle t_{90}\rangle$
-      baja al crecer $R$ ($21.0$~s en $R = 0.10$~m, $15.8$~s en $R = 0.34$~m).
-    \item $D$ no predice $\langle t_{90}\rangle$ de forma directa: «+ Palos»
-      y el cuenco tienen $D$ parecido ($0.0149$ y $0.0132$ m$^2$/s), pero
-      $\langle t_{90}\rangle$ de «+ Palos» es un 70\,\% mayor ($22.4$ vs.\
-      $13.3$ s).
+      $R_f \approx 0.30$--$0.34$~m y crece para radios mayores; desplazar su centro hacia la mesa lo empeora.
+    \item $D$ no predice $\langle t_{90}\rangle$ de forma directa: «Palos»
+      y el cuenco tienen $D$ similar, pero $\langle t_{90}\rangle$ de «Palos» es un 70\,\% mayor.
   \end{itemize}
 \end{frame}
 
-% 35. Cierre
+% 32. Cierre
 \begin{frame}{}
   \vfill
   \begin{beamercolorbox}[wd=0.86\paperwidth,ht=0.72cm,dp=0.20cm,center]{frametitle}

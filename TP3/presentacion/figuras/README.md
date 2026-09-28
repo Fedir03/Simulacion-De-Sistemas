@@ -16,7 +16,7 @@ antes de exportarlas — no depender de que Beamer las achique bien al
 insertarlas. Verificar contraste y legibilidad proyectando a pantalla
 completa, no solo mirando el archivo en el editor.
 
-**Ojo con las diapositivas de Resultados (16–32):** ahí la figura vive en
+**Ojo con las diapositivas de Resultados (16–29):** ahí la figura vive en
 una columna de `0.66	extwidth`, no en el ancho completo del frame (el
 costado de `0.31	extwidth` es la caja de parámetros fijos y, si hay, el mapa
 de ejemplo). Por eso todos los scripts de figuras usan `font.size = 14`
@@ -44,25 +44,22 @@ arregle después en el `.tex` de la presentación.
 | `geometria-sistema.png` | 12 | ✅ Esquema con L, W, d, r y R_k. `plot_geometria_sistema.py` |
 | `tiempo-ejecucion-vs-n.png` | 16 | ✅ ⟨t_ejec⟩ vs. N, mesa vacía (`generated/runtime.png`) |
 | `vacia_frame.png` | 17 | ✅ Fotograma de la mesa vacía, semilla 141, t = 11.27 s (`generated/vacia_s141/vacia_s141.mp4`, cuadro 96, con flechas, sin la franja de texto superior) |
-| `fu-temporal-vacia.pdf` | 18 | ✅ F_u(t) de esa corrida. `plot_fu.py` |
-| `t90-vs-xk.png` | 19 | ✅ ⟨t₉₀⟩ vs. x_k, un disco R = 0.30 (barrido `xk`) |
-| `t90-vs-r-central.png`, `mapa-central.png` | 20 | ✅ ⟨t₉₀⟩ vs. R del disco central (barrido `centro_R`) |
-| `t90-vs-largo-embudo.png`, `mapa-embudo.png` | 21 | ✅ ⟨t₉₀⟩ vs. largo del embudo, dos fronteras (barridos `embudo_min`, `embudo_libre`) |
-| `t90-vs-separacion-galton.png`, `mapa-galton.png` | 22 | ✅ ⟨t₉₀⟩ vs. separación de la red (barrido `galton`) |
-| `t90-vs-rf-central-cuenco.png`, `mapa-central-cuenco.png` | 23 | ✅ ⟨t₉₀⟩ vs. R_f, disco central + cuenco (barrido `central_cuenco`; referencia `arq_central_R0.32`) |
-| `t90-vs-desplazamiento-cuenco.png`, `mapa-cuenco-desplazado.png` | 24 | ✅ ⟨t₉₀⟩ vs. desplazamiento del centro del cuenco R_f = 0.35 (barrido `cuenco_desplazado`) |
-| `elegida_frame.png` | 25, 29 | ✅ Fotograma del cuenco R_f = 0.34, semilla 140, t = 6.67 s (`generated/elegida_s140/elegida_s140.mp4`, cuadro 204, con flechas, sin la franja superior). En 25 con link; en 29 solo el fotograma |
-| `fu-temporal-cuenco.pdf` | 26 | ✅ F_u(t) de esa corrida. `plot_fu.py` |
-| `t90-vs-rf-cuenco.png` | 27 | ✅ ⟨t₉₀⟩ vs. R_f del cuenco (barrido `cuenco_fino_radio`) |
-| `t90-vs-arquetipo.pdf` | 28 | ✅ ⟨t₉₀⟩ por arquetipo: disco solo, +embudo, +palos y el cuenco R_f = 0.34 (sin disco), vs. mesa vacía. `plot_arquetipos.py` con los datos de `TP3/GUIA.md` |
-| `fu-temporal-elegida.pdf` | 30 | ✅ F_u(t): cuenco (semilla 140) y mesa vacía (semilla 141). `plot_fu.py` |
-| `dcm-ajuste.pdf` | 31 | ✅ DCM z(t) con el ajuste lineal superpuesto |
-| `d-vs-t90.pdf` | 32 | ✅ D por configuración, y D vs. ⟨t₉₀⟩ |
+| `t90-vs-xk.png` | 18 | ✅ ⟨t₉₀⟩ vs. x_k, un disco R = 0.30 (barrido `xk`) |
+| `t90-vs-r-central.png`, `mapa-central.png` | 19 | ✅ ⟨t₉₀⟩ vs. R del disco central (barrido `centro_R`) |
+| `t90-vs-largo-embudo.png`, `mapa-embudo.png` | 20 | ✅ ⟨t₉₀⟩ vs. largo del embudo, dos fronteras (barridos `embudo_min`, `embudo_libre`) |
+| `t90-vs-separacion-galton.png`, `mapa-galton.png` | 21 | ✅ ⟨t₉₀⟩ vs. separación de la red (barrido `galton`) |
+| `t90-vs-rf-central-cuenco.png`, `mapa-central-cuenco.png` | 22 | ✅ ⟨t₉₀⟩ vs. R_f, disco central + cuenco (barrido `central_cuenco`; referencia `arq_central_R0.32`) |
+| `t90-vs-desplazamiento-cuenco.png`, `mapa-cuenco-desplazado.png` | 23 | ✅ ⟨t₉₀⟩ vs. desplazamiento del centro del cuenco R_f = 0.35 (barrido `cuenco_desplazado`) |
+| `elegida_frame.png` | 24, 27 | ✅ Fotograma del cuenco R_f = 0.34, semilla 140, t = 6.67 s (`generated/elegida_s140/elegida_s140.mp4`, cuadro 204, con flechas, sin la franja superior). En 24 con link; en 27 solo el fotograma |
+| `t90-vs-rf-cuenco.png` | 25 | ✅ ⟨t₉₀⟩ vs. R_f del cuenco (barrido `cuenco_fino_radio`) |
+| `t90-vs-arquetipo.pdf` | 26 | ✅ ⟨t₉₀⟩ por arquetipo: disco solo, embudo, palos y el cuenco R_f = 0.34 (sin disco), vs. mesa vacía. `plot_arquetipos.py` con los datos de `TP3/GUIA.md` |
+| `dcm-ajuste.pdf` | 28 | ✅ DCM z(t) con el ajuste lineal superpuesto |
+| `d-vs-t90.pdf` | 29 | ✅ D por configuración, y D vs. ⟨t₉₀⟩ |
 
 Los mapas de ejemplo (`mapa-*.png`) son solo obstáculos, sin ejes: `plot_mapas.py`
 (comandos en su docstring). Las curvas ⟨t₉₀⟩ vs. parámetro salen de
 `TP3/scripts/plot_sweep.py` sobre `TP3/generated/sweeps/<barrido>/summary.csv`
 (semillas 101–150, 50 realizaciones, referencia `arq_vacia` salvo que se indique otra).
 
-Las URLs de YouTube de las diapositivas 17 y 25 se completan en
+Las URLs de YouTube de las diapositivas 17 y 24 se completan en
 `\animacionVaciaURL` / `\animacionElegidaURL`, al principio del `.tex`.
