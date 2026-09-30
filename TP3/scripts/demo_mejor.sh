@@ -24,7 +24,7 @@ set -euo pipefail
 
 # Mejor mapa hasta ahora: cuenco, semicírculo libre de radio 0.34 centrado en cada arco, con la
 # frontera hecha de discos de radio r (<t90> = 13.3 ± 1.6 s, 50 realizaciones).
-MAP_ARGS=(--obstacles "$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/configs/cuenco_fino_R0.34.txt")
+MAP_ARGS=(--obstacles "$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/configs/cuenco_fino_R0.34cd tp  cd.txt")
 REALIZATIONS=${REALIZATIONS:-5}
 TIME=${TIME:-100}    # tiempo máximo si no se llega al 90 % [s]
 EVERY=${EVERY:-100}  # estado completo cada EVERY eventos
