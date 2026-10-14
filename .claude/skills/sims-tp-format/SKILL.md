@@ -1,11 +1,11 @@
 ---
 name: sims-tp-format
-description: "Reglas de formato y contenido para informes y presentaciones de Simulación de Sistemas (72.25, ITBA) — compiladas de las guías oficiales de la cátedra, una clase de pre-entrega real, y correcciones reales de un grupo anterior (nota 5.5, TP2 2025Q2G10). Usar SIEMPRE que se arme, revise o corrija un informe o presentación de un TP de esta materia (TP2, TP3, TP4, TP5, final) — antes de escribir contenido nuevo, antes de dar por terminada una sección, y antes de la entrega final. Cubre estructura de secciones, qué va en Modelo vs Simulaciones, reglas de figuras (nunca título embebido, leyendas, escalas), metodología de desvío estándar correcta, notación matemática, y checklist de entrega (nombres de archivo, alcance del ZIP de código)."
+description: "Reglas de formato y contenido para informes y presentaciones de Simulación de Sistemas (72.25, ITBA) — compiladas de las guías oficiales de la cátedra, una clase de pre-entrega real, correcciones reales de un grupo anterior (nota 5.5, TP2 2025Q2G10) y correcciones propias de TP3 (nota 6,5, 2026Q2G02). Usar SIEMPRE que se arme, revise o corrija un informe o presentación de un TP de esta materia (TP2, TP3, TP4, TP5, final) — antes de escribir contenido nuevo, antes de dar por terminada una sección, y antes de la entrega final. Cubre estructura de secciones, qué va en Modelo vs Simulaciones, reglas de figuras (nunca título embebido, leyendas, escalas), metodología de desvío estándar correcta, notación matemática, checklist de entrega (nombres de archivo, alcance del ZIP de código), y orden canónico de barridos (esquema → curvas temporales → observable vs parámetro)."
 ---
 
 # Formato de informes y presentaciones — Simulación de Sistemas (72.25, ITBA)
 
-Reglas reunidas de: guías oficiales de la cátedra (GuiaInformes.pdf, GuiaPresentaciones.pdf, Formato_Informes.pdf, Formato_Presentaciones.pdf), una clase virtual de pre-entrega real donde la cátedra revisó presentaciones de otros grupos en vivo, y las correcciones reales que recibió un TP2 de un cuatrimestre anterior (nota 5.5).
+Reglas reunidas de: guías oficiales de la cátedra (GuiaInformes.pdf, GuiaPresentaciones.pdf, Formato_Informes.pdf, Formato_Presentaciones.pdf), una clase virtual de pre-entrega real donde la cátedra revisó presentaciones de otros grupos en vivo, las correcciones reales que recibió un TP2 de un cuatrimestre anterior (nota 5.5), y las correcciones del propio TP3 (nota 6,5, recibidas 03/10/2026).
 
 **Regla de oro:** informe y presentación comparten las mismas secciones y el mismo contenido de fondo, pero NO el mismo volumen de texto ni el mismo nivel de detalle. La presentación es visual y breve (13 minutos de exposición oral); el informe es el documento completo y autocontenido. Nunca copiar un párrafo del informe a una diapositiva sin comprimirlo a frases cortas.
 
@@ -29,6 +29,9 @@ Ejemplo de la cátedra: si simularan un sistema gravitatorio, "Modelo" es solo F
 - **Definir todas las variantes del modelo desde el principio**, nunca diferirlas a una sección posterior — es el error #1 que le costó puntos al grupo de referencia.
 - **En conclusiones, siempre aclarar a qué variante/modelo se refiere cada afirmación** — nunca asumir que todas las variantes responden igual a un mismo cambio de parámetro.
 - **Parámetros sin unidades** si el modelo es adimensional (confirmarlo con la cátedra si hay dudas, no asumir).
+- **Orden de un barrido (según la cátedra, TP3):** (1) esquema del sistema → (2) curvas temporales para distintos valores del parámetro → (3) observable vs parámetro. Orden incorrecto fue señalado explícitamente en D18-D20.
+- **Un recuadro = un tipo de contenido:** no mezclar parámetros, resultados y descripción de animación en el mismo bloque gris. Los resultados van después, con su gráfico.
+- **Menos ejemplos con más dedicación:** mostrar muchas configuraciones para poco tiempo hace que se entienda poco. Si se quiere mostrar variedad, mandarla a apéndice o mostrar solo los esquemas.
 - Ver `references/reglas-figuras.md` para todo lo de escalas de ejes, leyendas, paleta de colores, animaciones vivo-vs-entrega.
 
 ## Checklist de entrega — ver `references/checklist-entrega.md`
@@ -42,6 +45,14 @@ Ver `references/correcciones-nash.md` para la lista completa, con contexto de po
 ## Correcciones reales del propio TP2 (nota 6.5)
 
 Ver `references/correcciones-reales-tp2.md` — feedback directo sobre trabajo propio, máxima prioridad. Incluye el hallazgo más importante de toda la skill: el orden de un algoritmo se verifica contra la letra exacta del enunciado, nunca contra "lo que parece físicamente razonable".
+
+## Correcciones reales del propio TP3 — lecciones de proceso
+
+Ver `references/correcciones-reales-tp3.md` — lecciones de proceso previas a la entrega: verificar el algoritmo contra la teórica exacta (no solo el enunciado), titulación independiente del contenido técnico, σ vs σ/√N depende del caso, demo verificada con el comando exacto de la entrega, reproducibilidad del config, fórmula de pt efectivo en figuras, y problemas Windows/Git Bash.
+
+## Correcciones reales del propio TP3 — devolución oficial (nota 6,5)
+
+Ver `references/correcciones-reales-tp3-nota.md` — feedback oficial de la cátedra (recibido 03/10/2026), máxima prioridad junto con correcciones-reales-tp2.md. Hallazgo central: la cátedra valoró explorar muchas configuraciones pero penalizó la forma de presentarlas — demasiadas para el tiempo disponible, se entendió poco ("menos ejemplos con más dedicación"). Incluye el orden canónico de barridos, reglas de recuadros, símbolos y ajustes.
 
 ## Uso de agentes de código (Claude Code u otros)
 
