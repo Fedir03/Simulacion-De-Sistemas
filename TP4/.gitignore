@@ -32,3 +32,6 @@ corrida*.txt
 .DS_Store
 Thumbs.db
 *~
+
+# Salidas de corridas
+outputs/
