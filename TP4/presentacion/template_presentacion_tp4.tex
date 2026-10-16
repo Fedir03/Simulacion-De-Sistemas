@@ -1,0 +1,482 @@
+\documentclass[aspectratio=43,11pt]{beamer}
+
+% ================================================================
+% Presentación de TP4 — Dinámica Molecular Regida por el Paso
+% Temporal (72.25, ITBA).
+% Estilo heredado de TP3/presentacion/template_presentacion_tp3.tex (D27).
+% Compilar con: latexmk -pdf presentacion_imagen.tex
+% Símbolos nuevos: definir en texto + marca visual la primera vez (ver DEFINICIONES.md §5).
+% ================================================================
+
+% ----------------------------------------------------------------
+% REVISAR A MANO antes de aceptar (corrección real de TP2: un label
+% de eje sobrecargado "suena a eje nombrado por la IA"). Convención
+% acordada para TODAS las figuras de esta presentación:
+%   eje temporal .......... t [s]
+%   paso temporal ......... Δt [s]
+%   error cuadrático medio  ECM
+%   energía relativa ...... E/E₀
+%   error de energía ...... ε_E
+%   cantidad de partículas  N
+%   fracción usada ........ F_u
+%   tiempo al 90% ......... ⟨t₉₀⟩ [s]
+%   rapidez ............... v [m/s], f(v)
+%   densidad .............. ρ [m⁻²]
+% Nada de paréntesis explicativos ni unidades del modelo entre
+% corchetes. Si un label no entra en dos o tres símbolos, está mal.
+%
+% TAMAÑO DE FUENTE (corrección real de TP2: "los tamaños de fuente de
+% las figuras son ilegibles"): la letra dentro de cada figura tiene que
+% ser comparable a la del resto de la diapositiva. Si no se lee
+% proyectada, está mal, sea cual sea el tamaño en puntos.
+%
+% NUNCA un título adentro del área graficada: eso va en el
+% \frametitle. Los parámetros fijos van en el \parambox del costado,
+% nunca repetidos en cada entrada de leyenda.
+%
+% TEXTO (D27): lo escribe una persona a partir de la figura. Los
+% títulos de cada diapositiva son provisorios; los recuadros grises con
+% "Sxx — ..." marcan qué va (DEFINICIONES.md §3) y se reemplazan.
+% ----------------------------------------------------------------
+
+\usepackage[T1]{fontenc}
+% "provide=*" permite compilar también en instalaciones mínimas de TeX Live.
+\usepackage[provide=*,spanish]{babel}
+\usepackage{lmodern}
+\usepackage{amsmath,amssymb,bm}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,calc,positioning}
+% Para controlar leftmargin/itemsep/topsep del itemize angosto de \parambox
+% (0.27\textwidth) -- el itemize default de beamer queda con demasiado
+% margen y espaciado para una caja tan chica.
+\usepackage{enumitem}
+% enumitem reemplaza el símbolo de beamer por uno vacío: sin esto los itemize
+% sin label explícito (ej. Conclusiones) salen sin viñeta.
+\setlist[itemize]{label=\textcolor{TPBlue}{$\bullet$}}
+
+% ---------- Colores ----------
+\definecolor{TPBlue}{HTML}{3939B5}
+\definecolor{TPBlueDark}{HTML}{29298A}
+\definecolor{TPBlack}{HTML}{050505}
+\definecolor{TPNavGray}{HTML}{858585}
+\definecolor{TPLight}{HTML}{E9E9F2}
+\definecolor{TPPlaceholder}{HTML}{F4F4F7}
+\definecolor{TPFresca}{HTML}{2E5FD0}
+\definecolor{TPUsada}{HTML}{C0392B}
+
+\setbeamercolor{normal text}{fg=black,bg=white}
+\setbeamercolor{structure}{fg=TPBlue}
+\setbeamercolor{frametitle}{fg=white,bg=TPBlue}
+\setbeamercolor{itemize item}{fg=TPBlue}
+\setbeamercolor{itemize subitem}{fg=TPBlue}
+\setbeamercolor{title box}{fg=white,bg=TPBlue}
+\setbeamercolor{databox title}{fg=white,bg=TPBlueDark}
+\setbeamercolor{databox body}{fg=black,bg=TPLight}
+\setbeamercolor{algorithm box}{fg=black,bg=white}
+\setbeamercolor{headline navigation}{fg=TPNavGray,bg=TPBlack}
+\setbeamertemplate{items}[circle]
+\setbeamertemplate{navigation symbols}{}
+
+\setbeamerfont{frametitle}{size=\Large,series=\mdseries}
+\setbeamerfont{normal text}{size=\normalsize}
+\setbeamerfont{itemize/enumerate body}{size=\normalsize}
+\setbeamerfont{itemize/enumerate subbody}{size=\small}
+
+% ---------- Metadatos ----------
+\title{Trabajo Práctico Nro. 4: Dinámica Molecular Regida por el Paso Temporal}
+\subtitle{72.25 - Simulación de Sistemas}
+\author{%
+  Federico Ignacio Ruckauf\texorpdfstring{\textsuperscript{1}}{1}
+  \and Federico Spivak Fontaiña\texorpdfstring{\textsuperscript{2}}{2}
+  \and Lorenzo Chiossone\texorpdfstring{\textsuperscript{3}}{3}%
+}
+\institute{Instituto Tecnológico de Buenos Aires}
+\date{2026 2C --- Grupo N.º 02}
+
+% URLs de las animaciones (D16): 2.2, 2.3 y 2.4. Reemplazar PENDIENTE
+% por el link de YouTube no listado cuando esté subido.
+\newcommand{\animacionDosDosURL}{https://youtu.be/PENDIENTE}
+\newcommand{\animacionDosTresURL}{https://youtu.be/PENDIENTE}
+\newcommand{\animacionDosCuatroURL}{https://youtu.be/PENDIENTE}
+
+% Si existe logo_itba.png o logo_itba.pdf junto al .tex, se inserta.
+\newcommand{\institutionlogo}{%
+  \IfFileExists{logo_itba.pdf}{\includegraphics[height=0.75cm]{logo_itba.pdf}}{%
+    \IfFileExists{logo_itba.png}{\includegraphics[height=0.75cm]{logo_itba.png}}{%
+      \fbox{\scriptsize LOGO DE LA INSTITUCIÓN}%
+    }%
+  }%
+}
+
+% ---------- Barra superior por sección ----------
+% Rangos de diapositivas:
+% Introducción 2--4 (incluye Modelo, fusionado -- ver TP2) | Implementación 5--6
+% Simulaciones 7--9 | Resultados 10--20 | Conclusiones 21--23
+% Cada rango incluye su \sectiondivider como primera diapositiva del
+% bloque. Si se agregan o quitan diapositivas hay que renumerar estos
+% rangos a mano.
+\newcount\TPNavDot
+
+\newcommand{\navdots}[2]{%
+  \begingroup
+    \TPNavDot=#1\relax
+    \loop
+      \ifnum\insertframenumber=\TPNavDot
+        \raisebox{0.45mm}{{\color{white}\fontsize{6}{6}\selectfont$\bullet$}}%
+      \else
+        \raisebox{0.45mm}{{\color{TPNavGray}\fontsize{7}{7}\selectfont$\circ$}}%
+      \fi
+      \ifnum\TPNavDot<#2\relax
+        \kern0.60mm
+        \advance\TPNavDot by 1\relax
+    \repeat
+  \endgroup
+}
+
+\newcommand{\navblock}[4]{%
+  % #1 ancho, #2 nombre, #3 inicio, #4 fin
+  \makebox[#1\paperwidth][c]{%
+    \parbox[c][0.62cm][c]{#1\paperwidth}{%
+      \centering
+      \ifnum\insertframenumber>1
+        \ifnum\insertframenumber<#3
+          {\color{TPNavGray}\scriptsize\strut #2}%
+        \else
+          \ifnum\insertframenumber>#4
+            {\color{TPNavGray}\scriptsize\strut #2}%
+          \else
+            {\color{white}\scriptsize\strut #2}%
+          \fi
+        \fi
+      \else
+        {\color{TPNavGray}\scriptsize\strut #2}%
+      \fi
+      \par\vspace{-0.55mm}
+      \navdots{#3}{#4}%
+    }%
+  }%
+}
+
+% Fila de navegación por secciones -- factorizada para no duplicarla
+% entre las dos ramas de \TPheadline (con y sin franja de relleno).
+\newcommand{\TPnavrow}{%
+  \makebox[\paperwidth][l]{%
+    \navblock{0.21}{Introducción}{2}{4}%
+    \navblock{0.19}{Implementación}{5}{6}%
+    \navblock{0.17}{Simulaciones}{7}{9}%
+    \navblock{0.26}{Resultados}{10}{20}%
+    \navblock{0.17}{Conclusiones}{21}{23}%
+  }%
+}
+
+% La franja azul de relleno (para diapositivas sin título, ej.
+% \sectiondivider) NUNCA debe cambiar la altura TOTAL del headline: si se
+% suma como una caja extra arriba de la altura de la barra de navegación
+% normal, el headline queda 0.05cm (~1.42pt) más alto que en las
+% diapositivas con título, y LaTeX no tiene margen para absorberlo en los
+% frames centrados verticalmente ([c], o con \vfill como portada/cierre)
+% -- produce "Overfull \vbox (1.42271pt too high)" y una línea residual
+% visible en el borde superior. Por eso la franja le resta exactamente lo
+% mismo que ocupa al "dp" de la barra de navegación (0.28cm -> 0.23cm):
+% el total (barra + franja) da siempre 0.78cm, igual que una diapositiva
+% con título.
+\setbeamertemplate{headline}{%
+  \leavevmode
+  \ifdefempty{\insertframetitle}{%
+    \begin{beamercolorbox}[wd=\paperwidth,ht=0.50cm,dp=0.23cm]{headline navigation}%
+      \TPnavrow
+    \end{beamercolorbox}%
+    \par\nointerlineskip
+    \begin{beamercolorbox}[wd=\paperwidth,ht=0.05cm,dp=0cm]{frametitle}\end{beamercolorbox}%
+  }{%
+    \begin{beamercolorbox}[wd=\paperwidth,ht=0.50cm,dp=0.28cm]{headline navigation}%
+      \TPnavrow
+    \end{beamercolorbox}%
+  }%
+}
+
+\setbeamertemplate{frametitle}{%
+  \nointerlineskip
+  \begin{beamercolorbox}[wd=\paperwidth,ht=0.74cm,dp=0.12cm,leftskip=0.35cm]{frametitle}
+    \usebeamerfont{frametitle}\insertframetitle
+  \end{beamercolorbox}
+}
+
+\setbeamersize{text margin left=0.55cm,text margin right=0.55cm}
+
+% Pie mínimo con número de diapositiva.
+\setbeamertemplate{footline}{%
+  \leavevmode
+  \hbox{\begin{beamercolorbox}[wd=\paperwidth,ht=0.20cm,dp=0.10cm,rightskip=0.18cm]{normal text}
+    \hfill{\color{TPNavGray}\tiny\insertframenumber/\inserttotalframenumber}
+  \end{beamercolorbox}}
+}
+
+% ---------- Componentes reutilizables (heredados de TP2/TP3) ----------
+\newcommand{\sectiondivider}[1]{%
+  \begin{frame}[c]{}
+    \makebox[\linewidth][c]{%
+      \begin{beamercolorbox}[wd=0.56\paperwidth,ht=0.55cm,dp=0.15cm,center]{frametitle}
+        \large #1
+      \end{beamercolorbox}%
+    }
+  \end{frame}
+}
+
+\newcommand{\placeholder}[2][4.4cm]{%
+  \begingroup
+    \setlength{\fboxsep}{0pt}%
+    \setlength{\fboxrule}{0.45pt}%
+    \fcolorbox{TPNavGray}{TPPlaceholder}{%
+      \parbox[c][\dimexpr#1-2\fboxrule\relax][c]{%
+        \dimexpr\linewidth-2\fboxrule\relax}{%
+        \centering\color{TPNavGray}\small #2}%
+    }%
+  \endgroup
+}
+
+\newcommand{\maybeimage}[3]{%
+  \IfFileExists{#1}{\includegraphics[width=\linewidth,height=#2,keepaspectratio]{#1}}{%
+    \placeholder[#2]{#3\\[2mm]\nolinkurl{#1}}%
+  }%
+}
+
+% Ambas versiones muestran debajo un enlace visible a YouTube.
+% En la versión YouTube, además, la propia imagen funciona como enlace.
+\newcommand{\videooimagen}[4]{%
+  \begin{minipage}{\linewidth}
+    \centering
+    \ifdefined\versionyoutube
+      \href{#3}{\maybeimage{#1}{#2}{#4}}%
+    \else
+      \maybeimage{#1}{#2}{#4}%
+    \fi
+    \par\vspace{1mm}
+    \href{#3}{{\color{TPBlue}\scriptsize\nolinkurl{#3}}}%
+  \end{minipage}%
+}
+
+% Caja de parámetros fijos, en la columna derecha (~28% del frame) --
+% nunca repetidos dentro de la leyenda (corrección real de TP2). Lista de
+% viñetas alineada a la izquierda (no centrada): el contenido se pasa como
+% una secuencia de \item, ej. \parambox{\item A \item B \item C}.
+\newcommand{\parambox}[1]{%
+  \begin{beamercolorbox}[wd=\linewidth,sep=2mm]{databox body}
+    \small
+    \begin{itemize}[label=\textcolor{TPBlue}{$\bullet$},leftmargin=3.2mm,labelsep=1mm,itemsep=1mm,topsep=0pt,parsep=0pt]
+      #1
+    \end{itemize}
+  \end{beamercolorbox}%
+}
+
+% Una animación por diapositiva, con la caja de parámetros al costado.
+% #1 imagen, #2 altura, #3 URL, #4 texto del placeholder, #5 parámetros fijos.
+\newcommand{\animacionsimple}[5]{%
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.66\textwidth}
+      \videooimagen{#1}{#2}{#3}{#4}%
+    \end{column}
+    \begin{column}{0.31\textwidth}
+      \parambox{#5}%
+    \end{column}
+  \end{columns}%
+}
+
+% Diapositiva de resultados: figura a la izquierda (0.66) y, a la derecha,
+% la caja de parámetros fijos y opcionalmente una imagen chica (fotograma
+% de la animación o esquema) con su epígrafe.
+% #1 figura, #2 altura, #3 texto del placeholder, #4 parámetros fijos,
+% #5 imagen chica (vacío = sin imagen), #6 epígrafe de la imagen chica.
+\newcommand{\resultadofigura}[6]{%
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.66\textwidth}
+      \centering
+      \maybeimage{#1}{#2}{#3}%
+    \end{column}
+    \begin{column}{0.31\textwidth}
+      \ifstrempty{#4}{}{\parambox{#4}\par\vspace{2mm}}%
+      \ifstrempty{#5}{}{%
+        \centering
+        \maybeimage{#5}{3.2cm}{Imagen chica}\par
+        {\scriptsize\color{TPNavGray}#6\par}%
+      }%
+    \end{column}
+  \end{columns}%
+}
+
+\newenvironment{databox}[1]{%
+  \begin{beamercolorbox}[wd=\linewidth,sep=1mm,center]{databox title}%
+    #1
+  \end{beamercolorbox}%
+  \par\nointerlineskip
+  \begin{beamercolorbox}[wd=\linewidth,sep=2mm]{databox body}%
+}{%
+  \end{beamercolorbox}%
+}
+
+% ================================================================
+% PRESENTACIÓN
+% Una diapositiva por fila S01--S17 de DEFINICIONES.md §3.
+% Figuras: nombres fijos que escribe analysis/make_figures.py (D28).
+% ================================================================
+\begin{document}
+
+% 1. PORTADA
+\begin{frame}{}
+  \vspace{0.35cm}
+  \begingroup
+    \makebox[\linewidth][c]{%
+      \begin{beamercolorbox}[wd=0.91\linewidth,sep=3mm,center]{title box}
+        \resizebox{0.92\linewidth}{!}{\strut\inserttitle}\par
+        \vspace{1mm}
+        {\large\insertsubtitle}
+      \end{beamercolorbox}%
+    }
+    \par
+  \endgroup
+  \vspace{0.35cm}
+  \begin{center}
+    {\small\insertauthor\par}
+    \vspace{0.18cm}
+    {\scriptsize
+      \textsuperscript{1}\href{mailto:fruckauf@itba.edu.ar}{fruckauf@itba.edu.ar}\\[0.5mm]
+      \textsuperscript{2}\href{mailto:fespivak@itba.edu.ar}{fespivak@itba.edu.ar}\\[0.5mm]
+      \textsuperscript{3}\href{mailto:lchiossone@itba.edu.ar}{lchiossone@itba.edu.ar}
+      \par
+    }
+    \vspace{0.13cm}
+    {\small\insertinstitute\par}
+    \vspace{0.35cm}
+    {\large\insertdate\par}
+    \vfill
+    \institutionlogo
+  \end{center}
+\end{frame}
+
+% ---------------- INTRODUCCIÓN ----------------
+% 2
+\sectiondivider{Introducción}
+
+% 3 -- S01
+\begin{frame}{Introducción}
+  \placeholder[6cm]{S01 --- Fenómeno y método general.\\Nada del billar ni de obstáculos}
+\end{frame}
+
+% 4 -- S02 (define ξ y E: DEFINICIONES.md §5)
+\begin{frame}{Modelo}
+  \placeholder[6cm]{S02 --- Solo ecuaciones: Newton, fuerza de contacto, energía.\\Sin números ni geometría}
+\end{frame}
+
+% ---------------- IMPLEMENTACIÓN ----------------
+% 5
+\sectiondivider{Implementación}
+
+% 6 -- S03 (define Δt, Δt₂)
+\begin{frame}{Esquemas de Integración}
+  \placeholder[6cm]{S03 --- 4 esquemas del Sistema 1 y Verlet del Sistema 2,\\velocidad (D17), pared imagen, CIM mencionado}
+\end{frame}
+
+% ---------------- SIMULACIONES ----------------
+% 7
+\sectiondivider{Simulaciones}
+
+% 8 -- S04 (define ECM)
+\begin{frame}{Sistema 1: Oscilador Amortiguado}
+  \placeholder[6cm]{S04 --- Parámetros del oscilador y definición de ECM}
+\end{frame}
+
+% 9 -- S05 (define R, r, x₀, N, m, k, v₀, ε_E, Nu, Fu, t₉₀, t₁₀₀, ρ, f(v))
+\begin{frame}{Sistema 2: Geometría, Parámetros y Observables}
+  \resultadofigura{figuras/E1-esquema-sistema.png}{5.1cm}{E1: esquema con $R$, $r$, $x_0$ marcados}
+    {\item Pendiente}{}{}
+\end{frame}
+
+% ---------------- RESULTADOS ----------------
+% 10
+\sectiondivider{Resultados}
+
+% 11 -- S06
+\begin{frame}[c]{Sistema 1: Error Cuadrático Medio en Función de $\Delta t$}
+  \resultadofigura{figuras/F1-ecm-vs-dt.pdf}{5.1cm}{F1: ECM vs.\ $\Delta t$}{}{}{}
+\end{frame}
+
+% 12 -- S07
+\begin{frame}[c]{Energía en el Tiempo para Varios $\Delta t$}
+  \resultadofigura{figuras/F2-energia-vs-t.pdf}{5.1cm}{F2: $E(t)/E(0)$ vs.\ $t$}{}{}{}
+\end{frame}
+
+% 13 -- S08
+\begin{frame}[c]{Error de Energía en Función de $\Delta t$}
+  \resultadofigura{figuras/F3-epsE-vs-dt.pdf}{5.1cm}{F3: $\varepsilon_E$ vs.\ $\Delta t$}{}{}{}
+\end{frame}
+
+% 14 -- S09
+\begin{frame}[c]{Tiempo de Ejecución en Función de $N$}
+  \resultadofigura{figuras/F4-tiempo-vs-n.pdf}{5.1cm}{F4: tiempo de ejecución vs.\ $N$}{}{}{}
+\end{frame}
+
+% 15 -- S10
+\begin{frame}[c]{Obstáculos en $\pm x_0$ --- Evolución del Sistema}
+  \animacionsimple{figuras/anim-2-2.png}{5.1cm}{\animacionDosDosURL}
+    {Fotograma de la animación de 2.2}
+    {\item Pendiente}
+\end{frame}
+
+% 16 -- S11
+\begin{frame}[c]{Fracción Usada en el Tiempo}
+  \resultadofigura{figuras/F5-fu-vs-t.pdf}{5.1cm}{F5: $F_u(t)$ para 3 valores de $x_0$}{}{}{}
+\end{frame}
+
+% 17 -- S12
+\begin{frame}[c]{$\langle t_{90}\rangle$ en Función de $x_0$}
+  \resultadofigura{figuras/F6-t90-vs-x0.pdf}{5.1cm}{F6: $\langle t_{90}\rangle$ vs.\ $x_0$}{}{}{}
+\end{frame}
+
+% 18 -- S13 (define t_est)
+\begin{frame}[c]{Distribución de Rapidez en el Tiempo}
+  \resultadofigura{figuras/F7-fv-temporal.pdf}{5.1cm}{F7: $f(v)$ a varios tiempos}{}
+    {figuras/anim-2-3.png}{\href{\animacionDosTresURL}{\nolinkurl{\animacionDosTresURL}}}
+\end{frame}
+
+% 19 -- S14 (define k_BT)
+\begin{frame}[c]{Distribución Estacionaria y Ajuste de Maxwell-Boltzmann}
+  \resultadofigura{figuras/F8-fv-mb.pdf}{5.1cm}{F8: $f(v)$ estacionaria y ajuste}{}{}{}
+\end{frame}
+
+% 20 -- S15
+\begin{frame}[c]{$\langle t_{90}\rangle$ y $\langle t_{100}\rangle$ en Función de la Densidad}
+  \resultadofigura{figuras/F9-t-vs-rho.pdf}{5.1cm}{F9: $\langle t_{90}\rangle$, $\langle t_{100}\rangle$ vs.\ $\rho$}{}
+    {figuras/anim-2-4.png}{\href{\animacionDosCuatroURL}{\nolinkurl{\animacionDosCuatroURL}}}
+\end{frame}
+
+% ---------------- CONCLUSIONES ----------------
+% 21
+\sectiondivider{Conclusiones}
+
+% 22 -- S16
+% RECORDATORIOS: cada afirmación dice a qué caso se refiere; nada sobre
+% el dt elegido (eso queda en 2.1.a).
+\begin{frame}{Conclusiones}
+  \placeholder[6cm]{S16 --- Una afirmación por estudio, aclarando el caso}
+\end{frame}
+
+% 23 -- S17
+\begin{frame}{Uso de IA}
+  \placeholder[6cm]{S17 --- Agente/modelo usado y de qué manera}
+\end{frame}
+
+% 24. Cierre
+\begin{frame}{}
+  \vfill
+  \begin{beamercolorbox}[wd=0.86\paperwidth,ht=0.72cm,dp=0.20cm,center]{frametitle}
+    \LARGE Muchas gracias
+  \end{beamercolorbox}
+  \vspace{0.4cm}
+  \begin{center}
+    \maybeimage{figuras/muchas_gracias.jpeg}{3.1cm}{Insertar imagen de cierre}
+  \end{center}
+  \vfill
+\end{frame}
+
+\end{document}

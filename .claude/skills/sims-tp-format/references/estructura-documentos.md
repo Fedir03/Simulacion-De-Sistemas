@@ -6,7 +6,7 @@
 2. **Modelo** — SOLO ecuaciones abstractas de TODAS las variantes que se van a estudiar, definidas desde el principio (nunca diferir la definición de una variante a una sección posterior — ver correcciones-nash.md, es el error #1). Cero geometría, cero parámetros numéricos, cero nombres de clases.
 3. **Implementación** — arquitectura del motor (diagrama, no pseudocódigo detallado si ya se explicó en un TP anterior — mencionar y no repetir). Formato de datos/reproducibilidad si aplica.
 4. **Simulaciones** — parámetros fijos/variables con valores reales, geometría del sistema (con dibujo), definición matemática de los observables.
-5. **Resultados** — una subsección por cada figura/estudio, siguiendo el orden: animación característica → evolución temporal (para justificar criterio de estado estacionario) → observable escalar vs parámetro variable. Solo descriptivo, nunca interpretativo.
+5. **Resultados** — una subsección por cada figura/estudio, siguiendo el orden: esquema → animación característica → evolución temporal (para justificar criterio de estado estacionario) → observable escalar vs parámetro variable (en TP4, 2.1.a —el estudio de dt— va sin animación). Solo descriptivo, nunca interpretativo.
 6. **Conclusiones** — siempre aclarando a qué modelo/variante se refiere cada punto.
 7. **Referencias** — sin numerar como sección, al final.
 

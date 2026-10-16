@@ -4,7 +4,7 @@
 
 a) Presentación oral (con duración fija, ej. 13 minutos) siguiendo el formato de "Formato_Presentaciones.pdf" de la cátedra.
 b) El documento de la presentación en PDF — **sin animaciones embebidas, solo links explícitos** (ver reglas-figuras.md, sección "Animaciones — entrega vs presentación en vivo").
-c) Código fuente en un .zip — **SOLO la versión final del motor de simulación**. Tamaño esperado del orden de los KB, no MB. NO incluir: historial de commits, documentación, scripts de post-procesamiento/graficado/animación, output de simulaciones, ni ningún archivo de trabajo intermedio.
+c) Código fuente en un .zip — **SOLO la versión final del motor de simulación** (en TP4: pom, Main, engine, models, io y las clases de TP1 que use). Tamaño esperado del orden de los KB, no MB. NO incluir: historial de commits, documentación, output de simulaciones, ni ningún archivo de trabajo intermedio. Código de animación/figuras: en otros TPs se incluye, salvo que el enunciado diga lo contrario (ver SKILL.md); en TP4 no, porque el enunciado pide únicamente el motor final, sin código de postprocesamiento.
 d) Informe con las mismas secciones que la presentación, formato según "Formato_Informes.pdf" de la cátedra — **NO asumir que siempre se pide**, ver sección siguiente.
 
 ## Los entregables varían de un TP a otro — no asumir que se repiten
@@ -20,7 +20,7 @@ Confirmar el patrón exacto en el enunciado de cada TP (suele incluir número de
 ## Antes de armar el ZIP de código
 
 Verificar explícitamente que NO se cuelan:
-- Scripts de graficado/animación/post-procesamiento (van en el repo de desarrollo, no en la entrega).
+- Scripts de graficado/animación/post-procesamiento cuando el enunciado pide solo el motor, como en TP4 (van en el repo de desarrollo, no en la entrega). En otros TPs el código de animación/figuras sí va (ver SKILL.md).
 - Datos generados (CSVs, archivos de trayectoria, figuras).
 - Archivos de configuración de IDE, documentación de arquitectura, tests de otros TPs del mismo repo si el motor es multi-módulo.
 - Historial de git (`.git/`).

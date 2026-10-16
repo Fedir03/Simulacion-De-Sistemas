@@ -1,5 +1,7 @@
 # Correcciones reales de la cátedra — TP3 (nota 6,5, recibidas 03/10/2026)
 
+> Vale para TP3; en TP4 el orden incluye animación, ver SKILL.md.
+
 Fuente: `TPE3 - Correcciones.txt` (Drive, carpeta U3). Grupo 2 (2026Q2G02). Misma nota que TP2: la cátedra valoró la exploración, pero la forma de presentarla restó. Máxima prioridad junto con correcciones-reales-tp2.md.
 
 ## Comentario general (el más importante)
