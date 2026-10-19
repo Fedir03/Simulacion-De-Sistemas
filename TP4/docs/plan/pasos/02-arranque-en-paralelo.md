@@ -13,9 +13,9 @@ Cuatro frentes avanzando a la vez para llegar a la clase con algo corriendo.
 ## Tareas (en paralelo)
 | Rol | Tarea | Entrega | Está hecho si |
 |---|---|---|---|
-| A | Crear módulo Maven `tp4` (pom, paquete `ar.edu.itba.sds.tp4` con Main, engine, models, io); copiar CIM de TP1 dentro (se usa con la grilla rearmada en cada paso, D25); esqueleto del motor S2 que compila | Módulo que compila con `mvn -q package` | Compila en carpeta limpia |
+| A | Crear módulo Maven `tp4` (pom, paquete `ar.edu.itba.sds.tp4` con Main, engine, models, io); copiar de TP1 **solo** `CellIndexMethod`, `NeighborFinder` y `Particle` (se usa con la grilla rearmada en cada paso; coordenadas desplazadas en +R porque el CIM de TP1 trabaja en [0,L]², D25; revisión del CIM parcial, sin correcciones de TP1 escritas); esqueleto del motor S2 que compila | Módulo que compila con `mvn -q package` | Compila en carpeta limpia |
 | B | Oscilador: solución analítica, 4 integradores (D17, fórmulas de `../referencia/FORMULAS-VERIFICADAS.md`), cálculo de ECM | Salida ECM por dt | Cada esquema reproduce la analítica a dt chico |
-| C | Escribir `docs/formatos.md` (observables.txt, dynamic.txt, config con semilla) y runner; lanzar la medición de tiempos de TP3 **solo si** la máquina de D12 queda libre; si no, dejarlo para el sábado a la noche | `formatos.md` subido | Los otros roles lo leyeron |
+| C | Escribir `docs/formatos.md` (observables.txt, dynamic.txt, config con semilla) y runner; lanzar la medición de tiempos de TP3 **solo si** la máquina de D12 queda libre; si no, queda pendiente, antes del vie 23 (paso 06) | `formatos.md` subido | Los otros roles lo leyeron |
 | D | Copiar la plantilla de TP3 a TP4/presentacion/ (D27) y dejar el script de estilo de figuras (D28) listo; dibujar E1, E2 y E3 (DEFINICIONES.md §2) para que las marcas visuales del glosario existan; compilar la plantilla de TP4/presentacion/ con latexmk en una máquina con LaTeX y confirmar que no hay Overfull vbox | TP4/presentacion/ + script de estilo + E1–E3 | Se exporta a PDF sin Overfull vbox; E1–E3 en `presentacion/figuras/` |
 | E | Imprimir la hoja de consultas del paso 03 y preparar el registro de respuestas | Hoja lista | Hoja impresa o abierta |
 

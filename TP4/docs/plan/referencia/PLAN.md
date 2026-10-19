@@ -13,12 +13,12 @@
 ## 2. Números de diseño (a re-verificar en el repo)
 | Dato | Valor | Consecuencia |
 |---|---|---|
-| Área del círculo (R=0,51 m) | 0,817 m²; φ por partícula 0,001177 | N=100→0,12; 300→0,35; 600→0,71; 700→0,82 |
-| Colocación aleatoria secuencial (RSA) | se traba en N≈440–445 (φ≈0,52) | N grande: red hexagonal con sitios sorteados |
-| Máximo en red hexagonal | ≈721–725 sin obstáculos; 714–719 con obstáculos en x0=r | barrido de N debe llegar a ~700 (llenar el dominio) |
+| Área del círculo (R=0,51 m) | 0,817 m²; φ por partícula 0,001177 | N=100→0,12; 300→0,35; 600→0,71 |
+| Colocación al azar sin solapar | se traba en N≈440–445 (φ≈0,52) | se usa grilla única para todo N (D5) |
+| N máx con la grilla | se mide con código (paso 04), con y sin obstáculos en x0=r; sin topes teóricos | el barrido de N llega al N máx medido (llenar el dominio) |
 | Contacto partícula–partícula | ω=√(2k/m)≈894 rad/s; contacto ≈3,5 ms | Verlet inestable para dt > 2,2e-3; práctico dt ≲ 3,5e-4, barrer hasta ~1e-5 |
 | Contacto pared | contacto ≈4,97 ms | mismo criterio |
-| CIM | M=29 celdas por lado | CIM obligatorio en N grande |
+| CIM | M=29 celdas por lado (L=2R, coordenadas desplazadas en +R, D25) | CIM obligatorio en N grande |
 | Superposición máxima | ~1,1 mm (par), ~1,6 mm (pared) a v0=1 | no asumir v ≤ v0 en tests |
 
 ## 3. Pasos con compuertas
@@ -27,12 +27,13 @@ Ver `../pasos/` (01→12, cada uno con su compuerta de salida) y `../DEFINICIONE
 ## 4. Roadmap
 Fechas y tareas por rol en `../pasos/` (el paso actual, en `../ESTADO.md`); valores en `../DEFINICIONES.md`.
 
-## 5. División de tareas (sin nombres todavía)
-- A. Motor Sistema 2 (Verlet, primer paso, CIM, pared imagen, obstáculos, fresca/usada, salida en múltiplos de dt2, colocación RSA y hexagonal, semillas).
-- B. Sistema 1 (4 integradores, solución analítica, ECM(dt), diapositiva única, tests de orden).
-- C. Observables y experimentos (energía, Fu, Nu, t90, t100, f(v) y ajuste MB 2D con método de Teórica 0, runner, densidad, barras de error con bolsa de datos).
-- D. Figuras, animación, presentación.
-- E. Cumplimiento de formato (transversal): revisa contra `CORRECCIONES-CHECKS.md`, verifica ZIP, nombres, links, declaración de IA.
+## 5. División de tareas (nombres y pares de auditoría en `../DEFINICIONES.md` D23)
+- A (Ruckauf). Motor Sistema 2 (Verlet, primer paso, pared imagen, obstáculos, fresca/usada, energía, salida en múltiplos de dt2, semillas). Usa la interfaz del CIM acordada con Fede.
+- Fede (fuera de las letras). Colocación por grilla única, CIM (+R, D25), medición del N máx, test CIM vs fuerza bruta, `StageGeneration` de TP3, tiempos de 2.1.b + TP3.
+- B (Lolo). Sistema 1 (4 integradores, solución analítica, ECM(dt), diapositiva única, tests de orden).
+- C (Lolo). Observables y experimentos (energía, Fu, Nu, t90, t100, f(v) y ajuste MB 2D con método de Teórica 0, runner, densidad, barras de error con bolsa de datos).
+- D (Lolo). Figuras, animación, presentación.
+- E (Fede). Cumplimiento de formato (transversal): revisa contra `CORRECCIONES-CHECKS.md`, verifica ZIP, nombres, links, declaración de IA.
 
 Reglas: `git pull` antes de empezar; un worktree por paquete; cada persona entiende el algoritmo antes de pedirle código a un agente; todo texto o etiqueta de un agente lo revisa y reescribe una persona.
 
@@ -51,15 +52,15 @@ TP4/
   tools/build_zip.ps1       # idem para Windows PowerShell
   analysis/  tests/  outputs/  presentacion/
 ```
-Va al ZIP todo lo necesario para que el motor compile y corra: pom.xml, Main, models, io y engine (y command si se crea), código fuente Java de TP4, el README del motor (`TP4/README.md`, D26) y la copia de las clases de TP1 que use (CIM), porque la cátedra no tiene el resto del repo. NO van: tests, scripts de Python, outputs, configs de corridas, presentación, docs, .git, target/.
+Va al ZIP todo lo necesario para que el motor compile y corra: pom.xml, Main, models, io y engine (y command si se crea), código fuente Java de TP4, el README chico del motor (`TP4/README.md`, D26: compilar y un comando de ejemplo que corra; si el comando necesita config, un config de ejemplo mínimo) y la copia de solo las clases de TP1 que use (`CellIndexMethod`, `NeighborFinder`, `Particle`), porque la cátedra no tiene el resto del repo. NO van: tests, scripts de Python, outputs, configs de corridas, presentación, docs, .git, target/.
 
 Los paquetes se hablan solo por archivos de texto (`static.txt`, `dynamic.txt` con id, x, y, vx, vy, estado). Una config por corrida con la semilla adentro.
 
 ## 7. Tests antes de experimentar
 **Sistema 1:** reproduce la solución analítica; pendientes de ECM(dt) = orden esperado (sacado de Teórica 4); primer paso de Verlet/Beeman correcto; errores claros ante dt ≤ 0 o parámetros faltantes.
-**Sistema 2:** CIM = fuerza bruta (aceleraciones idénticas, incluyendo bordes de celda, pared y obstáculo); una partícula sola conserva momento angular y |v|; dos partículas de frente conservan momento y energía; pared imagen (contacto solo si |r| > R−r); fresca→usada irreversible y Nu no decrece; energía total acotada para el dt elegido, también en N máximo; salida solo en múltiplos de dt2, incluye t=0, ningún estado extra; N imposible ⇒ error explícito; misma semilla ⇒ salida byte a byte igual. No testear conservación de momento total (pared/obstáculos).
+**Sistema 2:** CIM = fuerza bruta (aceleraciones idénticas, incluyendo bordes de celda, pared, obstáculo y partículas en x<0 e y<0; además, la simulación completa del paso 04); una partícula sola conserva momento angular y |v|; dos partículas de frente conservan momento y energía; pared imagen (contacto solo si |r| > R−r); fresca→usada irreversible y Nu no decrece; energía total acotada para el dt elegido, también en N máximo; salida solo en múltiplos de dt2, incluye t=0, ningún estado extra; N imposible ⇒ error explícito; misma semilla ⇒ salida byte a byte igual. No testear conservación de momento total (pared/obstáculos).
 **Entrega:** comando exacto de la demo de punta a punta; ZIP < 100 KB extraído en carpeta vacía compila y corre; PDF a 150 dpi sin cortes, fuente efectiva 10–11 pt; Windows: `PYTHONUTF8=1`.
-- El ZIP se genera con un solo comando: `tools/build_zip.sh` o `tools/build_zip.ps1`. Ambos copian pom.xml, src/main/java y el README del motor (`TP4/README.md`) del módulo TP4 más las clases de TP1 de las que depende (CIM), excluyen outputs, `.git`, `target/` y archivos del SO (.DS_Store, Thumbs.db, __MACOSX), nombran el archivo `SdS_TP4_2026Q2G02CS_Codigo.zip`, fallan con mensaje claro si pesa 100 KB o más y listan el contenido al terminar. Probar los dos en la máquina de entrega y comparar que el contenido sea el mismo.
+- El ZIP se genera con un solo comando: `tools/build_zip.sh` o `tools/build_zip.ps1`. Ambos copian pom.xml, src/main/java y el README del motor (`TP4/README.md`) del módulo TP4 más solo las clases de TP1 de las que depende (`CellIndexMethod`, `NeighborFinder`, `Particle`) y el config de ejemplo si el README lo usa, excluyen outputs, `.git`, `target/` y archivos del SO (.DS_Store, Thumbs.db, __MACOSX), nombran el archivo `SdS_TP4_2026Q2G02CS_Codigo.zip`, fallan con mensaje claro si pesa 100 KB o más y listan el contenido al terminar. Probar los dos en la máquina de entrega y comparar que el contenido sea el mismo.
 
 ## 8. Revisión por sección con la skill
 Cada vez que una sección de la presentación o del informe queda en borrador (Simulaciones, Sistema 1, 2.1.a, 2.1.b, 2.2, 2.3, 2.4, Conclusiones), el paquete E la pasa por la skill `sims-tp-format` en una pasada aparte, con un agente revisor que no escribió ese texto, en paralelo al resto del trabajo. El revisor devuelve solo una lista de ítems incumplidos contra CORRECCIONES-CHECKS.md; no corrige. La persona del paquete E decide qué se arregla y marca la sección como revisada. Antes de la entrega se corre una pasada final sobre el PDF completo.

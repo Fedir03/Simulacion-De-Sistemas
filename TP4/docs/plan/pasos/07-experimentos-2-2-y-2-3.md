@@ -1,6 +1,6 @@
 # Paso 07 — Experimentos 2 2 y 2 3
 
-**Cuándo:** Dom 18 mañana-tarde
+**Cuándo:** no empezado; pendiente, antes del vie 23
 **Antes:** paso `06` · **Después:** paso `08`
 **Todos los valores (dt, N, realizaciones, figuras, diapositivas):** `../DEFINICIONES.md`
 
@@ -16,7 +16,7 @@ Obtener los datos de 2.2 y 2.3 y generar F4–F9.
 | C | Lanzar 2.2 (D13: 9 x₀ × 8 realizaciones, N=100 y N=20) y 2.3 (30 realizaciones con `dynamic.txt`) en paralelo; piloto corto de 2.3 para fijar t_est (D9, D15) | Outputs completos | Cuentan todos los casos y todas las semillas |
 | C | Verificar reproducibilidad: misma semilla ⇒ misma salida (cmp) en un caso de cada estudio | Resultado del cmp | Idéntico |
 | D | F4 (con ajuste de ley de potencia declarado) y, apenas lleguen datos, F5–F9 | F4–F9 | Barras y escalas según `../DEFINICIONES.md` §2 |
-| A | Renderizar las 3 animaciones (D16) usando el script de D28 y subir a YouTube no listado | 3 links | Los links abren sin sesión |
+| D · Lolo | Renderizar las 3 animaciones (D16) usando el script de D28 y subir a YouTube no listado | 3 links | Los links abren sin sesión |
 | E | Anotar por estudio qué se fijó y qué se varió (para S05) | Tabla fijo/variable | Coincide con las diapositivas |
 
 ## Compuerta de salida

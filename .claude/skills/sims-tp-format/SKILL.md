@@ -5,7 +5,7 @@ description: "Reglas de formato y contenido para informes y presentaciones de Si
 
 # Formato de informes y presentaciones — Simulación de Sistemas (72.25, ITBA)
 
-Reglas reunidas de: guías oficiales de la cátedra (GuiaInformes.pdf, GuiaPresentaciones.pdf, Formato_Informes.pdf, Formato_Presentaciones.pdf), una clase virtual de pre-entrega real donde la cátedra revisó presentaciones de otros grupos en vivo, las correcciones reales que recibió un TP2 de un cuatrimestre anterior (nota 5,5), las correcciones reales del TP4 de ese mismo grupo (G10, nota 7), las correcciones reales del propio TP2 de este grupo (nota 6,5), las correcciones oficiales del TP3 de este grupo (nota 6,5), y un mail de la cátedra sobre uso de IA en la preparación de presentaciones.
+Reglas reunidas de: guías oficiales de la cátedra (GuiaInformes.pdf, GuiaPresentaciones.pdf, Formato_Informes.pdf, Formato_Presentaciones.pdf), una clase virtual de pre-entrega real donde la cátedra revisó presentaciones de otros grupos en vivo, las correcciones reales que recibió un TP2 de un cuatrimestre anterior (nota 5,5), las correcciones reales del TP4 de ese mismo grupo (G10, nota 7), las correcciones reales del propio TP2 de este grupo (nota 6,5), las correcciones oficiales del TP3 de este grupo (nota 6,5), un mail de la cátedra sobre uso de IA en la preparación de presentaciones, y el anuncio de la cátedra "Criterios de Evaluación TP4 y TP5" (19/10/2026).
 
 **Regla de oro:** informe y presentación comparten las mismas secciones y el mismo contenido de fondo, pero NO el mismo volumen de texto ni el mismo nivel de detalle. La presentación es visual y breve (13 minutos de exposición oral); el informe es el documento completo y autocontenido. Nunca copiar un párrafo del informe a una diapositiva sin comprimirlo a frases cortas.
 
@@ -63,10 +63,10 @@ Ejemplo de la cátedra: si simularan un sistema gravitatorio, "Modelo" es solo F
 
 - **Δt es un parámetro del método, no una variable de estudio del sistema**: se estudia y se elige en su propia sección (2.1.a), no mezclado con las variables físicas.
 - **El Sistema 1 va en UNA sola diapositiva** (ECM vs Δt, ejes log-log, los 4 esquemas como mínimo), con la respuesta a "cuál es el mejor esquema".
-- **Los tiempos de ejecución van solo en Resultados/Conclusiones**, nunca en Simulaciones/Parámetros. Se mide el tiempo de cómputo por integrador (oscilador) y se dice cuál es el más rápido, en la respuesta oral o en Conclusiones; no como figura extra en la diapositiva del Sistema 1.
+- **Los tiempos de ejecución van solo en Resultados/Conclusiones**, nunca en Simulaciones/Parámetros. Se mide el tiempo de cómputo por integrador (oscilador) y se dice cuál es el más rápido, en la respuesta oral o en Conclusiones; no como figura extra en la diapositiva del Sistema 1. Para afirmar cuál es el más rápido hace falta calentar la JVM: descartar la primera corrida y reportar la mediana de al menos 5 repeticiones por esquema.
 - **Declarar cómo se estimó la velocidad** en los esquemas cuando la fuerza depende de ella (Verlet, Velocity Verlet) y qué variante de Beeman se usó.
 - **Animaciones**: cada estudio del Sistema 2 lleva una animación de un caso representativo, salvo 2.1.a (estudio de Δt), que no lleva ninguna. Orden dentro de cada estudio: esquema → animación → evolución temporal → observable vs parámetro.
-- **La última diapositiva lleva la declaración de uso de IA**.
+- **La última diapositiva de la exposición lleva la declaración de uso de IA** (después puede ir "Muchas gracias"; el anexo de prompts del motor va como apéndice al final, fuera de la exposición).
 - **El ZIP lleva solo lo necesario para compilar y correr el motor final** (< 100 KB): `pom.xml`, `src/main/java` del módulo TP4 (Main, engine, models, io) y las clases de TP1 que use (ej. CIM, copiadas dentro del módulo para que compile solo). Se genera con script (`tools/build_zip.sh` / `tools/build_zip.ps1`) y se prueba descomprimiéndolo y compilándolo en una carpeta limpia.
 
 ## Correcciones del TP4 de Nash (G10, nota 7)
@@ -79,6 +79,16 @@ Feedback real sobre el TP4 del mismo grupo de referencia del TP2; aplica tal cua
 - **Animaciones de casos representativos de cada estudio del Sistema 2**: son necesarias para verificar que la implementación es correcta; su ausencia se penaliza.
 - **No repetir Δt en cada página**: Δt se elige en 2.1.a, se declara una sola vez y se aclara después solo cuando cambia.
 - **Las conclusiones sobre Δt no forman parte de las conclusiones del estudio**: Δt es parámetro del método; su conclusión va en su propia sección y no se mezcla con las conclusiones físicas de los estudios.
+
+## Criterios de Evaluación TP4 y TP5 (anuncio de la cátedra, 19/10/2026)
+
+El anuncio recuerda que los agentes de IA son asistentes en tareas dirigidas y controladas por los estudiantes. Para evaluar que se entiende lo que se hace y que hay pensamiento crítico, los observables son:
+
+- **La presentación oral pesa más** y habrá más preguntas durante la misma: la exposición puede no completarse y el PDF se revisa completo en la corrección. Consecuencias: ordenar la presentación de lo más importante a lo secundario; armar una lista de preguntas probables y ensayar con preguntas cruzadas, de modo que cualquier integrante pueda responder por cualquier parte (código, integradores, análisis), no solo por la suya.
+- **La participación en las clases de TP es muy importante** (la del TP4 fue inusualmente baja; se espera que se revierta en el TP5). Cada integrante debe preguntar o aportar en cada clase de TP; llevar a clase consultas concretas y resultados parciales (ej. figuras preliminares) y registrar qué se discutió y cuándo.
+- **Integradores (TP4)**: el código debe hacer exactamente lo indicado en la teórica. Toda modificación o adaptación (ej. estimación de la velocidad cuando la fuerza depende de ella, primer paso por Euler, errata en una fórmula, redondeo de la cantidad de pasos, qué pasos entran en el ECM) se declara explícitamente y se discute en clase o se consulta con la cátedra (por mail si ya no hay clase) ANTES de la presentación. Mantener una tabla de auditoría por esquema: diapositiva de la teórica, fórmula, archivo:línea del código, adaptación, justificación y fecha de la consulta.
+- **Coordinar y auditar los códigos** del motor de simulación y del análisis: auditoría cruzada (nadie audita su propio código), con registro de quién revisó qué y qué encontró; incluye los scripts de análisis y figuras, no solo el motor.
+- **Anexo de la declaración de uso de IA**: incluir las instrucciones (prompts) enviadas al agente para construir el motor de simulación. Cada integrante guarda los del motor con fecha y autor, marcando cuáles son textuales y cuáles reconstruidos a partir del plan (no hace falta cargar todos los prompts usados); los prompts usados para planificar o documentar no son del motor. Confirmar con la cátedra si el anexo va dentro del PDF o aparte.
 
 ## Etiquetas y texto que "suenan generados por IA"
 
@@ -97,7 +107,7 @@ La cátedra señaló explícitamente, en una corrección real de este mismo grup
 
 ## Verificar el orden algorítmico contra la letra exacta del enunciado, nunca contra intuición física
 
-El hallazgo más grave de las correcciones reales de este grupo fue un bug de orden temporal en el motor: el código movía todas las partículas antes de recalcular vecinos, cuando el enunciado definía la actualización a partir del vecindario en la posición *anterior*. El código "parecía" físicamente razonable pero no seguía la letra exacta del enunciado. Antes de aceptar cualquier orden de operaciones en el motor (incluidas propuestas de compañeros de grupo para reordenar guardado de estado, resolución de colisiones, etc.), comparar línea por línea contra la definición textual del enunciado — nunca aprobar un reorden solo porque "tiene sentido físicamente".
+El hallazgo más grave de las correcciones reales de este grupo fue un bug de orden temporal en el motor: el código movía todas las partículas antes de recalcular vecinos, cuando el enunciado definía la actualización a partir del vecindario en la posición *anterior*. El código "parecía" físicamente razonable pero no seguía la letra exacta del enunciado. Antes de aceptar cualquier orden de operaciones en el motor (incluidas propuestas de compañeros de grupo para reordenar guardado de estado, resolución de colisiones, etc.), comparar línea por línea contra la definición textual del enunciado — nunca aprobar un reorden solo porque "tiene sentido físicamente". Lo mismo vale para las fórmulas de los integradores: verificarlas contra la diapositiva de la teórica, no de memoria.
 
 ## Checklist de entrega — ver `references/checklist-entrega.md`
 

@@ -1,6 +1,6 @@
 # Paso 05 — Estudio de dt
 
-**Cuándo:** Sáb 17 tarde
+**Cuándo:** no empezado; pendiente, antes del vie 23
 **Antes:** paso `04` · **Después:** paso `06`
 **Todos los valores (dt, N, realizaciones, figuras, diapositivas):** `../DEFINICIONES.md`
 
@@ -13,17 +13,18 @@ Elegir dt y dt2 con el criterio escrito antes de mirar.
 ## Tareas (en paralelo)
 | Rol | Tarea | Entrega | Está hecho si |
 |---|---|---|---|
-| C | Commitear el umbral de D1 **antes** de correr. Correr 2.1.a (D2). Producir ε_E por dt | Archivo con el umbral commiteado + outputs | El commit del umbral es anterior a los outputs |
-| A | Probar el dt candidato en N=700 con x₀=r durante 10 s; corregir bugs | E acotada en el N más denso | ε_E del candidato cumple el umbral |
-| D | F2 (E/E0 vs t) y F3 (ε_E vs dt con umbral y dt elegido); E_cin sola en figura aparte | F2, F3 | Sin título embebido; leyenda adentro |
-| B | Tiempo por integrador medido; ayuda a C con el análisis | Frase 'el más rápido es …' | Medido en la máquina de D12 |
-| E | Cerrar D1 y D3 en `../DEFINICIONES.md` con los números; definir n = dt2/dt | D1, D3 CERRADO | Todos hacen pull |
+| C · Lolo | Commitear el umbral de D1 **antes** de correr. Correr 2.1.a (D2): 30 s para todos los dt y, con esa vista, seguir los que hagan falta hasta el estacionario (cortar al 1–2 % del último punto, Q15). Producir ε_E por dt. **dt=1e-6 (≈3·10⁷ pasos) se lanza en segundo plano: el análisis y la elección de dt no la esperan**; se suma a F3 cuando termine | Archivo con el umbral commiteado + outputs | El commit del umbral es anterior a los outputs |
+| A · Ruckauf | Probar el dt candidato en el N máx medido (D6) con x₀=r durante 10 s; corregir bugs | E acotada en el N más denso | ε_E del candidato cumple el umbral |
+| D · Lolo | F2 (E/E0 vs t) y F3 (ε_E vs dt con umbral y dt elegido); E_cin sola en figura aparte | F2, F3 | Sin título embebido; leyenda adentro |
+| B · Lolo (autor del código: Ruckauf) | Tiempo por integrador del Sistema 1: descartar la primera corrida (calentamiento de la JVM), 5 repeticiones por esquema y reportar la mediana; `System.nanoTime` solo alrededor del bucle de integración, sin I/O; rotar el orden de los esquemas entre repeticiones. Hoy se mide en una sola JVM sin calentamiento (`OscillatorStudy.java:32-38`) | Frase 'el más rápido es …' con la mediana | Medido en la máquina de D12; código auditado por Fede (D30) |
+| E · Fede | Cerrar D1 y D3 en `../DEFINICIONES.md` con los números; definir n = dt2/dt | D1, D3 CERRADO | Todos hacen pull |
 
 ## Compuerta de salida
 - [ ] dt elegido y justificado con el criterio D1
 - [ ] dt2 y n enteros definidos
 - [ ] F2 y F3 generadas con datos reales
 - [ ] D1 y D3 en CERRADO
+- [ ] Tiempo por integrador medido (primera corrida descartada, 5 repeticiones, mediana)
 
 ## Si se traba
 Si ningún dt cumple el umbral, se revisa primero el motor (energía de la pared, primer paso) antes de tocar el umbral.

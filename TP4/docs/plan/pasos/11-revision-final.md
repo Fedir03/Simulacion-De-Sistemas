@@ -13,14 +13,16 @@ Presentación final y archivos con nombre exacto.
 ## Tareas (en paralelo)
 | Rol | Tarea | Entrega | Está hecho si |
 |---|---|---|---|
-| D | Figuras y texto finales | PDF final | Fuente efectiva 10–11 pt a 150 dpi |
-| Todos | Revisión final con la skill sobre el PDF completo; dos ensayos de 13 min | Lista cerrada | Sin ítems abiertos |
-| E | Nombres: `SdS_TP4_2026Q2G02CS_Presentación.pdf` y `SdS_TP4_2026Q2G02CS_Codigo.zip`; links; declaración de IA | Archivos finales | Coinciden con el enunciado |
+| D · Lolo | Figuras y texto finales | PDF final | Fuente efectiva 10–11 pt a 150 dpi |
+| Todos | Revisión final con la skill sobre el PDF completo; dos ensayos de 13 min con preguntas cruzadas (D32): cada uno responde por cualquier parte | Lista cerrada | Sin ítems abiertos; ninguna pregunta de la lista sin respuesta |
+| E · Fede | Nombres: `SdS_TP4_2026Q2G02CS_Presentación.pdf` y `SdS_TP4_2026Q2G02CS_Codigo.zip`; links; declaración de IA con el anexo de prompts (D31) | Archivos finales | Coinciden con el enunciado |
 
 ## Compuerta de salida
 - [ ] PDF y ZIP finales
-- [ ] README del motor presente en el ZIP, o texto de uso en Main si la cátedra no lo admite
-- [ ] Dos ensayos ≤ 13 min
+- [ ] Anexo de prompts presente en el formato acordado con la cátedra (D31)
+- [ ] Adaptaciones de los integradores consultadas con la cátedra (por mail) y marcadas en `../auditoria-integradores.md` (D29)
+- [ ] README chico del motor presente en el ZIP (D26) y su comando de ejemplo corre desde el ZIP descomprimido
+- [ ] Dos ensayos ≤ 13 min, con preguntas cruzadas
 - [ ] Links de animaciones abiertos desde otra cuenta
 
 ## Si se traba

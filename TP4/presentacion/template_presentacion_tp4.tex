@@ -111,8 +111,9 @@
 
 % ---------- Barra superior por sección ----------
 % Rangos de diapositivas:
-% Introducción 2--4 (incluye Modelo, fusionado -- ver TP2) | Implementación 5--6
-% Simulaciones 7--9 | Resultados 10--20 | Conclusiones 21--23
+% Introducción 2--4 (incluye Modelo, fusionado -- ver TP2) | Implementación 5--7
+% Simulaciones 8--10 | Resultados 11--21 | Conclusiones 22--24
+% El cierre (25) y el anexo de prompts (26, apéndice) quedan fuera de la barra.
 % Cada rango incluye su \sectiondivider como primera diapositiva del
 % bloque. Si se agregan o quitan diapositivas hay que renumerar estos
 % rangos a mano.
@@ -163,10 +164,10 @@
 \newcommand{\TPnavrow}{%
   \makebox[\paperwidth][l]{%
     \navblock{0.21}{Introducción}{2}{4}%
-    \navblock{0.19}{Implementación}{5}{6}%
-    \navblock{0.17}{Simulaciones}{7}{9}%
-    \navblock{0.26}{Resultados}{10}{20}%
-    \navblock{0.17}{Conclusiones}{21}{23}%
+    \navblock{0.19}{Implementación}{5}{7}%
+    \navblock{0.17}{Simulaciones}{8}{10}%
+    \navblock{0.26}{Resultados}{11}{21}%
+    \navblock{0.17}{Conclusiones}{22}{24}%
   }%
 }
 
@@ -377,96 +378,101 @@
   \placeholder[6cm]{S03 --- 4 esquemas del Sistema 1 y Verlet del Sistema 2,\\velocidad (D17), pared imagen, CIM mencionado}
 \end{frame}
 
+% 7 -- S03b (D29: adaptaciones respecto de la teórica; ver docs/plan/auditoria-integradores.md)
+\begin{frame}{Adaptaciones de los Integradores}
+  \placeholder[6cm]{S03b --- Qué cambia respecto de la Teórica 4 y por qué:\\primer paso por Euler, estimación de $v$ (D17), guardado con contador entero}
+\end{frame}
+
 % ---------------- SIMULACIONES ----------------
-% 7
+% 8
 \sectiondivider{Simulaciones}
 
-% 8 -- S04 (define ECM)
+% 9 -- S04 (define ECM)
 \begin{frame}{Sistema 1: Oscilador Amortiguado}
   \placeholder[6cm]{S04 --- Parámetros del oscilador y definición de ECM}
 \end{frame}
 
-% 9 -- S05 (define R, r, x₀, N, m, k, v₀, ε_E, Nu, Fu, t₉₀, t₁₀₀, ρ, f(v))
+% 10 -- S05 (define R, r, x₀, N, m, k, v₀, ε_E, Nu, Fu, t₉₀, t₁₀₀, ρ, f(v))
 \begin{frame}{Sistema 2: Geometría, Parámetros y Observables}
   \resultadofigura{figuras/E1-esquema-sistema.png}{5.1cm}{E1: esquema con $R$, $r$, $x_0$ marcados}
     {\item Pendiente}{}{}
 \end{frame}
 
 % ---------------- RESULTADOS ----------------
-% 10
+% 11
 \sectiondivider{Resultados}
 
-% 11 -- S06
+% 12 -- S06
 \begin{frame}[c]{Sistema 1: Error Cuadrático Medio en Función de $\Delta t$}
   \resultadofigura{figuras/F1-ecm-vs-dt.pdf}{5.1cm}{F1: ECM vs.\ $\Delta t$}{}{}{}
 \end{frame}
 
-% 12 -- S07
+% 13 -- S07
 \begin{frame}[c]{Energía en el Tiempo para Varios $\Delta t$}
   \resultadofigura{figuras/F2-energia-vs-t.pdf}{5.1cm}{F2: $E(t)/E(0)$ vs.\ $t$}{}{}{}
 \end{frame}
 
-% 13 -- S08
+% 14 -- S08
 \begin{frame}[c]{Error de Energía en Función de $\Delta t$}
   \resultadofigura{figuras/F3-epsE-vs-dt.pdf}{5.1cm}{F3: $\varepsilon_E$ vs.\ $\Delta t$}{}{}{}
 \end{frame}
 
-% 14 -- S09
+% 15 -- S09
 \begin{frame}[c]{Tiempo de Ejecución en Función de $N$}
   \resultadofigura{figuras/F4-tiempo-vs-n.pdf}{5.1cm}{F4: tiempo de ejecución vs.\ $N$}{}{}{}
 \end{frame}
 
-% 15 -- S10
+% 16 -- S10
 \begin{frame}[c]{Obstáculos en $\pm x_0$ --- Evolución del Sistema}
   \animacionsimple{figuras/anim-2-2.png}{5.1cm}{\animacionDosDosURL}
     {Fotograma de la animación de 2.2}
     {\item Pendiente}
 \end{frame}
 
-% 16 -- S11
+% 17 -- S11
 \begin{frame}[c]{Fracción Usada en el Tiempo}
   \resultadofigura{figuras/F5-fu-vs-t.pdf}{5.1cm}{F5: $F_u(t)$ para 3 valores de $x_0$}{}{}{}
 \end{frame}
 
-% 17 -- S12
+% 18 -- S12
 \begin{frame}[c]{$\langle t_{90}\rangle$ en Función de $x_0$}
   \resultadofigura{figuras/F6-t90-vs-x0.pdf}{5.1cm}{F6: $\langle t_{90}\rangle$ vs.\ $x_0$}{}{}{}
 \end{frame}
 
-% 18 -- S13 (define t_est)
+% 19 -- S13 (define t_est)
 \begin{frame}[c]{Distribución de Rapidez en el Tiempo}
   \resultadofigura{figuras/F7-fv-temporal.pdf}{5.1cm}{F7: $f(v)$ a varios tiempos}{}
     {figuras/anim-2-3.png}{\href{\animacionDosTresURL}{\nolinkurl{\animacionDosTresURL}}}
 \end{frame}
 
-% 19 -- S14 (define k_BT)
+% 20 -- S14 (define k_BT)
 \begin{frame}[c]{Distribución Estacionaria y Ajuste de Maxwell-Boltzmann}
   \resultadofigura{figuras/F8-fv-mb.pdf}{5.1cm}{F8: $f(v)$ estacionaria y ajuste}{}{}{}
 \end{frame}
 
-% 20 -- S15
+% 21 -- S15
 \begin{frame}[c]{$\langle t_{90}\rangle$ y $\langle t_{100}\rangle$ en Función de la Densidad}
   \resultadofigura{figuras/F9-t-vs-rho.pdf}{5.1cm}{F9: $\langle t_{90}\rangle$, $\langle t_{100}\rangle$ vs.\ $\rho$}{}
     {figuras/anim-2-4.png}{\href{\animacionDosCuatroURL}{\nolinkurl{\animacionDosCuatroURL}}}
 \end{frame}
 
 % ---------------- CONCLUSIONES ----------------
-% 21
+% 22
 \sectiondivider{Conclusiones}
 
-% 22 -- S16
+% 23 -- S16
 % RECORDATORIOS: cada afirmación dice a qué caso se refiere; nada sobre
 % el dt elegido (eso queda en 2.1.a).
 \begin{frame}{Conclusiones}
   \placeholder[6cm]{S16 --- Una afirmación por estudio, aclarando el caso}
 \end{frame}
 
-% 23 -- S17
+% 24 -- S17
 \begin{frame}{Uso de IA}
   \placeholder[6cm]{S17 --- Agente/modelo usado y de qué manera}
 \end{frame}
 
-% 24. Cierre
+% 25. Cierre
 \begin{frame}{}
   \vfill
   \begin{beamercolorbox}[wd=0.86\paperwidth,ht=0.72cm,dp=0.20cm,center]{frametitle}
@@ -477,6 +483,13 @@
     \maybeimage{figuras/muchas_gracias.jpeg}{3.1cm}{Insertar imagen de cierre}
   \end{center}
   \vfill
+\end{frame}
+
+% 26 -- S17b (apéndice, D31: va después de "Muchas gracias" para que Uso de IA
+% sea la última diapositiva de la exposición; queda fuera de las secciones de la
+% barra; fuente docs/ia/prompts-motor.md)
+\begin{frame}{Anexo: Prompts del Motor}
+  \placeholder[6cm]{S17b --- Prompts enviados al agente para construir el motor (textual o reconstruido).\\Dentro del PDF o aparte: según la consulta del paso 09}
 \end{frame}
 
 \end{document}
