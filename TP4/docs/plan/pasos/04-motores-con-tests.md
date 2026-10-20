@@ -32,6 +32,10 @@ Misma semilla y mismo estado inicial para los dos métodos.
 - **Comando:** _(completar)_
 - **Resultado:** _(completar: pasa/falla por caso y M; tiempos)_
 
+**Hecho 20/10 (Fede): test de vuelo libre, sin el S2.** `CellIndexMethodTest` (`mvn -o test -Dtest=CellIndexMethodTest`). Las partículas avanzan `x += v·dt` sin fuerzas, con rebote especular en la pared, así que se traslapan libremente. En cada paso, los pares del CIM (`forCircle(M, R).findContacts`, rc = 0) son idénticos a los de la fuerza bruta. Casos: (a) N=300 sin obstáculos, 1000 pasos; (b) N máx (714, hex, x₀=r), 200 pasos; (c) anillo pegado a la pared + racimo superpuesto en x<0, y<0, 2000 pasos; cada uno con M ∈ {29, 10, 1}. Además, un test estático con pares que cruzan bordes de celda en x, en y y en la diagonal (−1,+1), y una partícula con |r| = R. **Resultado: pasa todo** (22/22 tests del módulo); la clase tarda 8–15 s.
+
+**PENDIENTE (cuando Ruckauf tenga el S2): la corrida completa de arriba**, con misma semilla, mismos pares de contacto en cada paso, casos (a)–(c) × 2 M, y posiciones, velocidades y energía como se describe arriba. Condición para el S2: el motor tiene que recibir un `NeighborFinder` (CIM o fuerza bruta), para poder correr la misma simulación con los dos y comparar. Con fuerzas, la trayectoria depende de los pares, así que son dos corridas con la misma semilla, no una sola consultada por los dos como en vuelo libre.
+
 ## Compuerta de salida
 - [ ] Tests de §7 (S2) todos en verde, incluido CIM vs fuerza bruta
 - [ ] Simulación completa CIM vs fuerza bruta: las 6 combinaciones pasan; comando y resultado anotados arriba

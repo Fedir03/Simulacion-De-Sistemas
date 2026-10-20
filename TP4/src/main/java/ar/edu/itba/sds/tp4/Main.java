@@ -1,5 +1,6 @@
 package ar.edu.itba.sds.tp4;
 
+import ar.edu.itba.sds.tp4.engine.GridCapacity;
 import ar.edu.itba.sds.tp4.engine.oscillator.IntegrationOptions;
 import ar.edu.itba.sds.tp4.engine.oscillator.IntegrationOptions.AccelerationUpdate;
 import ar.edu.itba.sds.tp4.engine.oscillator.IntegrationOptions.PredictedVelocity;
@@ -34,7 +35,13 @@ public final class Main {
                       [--vv-velocity euler|half-step]             v predicha para f(t+dt) en Velocity Verlet
                       [--acceleration-update predicted|corrected] a(t+dt) que Beeman y Velocity Verlet pasan al paso siguiente
                     Salidas predeterminadas: TP4/outputs/sistema1/ecm.txt y TP4/outputs/sistema1/trajectory.txt
+                    grid-nmax      N máx colocable con la grilla (cuadrada/hex, 2 anclajes, separaciones extra), sin obstáculos y con x0=r
                     """);
+            return;
+        }
+        if (args[0].equals("grid-nmax")) {
+            if (args.length > 1) throw new IllegalArgumentException("grid-nmax no recibe opciones");
+            GridCapacity.report(System.out);
             return;
         }
         Set<String> common = Set.of("mass", "k", "gamma", "amplitude", "tf", "verlet-velocity", "vv-velocity", "acceleration-update", "out");

@@ -1,0 +1,192 @@
+package ar.edu.itba.sds.tp4.engine.cim;
+
+// Copiado de TP1 (ar.edu.itba.sds.tp1). Agregado en TP4: dominio circular centrado en el origen
+// (forCircle, findContacts), con corrimiento +R y validacion |r| <= R (D25).
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+public class CellIndexMethod implements NeighborFinder {
+
+    // Media vecindad: cada celda mira solo estos offsets, nunca hay doble conteo
+    private static final int[][] OFFSETS = {{0, 0}, {1, 0}, {1, 1}, {0, 1}, {-1, 1}};
+    private static final double L_TOLERANCE = 1e-12;
+
+    private final int m;
+    // Dominio circular: radio R y corrimiento +R que lleva [-R, R]^2 a [0, 2R]^2. NaN y 0 en el cuadrado de TP1
+    private final double circleRadius;
+    private final double offset;
+
+    public CellIndexMethod(int m) {
+        this(m, Double.NaN, 0);
+    }
+
+    private CellIndexMethod(int m, double circleRadius, double offset) {
+        this.m = m;
+        this.circleRadius = circleRadius;
+        this.offset = offset;
+    }
+
+    /** Billar circular de radio R centrado en el origen: la grilla cubre [-R, R]^2 con L = 2R. */
+    public static CellIndexMethod forCircle(int m, double radius) {
+        if (!(radius > 0)) {
+            throw new IllegalArgumentException("R debe ser > 0, se recibio R=" + radius);
+        }
+        return new CellIndexMethod(m, radius, radius);
+    }
+
+    /** Pares en contacto (xi > 0): distancia borde a borde < 0. Solo para forCircle. */
+    public Map<Integer, Set<Integer>> findContacts(List<Particle> particles) {
+        if (!isCircle()) {
+            throw new IllegalStateException("findContacts requiere un CIM creado con forCircle");
+        }
+        return findNeighbors(particles, 2 * circleRadius, 0, false);
+    }
+
+    private boolean isCircle() {
+        return !Double.isNaN(circleRadius);
+    }
+
+    /** M mas grande que cumple L/M > rc + 2*rMax. */
+    public static int maxValidM(double l, double rc, double rMax) {
+        double minCellSize = rc + 2 * rMax;
+        if (minCellSize <= 0) {
+            return 1;
+        }
+        return Math.max(1, (int) Math.ceil(l / minCellSize) - 1);
+    }
+
+    @Override
+    public Map<Integer, Set<Integer>> findNeighbors(List<Particle> particles, double l, double rc, boolean periodic) {
+        double rMax = 0;
+        for (Particle p : particles) {
+            rMax = Math.max(rMax, p.radius());
+        }
+        validate(l, rc, rMax, periodic);
+        if (isCircle()) {
+            validateCircle(particles, l, periodic);
+        }
+
+        List<Particle>[][] grid = buildGrid(l, particles);
+
+        Map<Integer, Set<Integer>> neighbors = new HashMap<>();
+        for (Particle p : particles) {
+            neighbors.put(p.id(), new HashSet<>());
+        }
+
+        for (int cx = 0; cx < m; cx++) {
+            for (int cy = 0; cy < m; cy++) {
+                List<Particle> cell = grid[cx][cy];
+                if (cell.isEmpty()) {
+                    continue;
+                }
+
+                // Pares dentro de la propia celda: i < j evita el auto-par y el doble conteo
+                for (int i = 0; i < cell.size(); i++) {
+                    for (int j = i + 1; j < cell.size(); j++) {
+                        checkPair(cell.get(i), cell.get(j), l, rc, periodic, neighbors);
+                    }
+                }
+
+                for (int k = 1; k < OFFSETS.length; k++) {
+                    int nx = cx + OFFSETS[k][0];
+                    int ny = cy + OFFSETS[k][1];
+                    if (periodic) {
+                        nx = Math.floorMod(nx, m);
+                        ny = Math.floorMod(ny, m);
+                    } else if (nx < 0 || nx >= m || ny < 0 || ny >= m) {
+                        continue;
+                    }
+
+                    for (Particle a : cell) {
+                        for (Particle b : grid[nx][ny]) {
+                            // Con M chico y contorno periodico una celda vecina puede ser la propia:
+                            // el filtro por id evita el auto-par y los HashSet absorben el par repetido
+                            if (a.id() != b.id()) {
+                                checkPair(a, b, l, rc, periodic, neighbors);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return neighbors;
+    }
+
+    private void validate(double l, double rc, double rMax, boolean periodic) {
+        if (m < 1) {
+            throw new IllegalArgumentException("M debe ser >= 1, se recibio M=" + m);
+        }
+        if (rc < 0) {
+            throw new IllegalArgumentException("rc debe ser >= 0, se recibio rc=" + rc);
+        }
+
+        double cellSize = l / m;
+        double minCellSize = rc + 2 * rMax;
+        if (cellSize <= minCellSize) {
+            throw new IllegalArgumentException(String.format(
+                    "M invalido: se requiere L/M > rc + 2*rMax, pero L/M = %s y rc + 2*rMax = %s "
+                            + "(L=%s, M=%d, rc=%s, rMax=%s). El M maximo valido es %d.",
+                    cellSize, minCellSize, l, m, rc, rMax, maxValidM(l, rc, rMax)));
+        }
+
+        if (periodic) {
+            NeighborFinder.validatePeriodic(l, rc, rMax);
+        }
+    }
+
+    // cellIndex recorta los indices a [0, M-1]: sin esta validacion una particula fuera del circulo
+    // caeria en una celda del borde sin ningun error
+    private void validateCircle(List<Particle> particles, double l, boolean periodic) {
+        if (periodic) {
+            throw new IllegalArgumentException("El dominio circular no admite contorno periodico");
+        }
+        if (Math.abs(l - 2 * circleRadius) > L_TOLERANCE) {
+            throw new IllegalArgumentException(String.format(
+                    "Dominio circular: se requiere L = 2R, pero L=%s y 2R=%s", l, 2 * circleRadius));
+        }
+        for (Particle p : particles) {
+            double distance = Math.hypot(p.x(), p.y());
+            if (distance > circleRadius) {
+                throw new IllegalArgumentException(String.format(
+                        "Particula %d fuera del dominio: |r| = %s > R = %s", p.id(), distance, circleRadius));
+            }
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private List<Particle>[][] buildGrid(double l, List<Particle> particles) {
+        List<Particle>[][] grid = new List[m][m];
+        for (int i = 0; i < m; i++) {
+            for (int j = 0; j < m; j++) {
+                grid[i][j] = new ArrayList<>();
+            }
+        }
+
+        double cellSize = l / m;
+        // El corrimiento solo decide la celda; las distancias se calculan con las coordenadas originales
+        for (Particle p : particles) {
+            int cx = cellIndex(p.x() + offset, cellSize);
+            int cy = cellIndex(p.y() + offset, cellSize);
+            grid[cx][cy].add(p);
+        }
+        return grid;
+    }
+
+    private int cellIndex(double coordinate, double cellSize) {
+        return Math.min(m - 1, Math.max(0, (int) (coordinate / cellSize)));
+    }
+
+    private void checkPair(Particle a, Particle b, double l, double rc, boolean periodic, Map<Integer, Set<Integer>> neighbors) {
+        double borderDistance = NeighborFinder.borderToBorderDistance(a, b, l, periodic);
+        if (borderDistance < rc) {
+            neighbors.get(a.id()).add(b.id());
+            neighbors.get(b.id()).add(a.id());
+        }
+    }
+}

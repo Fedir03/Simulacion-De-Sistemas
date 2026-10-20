@@ -15,8 +15,8 @@ La cátedra pide coordinar y auditar los códigos del motor y del análisis (anu
 |---|---|---|---|---|---|
 | Motor S1: `engine/oscillator/*`, `models/Oscillator`, `io/OscillatorFiles` (38e890b) | fedir03 (Ruckauf) | Lolo | | | pendiente |
 | Motor S2 (Verlet, contactos, pared imagen, obstáculos, fresca→usada, energía, salida cada dt2) | Ruckauf | Lolo | | | pendiente (sin código) |
-| CIM copiado de TP1 (+R, validación \|r\|≤R, obstáculos y pared fuera de la grilla; D25) | Fede | Ruckauf | | | pendiente (sin código) |
-| Colocación por grilla única y medición del N máx (D5, D6) | Fede | Ruckauf | | | pendiente (sin código) |
+| CIM copiado de TP1 (+R, validación \|r\|≤R, obstáculos y pared fuera de la grilla; D25): `engine/cim/CellIndexMethod`, `NeighborFinder`, `Particle`; tests `engine/cim/CellIndexMethodTest` (+ `BruteForceNeighborFinder`, solo test) | Fede | Ruckauf | | | pendiente de auditoría (código del 20/10, sin commit) |
+| Colocación por grilla única y medición del N máx (D5, D6): `engine/GridPlacement`, `engine/GridCapacity`, comando `grid-nmax` en `Main`; tests `engine/GridPlacementTest` | Fede | Ruckauf | | | pendiente de auditoría (código del 20/10, sin commit) |
 | `StageGeneration` de TP3 adaptado a la grilla (D7) | Fede | Ruckauf | | | pendiente (sin código) |
 | Estudio del Sistema 1 (ECM vs dt, F1, calentamiento de JVM) | Lolo | Fede | | | pendiente (sin código) |
 | Scripts de `analysis/` (runner, observables, ajuste MB, figuras, animaciones) | Lolo | Fede | | | pendiente (sin código) |
