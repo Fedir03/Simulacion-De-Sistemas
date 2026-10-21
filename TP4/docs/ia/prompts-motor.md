@@ -31,6 +31,18 @@ Decisiones tomadas ante las preguntas del agente:
 - Distancias de −1e-17 con separación 0: redondeo, no solapamiento.
 - Grilla elegida con la medición: hex, s = 2r + 0,1 mm, sitio en el origen (N máx 721 / 714).
 
+### 2026-10-20 · Fede · Grilla del TP3 y medición de tiempos (2.1.b) · Claude Code · reconstruido
+Reconstruido por el agente a partir de la conversación; no es el texto original del prompt.
+
+Pedido: leer el generador de escenarios del TP3 (`StageGeneration` y lo que lo usa) y proponer un plan corto para que el TP3 genere la condición inicial con la misma grilla que el TP4 (`GridPlacement`: hexagonal, sitio en el origen, s = 2r + 0,1 mm) y volver a correr el TP3 en esta computadora. Condiciones: pedir confirmación antes de tocar código del TP3 que no sea el generador; misma máquina, sin otras cargas, con calentamiento descartado; corrida por tandas y reanudable; salidas fuera del repo o ignoradas por git; avisar en vez de decidir si la grilla contradice al TP3 original; sin commit ni push.
+
+Decisiones tomadas ante las preguntas del agente:
+- Ancla: se midieron las dos con código (`center` 703 sitios, `corner` 737). Se eligió `corner` con un margen de 0,1 mm a las paredes, porque con margen 0 había 19–23 eventos de pared y 1–2 goles a t = 0 por semilla.
+- Mesa vacía, como el estudio de tiempo original del TP3.
+- Autorizado `Main` del TP3 (`--placement`, `--grid-anchor`, `grid-nmax`).
+- Medición en una sola JVM calentada y reutilizada, en vez de una JVM por corrida: clase nueva en el TP3, reutilizable para el S2 del TP4. Calentamiento hasta variar menos del 5 %, `System.gc()` entre corridas, orden mezclado, heap fijo `-Xms1g -Xmx1g` y corrida de control (N = 400, semilla 1) con el criterio de media ± 2σ.
+- Tope en N = 600, por el costo medido: N = 700 tarda unos 53 min y N = 737 unas 2,3 h por corrida (φ ≈ 0,87).
+
 ## Federico Ruckauf
 
 _(sin entradas)_
