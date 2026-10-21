@@ -35,6 +35,59 @@ public final class StageGeneration {
         return new Stage(c, seed, particles, obstacles);
     }
 
+    /** Separación extra entre sitios de la grilla del TP4 (s = 2r + 0,1 mm, D5). */
+    public static final double GRID_EXTRA_SPACING = 1e-4;
+    /** CENTER: hay un sitio en el centro de la mesa (L/2, W/2), como el origen del TP4. CORNER: hay un sitio en (r, r). */
+    public enum GridAnchor { CENTER, CORNER }
+    public record Site(double x, double y) { }
+
+    /**
+     * Sitios de la red hexagonal (filas horizontales, las impares corridas media separación) con separación
+     * 2r + extraSpacing, dentro de [r + wallMargin, L − r − wallMargin] × [r + wallMargin, W − r − wallMargin]
+     * y sin solapar obstáculos. Orden fijo: por fila y dentro de la fila por x. Misma red que TP4 GridPlacement.
+     */
+    public static List<Site> gridSites(SimulationConfig c, List<Obstacle> obstacles, GridAnchor anchor,
+                                       double extraSpacing, double wallMargin) {
+        if (!(extraSpacing >= 0) || !(wallMargin >= 0)) throw new IllegalArgumentException("Separación extra y margen deben ser ≥ 0");
+        double r = c.radius(), s = 2 * r + extraSpacing, h = s * Math.sqrt(3) / 2;
+        double ax = anchor == GridAnchor.CENTER ? c.length() / 2 : r + wallMargin;
+        double ay = anchor == GridAnchor.CENTER ? c.width() / 2 : r + wallMargin;
+        double lo = r + wallMargin, maxX = c.length() - r - wallMargin, maxY = c.width() - r - wallMargin;
+        int rows = (int) Math.ceil(c.width() / h) + 1, cols = (int) Math.ceil(c.length() / s) + 1;
+        List<Site> sites = new ArrayList<>();
+        for (int j = -rows; j <= rows; j++) {
+            double rowShift = Math.floorMod(j, 2) == 1 ? 0.5 : 0, y = ay + j * h;
+            if (y < lo || y > maxY) continue;
+            for (int i = -cols; i <= cols; i++) {
+                double x = ax + (i + rowShift) * s;
+                if (x < lo || x > maxX) continue;
+                if (obstacles.stream().noneMatch(o -> overlaps(x, y, r, o.x(), o.y(), o.radius()))) sites.add(new Site(x, y));
+            }
+        }
+        return sites;
+    }
+
+    /** Condición inicial por grilla única (TP4 D5): sortea n sitios sin reemplazo y direcciones uniformes en [0, 2π)
+     * con el mismo Random(seed), en el mismo orden que TP4 GridPlacement.place. Ids 1..n. */
+    public static Stage generateGrid(SimulationConfig c, int n, long seed, List<Obstacle> obstacles, GridAnchor anchor,
+                                     double extraSpacing, double wallMargin) {
+        if (n <= 0) throw new IllegalArgumentException("N debe ser positivo");
+        validate(c, List.of(), obstacles);
+        List<Site> sites = gridSites(c, obstacles, anchor, extraSpacing, wallMargin);
+        if (n > sites.size())
+            throw new IllegalArgumentException("N imposible: se pidieron " + n + " partículas y la grilla tiene " + sites.size() + " sitios libres");
+        Random random = new Random(seed);
+        List<Site> shuffled = new ArrayList<>(sites);
+        Collections.shuffle(shuffled, random);
+        List<Particle> particles = new ArrayList<>(n);
+        for (int id = 1; id <= n; id++) {
+            Site site = shuffled.get(id - 1);
+            double angle = random.nextDouble() * 2 * Math.PI;
+            particles.add(new Particle(id, site.x(), site.y(), c.speed() * Math.cos(angle), c.speed() * Math.sin(angle), c.radius(), c.mass()));
+        }
+        return new Stage(c, seed, particles, obstacles);
+    }
+
     public static void validate(SimulationConfig c, List<Particle> particles, List<Obstacle> obstacles) {
         Set<Integer> ids = new HashSet<>();
         for (int i = 0; i < obstacles.size(); i++) {

@@ -21,6 +21,10 @@ public final class Main {
         if (args.length == 0 || args[0].equals("--help")) {
             System.out.println("""
                     generate [--n 100] [--seed 42] [--out archivo.txt] [--obstacles-out config.txt]
+                             [--placement random|grid] random: rechazo uniforme (original); grid: grilla única
+                               hexagonal del TP4, s = 2r + 0,1 mm, N sitios sorteados sin reemplazo
+                               grid:       [--grid-anchor corner|center] [--grid-margin 1e-4 (margen extra a las paredes)]
+                                           (defaults iguales a los del benchmark Tp3Case)
                              [--obstacle-algorithm random|none|single|funnel|semicircle|posts|lattice|ellipse]
                                random:     [--obstacle-count 2] [--obstacle-radius 0.05] [--obstacle-seed <seed>]
                                single:     [--obstacle-x L/2] [--obstacle-y W/2] [--obstacle-radius 0.1]
@@ -41,13 +45,25 @@ public final class Main {
                              --every k escribe el estado completo cada k eventos; --events-out guarda
                              una línea por evento (t, tipo, participantes, gol), sin el estado
                              --until t90 termina al llegar al 90 % de partículas usadas (--time es el máximo)
+                    grid-nmax      sitios de la grilla (N máx) con mesa vacía, por ancla y margen
                     Salidas predeterminadas: TP3/generated/initial.txt, TP3/generated/simulation.txt
                     y TP3/generated/simulation_events.txt
                     """);
             return;
         }
+        if (args[0].equals("grid-nmax")) {
+            if (args.length > 1) throw new IllegalArgumentException("grid-nmax no recibe opciones");
+            SimulationConfig c = SimulationConfig.defaults();
+            System.out.println("Grilla hexagonal, s = 2r + " + StageGeneration.GRID_EXTRA_SPACING + " m, mesa vacía, L=" + c.length() + " W=" + c.width() + " r=" + c.radius());
+            for (StageGeneration.GridAnchor anchor : StageGeneration.GridAnchor.values())
+                for (double margin : new double[]{0, StageGeneration.GRID_EXTRA_SPACING})
+                    System.out.println("ancla=" + anchor.name().toLowerCase(Locale.ROOT) + " margen=" + margin + " N máx="
+                            + StageGeneration.gridSites(c, List.of(), anchor, StageGeneration.GRID_EXTRA_SPACING, margin).size());
+            return;
+        }
         Set<String> allowed = switch (args[0]) {
             case "generate" -> Set.of("n", "seed", "obstacles", "out", "obstacles-out", "length", "width", "goal-width", "radius", "mass", "speed",
+                    "placement", "grid-anchor", "grid-margin",
                     "obstacle-algorithm", "obstacle-count", "obstacle-radius", "obstacle-seed", "obstacle-x", "obstacle-y",
                     "obstacle-funnel-length", "obstacle-edge-radius", "obstacle-free-radius", "obstacle-center-offset", "obstacle-goals", "obstacle-max-radius", "obstacle-grid", "obstacle-spacing",
                     "obstacle-focus-x", "obstacle-focus-shape", "obstacle-focus-size", "obstacle-lens-width");
@@ -75,8 +91,16 @@ public final class Main {
             List<Obstacle> obstacles = new ArrayList<>(fromFile ? StageFile.readObstacles(Path.of(options.get("obstacles"))) : List.of());
             if (withAlgorithm) obstacles.addAll(ObstacleGenerators.create(algorithm, params)
                     .generate(c, Long.parseLong(options.getOrDefault("obstacle-seed", Long.toString(seed))), List.copyOf(obstacles)));
-            var stage = StageGeneration.generate(c, Integer.parseInt(options.getOrDefault("n", "100")),
-                    seed, obstacles);
+            int n = Integer.parseInt(options.getOrDefault("n", "100"));
+            String placement = options.getOrDefault("placement", "random");
+            if (!placement.equals("grid") && (options.containsKey("grid-anchor") || options.containsKey("grid-margin")))
+                throw new IllegalArgumentException("--grid-anchor y --grid-margin requieren --placement grid");
+            var stage = switch (placement) {
+                case "random" -> StageGeneration.generate(c, n, seed, obstacles);
+                case "grid" -> StageGeneration.generateGrid(c, n, seed, obstacles, gridAnchor(options.getOrDefault("grid-anchor", "corner")),
+                        StageGeneration.GRID_EXTRA_SPACING, value(options, "grid-margin", Double.toString(StageGeneration.GRID_EXTRA_SPACING)));
+                default -> throw new IllegalArgumentException("--placement debe ser random o grid");
+            };
             Path out = output(options, "initial.txt");
             StageFile.write(out, stage);
             System.out.println("Condición inicial: " + out + " | K=" + obstacles.size());
@@ -132,6 +156,13 @@ public final class Main {
                         + " t90=" + result.t90() + " runtime=" + runtime + "s");
             }
         }
+    }
+    private static StageGeneration.GridAnchor gridAnchor(String name) {
+        return switch (name) {
+            case "center" -> StageGeneration.GridAnchor.CENTER;
+            case "corner" -> StageGeneration.GridAnchor.CORNER;
+            default -> throw new IllegalArgumentException("--grid-anchor debe ser center o corner");
+        };
     }
     private static double value(Map<String, String> options, String key, String fallback) {
         return Double.parseDouble(options.getOrDefault(key, fallback));
