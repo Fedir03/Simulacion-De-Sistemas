@@ -28,7 +28,7 @@ nombre correcto.
 | `E3-linea-de-tiempo.png` | S03 | pasos Δt y salidas Δt₂ marcadas |
 | `E1-esquema-sistema.png` | S05 | dominio, obstáculos en ±x₀, R y r con cota, fresca/usada |
 | `F1-ecm-vs-dt.pdf` | S06 | ECM vs. Δt, 4 esquemas |
-| `F2-energia-vs-t.pdf` | S07 | E(t)/E(0) para varios Δt |
+| `F2-energia-vs-t.pdf` | S07 | (E(t)−E(0))/E(0) para varios Δt, en pequeños múltiplos lineales |
 | `F3-epsE-vs-dt.pdf` | S08 | ε_E vs. Δt, umbral y Δt elegido |
 | `F4-tiempo-vs-n.pdf` | S09 | tiempo de ejecución vs. N, TP4 y TP3 |
 | `anim-2-2.png` | S10 | fotograma de la animación de 2.2 |
