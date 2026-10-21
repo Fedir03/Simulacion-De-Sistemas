@@ -29,16 +29,27 @@ Misma semilla y mismo estado inicial para los dos métodos.
 - **Qué se compara:** (1) en cada paso, que el conjunto de pares en contacto sea idéntico; (2) en los primeros ~1000 pasos, posiciones y velocidades iguales dentro de una tolerancia chica; (3) en toda la corrida, curvas de energía total comparables. No se exige igualdad bit a bit en la trayectoria larga, porque el orden de suma distinto amplifica el redondeo.
 - **Dos tamaños de celda:** M máximo válido y uno más grueso. Si falla alguna combinación, el CIM está mal configurado.
 - **Tiempo:** se mide el de cada método, para ver desde qué N el CIM le gana a la fuerza bruta (sirve para la discusión de 2.1.b).
-- **Comando:** _(completar)_
-- **Resultado:** _(completar: pasa/falla por caso y M; tiempos)_
+- **Comando:** `mvn -o test -Dtest=CimVsBruteForceSimulationTest` (desde `TP4/`; imprime una línea por caso y M)
+- **Resultado (20/10, Ruckauf, sin auditar):** **pasan las 6 combinaciones.** Pares idénticos en todos los pasos; dt = 1e-4, cuadro cada 10 pasos.
+
+  | Caso | M | Pasos | Pares/paso | \|Δr\| máx (1000 pasos) | \|Δv\| máx | \|ΔE\|/E0 máx | Búsqueda: fuerza bruta → CIM (µs/paso) |
+  |---|---|---|---|---|---|---|---|
+  | (a) N=300 sin obstáculos | 29 | 3001 | 31 | 0 | 0 | 0 | 200 → 100 (×2,0) |
+  | (a) | 7 | 3001 | 31 | 0 | 0 | 0 | 200 → 72 (×2,8) |
+  | (b) N=714, x₀=r | 29 | 2001 | 799 | 1,6e-15 | 1,1e-12 | 5,8e-11 | 1042 → 193 (×5,4) |
+  | (b) | 7 | 2001 | 799 | 0 | 0 | 2e-16 | 1042 → 422 (×2,5) |
+  | (c) pared + racimo x<0, y<0 (N=70, x₀=0,3) | 29 | 5001 | 2 | 0 | 0 | 0 | 16 → 20 (×0,8) |
+  | (c) | 7 | 5001 | 2 | 0 | 0 | 0 | 16 → 9 (×1,8) |
+
+  Tolerancias del test: \|Δr\| < 1e-9 m, \|Δv\| < 1e-6 m/s, \|ΔE\|/E0 < 1e-6, Nu idéntico en cada cuadro. Las diferencias de (b) con M=29 son de redondeo: los mismos pares se suman en otro orden (orden de iteración de los `HashSet`). Tiempos de una sola corrida, sin calentamiento de la JVM y en una máquina con ruido: sirven para ver la tendencia (con N chico el CIM no gana; con N=714 gana ×5), no para 2.1.b.
 
 **Hecho 20/10 (Fede): test de vuelo libre, sin el S2.** `CellIndexMethodTest` (`mvn -o test -Dtest=CellIndexMethodTest`). Las partículas avanzan `x += v·dt` sin fuerzas, con rebote especular en la pared, así que se traslapan libremente. En cada paso, los pares del CIM (`forCircle(M, R).findContacts`, rc = 0) son idénticos a los de la fuerza bruta. Casos: (a) N=300 sin obstáculos, 1000 pasos; (b) N máx (714, hex, x₀=r), 200 pasos; (c) anillo pegado a la pared + racimo superpuesto en x<0, y<0, 2000 pasos; cada uno con M ∈ {29, 10, 1}. Además, un test estático con pares que cruzan bordes de celda en x, en y y en la diagonal (−1,+1), y una partícula con |r| = R. **Resultado: pasa todo** (22/22 tests del módulo); la clase tarda 8–15 s.
 
-**PENDIENTE (cuando Ruckauf tenga el S2): la corrida completa de arriba**, con misma semilla, mismos pares de contacto en cada paso, casos (a)–(c) × 2 M, y posiciones, velocidades y energía como se describe arriba. Condición para el S2: el motor tiene que recibir un `NeighborFinder` (CIM o fuerza bruta), para poder correr la misma simulación con los dos y comparar. Con fuerzas, la trayectoria depende de los pares, así que son dos corridas con la misma semilla, no una sola consultada por los dos como en vuelo libre.
+**Hecho 20/10 (Ruckauf): la corrida completa de arriba** (`engine/billiard/CimVsBruteForceSimulationTest`), con misma semilla, mismos pares de contacto en cada paso, casos (a)–(c) × 2 M, y posiciones, velocidades y energía como se describe arriba. Condición para el S2: el motor tiene que recibir un `NeighborFinder` (CIM o fuerza bruta), para poder correr la misma simulación con los dos y comparar. Con fuerzas, la trayectoria depende de los pares, así que son dos corridas con la misma semilla, no una sola consultada por los dos como en vuelo libre.
 
 ## Compuerta de salida
 - [ ] Tests de §7 (S2) todos en verde, incluido CIM vs fuerza bruta
-- [ ] Simulación completa CIM vs fuerza bruta: las 6 combinaciones pasan; comando y resultado anotados arriba
+- [x] Simulación completa CIM vs fuerza bruta: las 6 combinaciones pasan; comando y resultado anotados arriba (20/10, falta la auditoría de Lolo, D30)
 - [ ] N máx medido (con y sin obstáculos) y tamaño de grilla anotados en D5/D6
 - [ ] Generador de TP3 con la grilla única listo para el paso 06
 - [ ] F1 y respuesta de S1 listas

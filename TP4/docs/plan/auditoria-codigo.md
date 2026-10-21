@@ -14,7 +14,7 @@ La cátedra pide coordinar y auditar los códigos del motor y del análisis (anu
 | Módulo / archivo | Autor | Revisor | Fecha | Hallazgos | Estado |
 |---|---|---|---|---|---|
 | Motor S1: `engine/oscillator/*`, `models/Oscillator`, `io/OscillatorFiles` (38e890b) | fedir03 (Ruckauf) | Lolo | | | pendiente |
-| Motor S2 (Verlet, contactos, pared imagen, obstáculos, fresca→usada, energía, salida cada dt2) | Ruckauf | Lolo | | | pendiente (sin código) |
+| Motor S2 (Verlet, contactos, pared imagen, obstáculos, fresca→usada, energía, salida cada dt2): `models/BilliardConfig`, `engine/billiard/ContactForces`, `engine/billiard/BilliardSimulator`, `io/BilliardFiles`, comando `billiard` en `Main`; tests `engine/billiard/*Test` (incluye `CimVsBruteForceSimulationTest`), `io/BilliardFilesTest`. Etapas 1–4 | Ruckauf | Lolo | | | pendiente de auditoría (código del 20/10, sin commit) |
 | CIM copiado de TP1 (+R, validación \|r\|≤R, obstáculos y pared fuera de la grilla; D25): `engine/cim/CellIndexMethod`, `NeighborFinder`, `Particle`; tests `engine/cim/CellIndexMethodTest` (+ `BruteForceNeighborFinder`, solo test) | Fede | Ruckauf | | | pendiente de auditoría (código del 20/10, sin commit) |
 | Colocación por grilla única y medición del N máx (D5, D6): `engine/GridPlacement`, `engine/GridCapacity`, comando `grid-nmax` en `Main`; tests `engine/GridPlacementTest` | Fede | Ruckauf | | | pendiente de auditoría (código del 20/10, sin commit) |
 | TP3: `StageGeneration.generateGrid` / `gridSites` (red hex, s = 2r + 0,1 mm, ancla `corner` con margen de 0,1 mm a las paredes, D7); test `engine/GridGenerationTest` | Fede | Ruckauf | | | pendiente de auditoría (código del 20/10, sin commit) |
