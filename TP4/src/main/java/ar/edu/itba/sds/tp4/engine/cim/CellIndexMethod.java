@@ -1,9 +1,11 @@
 package ar.edu.itba.sds.tp4.engine.cim;
 
 // Copiado de TP1 (ar.edu.itba.sds.tp1). Agregado en TP4: dominio circular centrado en el origen
-// (forCircle, findContacts), con corrimiento +R y validacion |r| <= R (D25).
+// (forCircle, findContacts), con corrimiento +R y validacion |r| <= R (D25), y forEachContact sin
+// asignaciones por paso para el motor del Sistema 2.
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -20,6 +22,10 @@ public class CellIndexMethod implements NeighborFinder {
     // Dominio circular: radio R y corrimiento +R que lleva [-R, R]^2 a [0, 2R]^2. NaN y 0 en el cuadrado de TP1
     private final double circleRadius;
     private final double offset;
+    // Listas por celda de forEachContact: head[celda] = primera particula (-1 si vacia), next[i] = la siguiente.
+    // Se reservan una vez y se reusan, por eso una instancia no se comparte entre hilos
+    private int[] head;
+    private int[] next = new int[0];
 
     public CellIndexMethod(int m) {
         this(m, Double.NaN, 0);
@@ -45,6 +51,70 @@ public class CellIndexMethod implements NeighborFinder {
             throw new IllegalStateException("findContacts requiere un CIM creado con forCircle");
         }
         return findNeighbors(particles, 2 * circleRadius, 0, false);
+    }
+
+    /**
+     * Misma busqueda que findContacts (misma media vecindad, corrimiento +R, recorte de celda y validaciones), pero
+     * sobre arreglos y sin HashMap/HashSet ni boxing: cada par en contacto se entrega una sola vez, con i < j.
+     */
+    @Override
+    public void forEachContact(double[] x, double[] y, double radius, double l, PairVisitor visitor) {
+        if (!isCircle()) {
+            NeighborFinder.super.forEachContact(x, y, radius, l, visitor);
+            return;
+        }
+        int n = x.length;
+        validate(l, 0, n == 0 ? 0 : radius, false);
+        validateCircle(x, y, l);
+
+        if (head == null) {
+            head = new int[m * m];
+        }
+        if (next.length < n) {
+            next = new int[n];
+        }
+        Arrays.fill(head, -1);
+        double cellSize = l / m;
+        // De n-1 a 0: cada lista queda en orden creciente de indice
+        for (int i = n - 1; i >= 0; i--) {
+            int cell = cellIndex(x[i] + offset, cellSize) * m + cellIndex(y[i] + offset, cellSize);
+            next[i] = head[cell];
+            head[cell] = i;
+        }
+
+        for (int cx = 0; cx < m; cx++) {
+            for (int cy = 0; cy < m; cy++) {
+                int first = head[cx * m + cy];
+                if (first < 0) {
+                    continue;
+                }
+                for (int a = first; a >= 0; a = next[a]) {
+                    // Pares dentro de la propia celda: b recorre las que siguen a a en la lista
+                    for (int b = next[a]; b >= 0; b = next[b]) {
+                        visitIfContact(a, b, x, y, radius, visitor);
+                    }
+                    for (int k = 1; k < OFFSETS.length; k++) {
+                        int nx = cx + OFFSETS[k][0];
+                        int ny = cy + OFFSETS[k][1];
+                        if (nx < 0 || nx >= m || ny < 0 || ny >= m) {
+                            continue;
+                        }
+                        for (int b = head[nx * m + ny]; b >= 0; b = next[b]) {
+                            visitIfContact(a, b, x, y, radius, visitor);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Mismas operaciones que borderToBorderDistance(a, b) < 0, para que el redondeo sea identico
+    private static void visitIfContact(int a, int b, double[] x, double[] y, double radius, PairVisitor visitor) {
+        double dx = x[b] - x[a];
+        double dy = y[b] - y[a];
+        if (Math.sqrt(dx * dx + dy * dy) - radius - radius < 0) {
+            visitor.visit(Math.min(a, b), Math.max(a, b));
+        }
     }
 
     private boolean isCircle() {
@@ -146,16 +216,37 @@ public class CellIndexMethod implements NeighborFinder {
         if (periodic) {
             throw new IllegalArgumentException("El dominio circular no admite contorno periodico");
         }
-        if (Math.abs(l - 2 * circleRadius) > L_TOLERANCE) {
-            throw new IllegalArgumentException(String.format(
-                    "Dominio circular: se requiere L = 2R, pero L=%s y 2R=%s", l, 2 * circleRadius));
-        }
+        validateCircleLength(l);
         for (Particle p : particles) {
             double distance = Math.hypot(p.x(), p.y());
             if (distance > circleRadius) {
                 throw new IllegalArgumentException(String.format(
                         "Particula %d fuera del dominio: |r| = %s > R = %s", p.id(), distance, circleRadius));
             }
+        }
+    }
+
+    // Misma validacion para forEachContact (la particula se nombra por su indice). Lejos del borde,
+    // x² + y² < R²·(1 − 1e-9) ya asegura hypot <= R, asi que hypot solo se calcula cerca del borde (o con NaN)
+    private void validateCircle(double[] x, double[] y, double l) {
+        validateCircleLength(l);
+        double surelyInside = circleRadius * circleRadius * (1 - 1e-9);
+        for (int i = 0; i < x.length; i++) {
+            if (x[i] * x[i] + y[i] * y[i] < surelyInside) {
+                continue;
+            }
+            double distance = Math.hypot(x[i], y[i]);
+            if (distance > circleRadius) {
+                throw new IllegalArgumentException(String.format(
+                        "Particula %d fuera del dominio: |r| = %s > R = %s", i, distance, circleRadius));
+            }
+        }
+    }
+
+    private void validateCircleLength(double l) {
+        if (Math.abs(l - 2 * circleRadius) > L_TOLERANCE) {
+            throw new IllegalArgumentException(String.format(
+                    "Dominio circular: se requiere L = 2R, pero L=%s y 2R=%s", l, 2 * circleRadius));
         }
     }
 

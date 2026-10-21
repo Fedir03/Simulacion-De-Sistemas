@@ -1,13 +1,8 @@
 package ar.edu.itba.sds.tp4.engine.billiard;
 
 import ar.edu.itba.sds.tp4.engine.cim.NeighborFinder;
-import ar.edu.itba.sds.tp4.engine.cim.Particle;
 import ar.edu.itba.sds.tp4.models.BilliardConfig;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * Fuerza normal de contacto F = −k·ξ·e_n (Teórica 4, diapos 42–46; contacto si ξ > 0, enunciado) entre partículas,
@@ -21,11 +16,34 @@ public final class ContactForces {
     private final BilliardConfig c;
     private final NeighborFinder finder;
     private final double[] obstacleX;
+    /** Se crea una vez y se reusa en cada compute: el paso no asigna memoria para los pares. */
+    private final PairForce pairs;
 
     public ContactForces(BilliardConfig c, NeighborFinder finder) {
         this.c = c;
         this.finder = finder;
         this.obstacleX = c.hasObstacles() ? new double[]{-c.x0(), c.x0()} : new double[0];
+        this.pairs = new PairForce(c.radius(), c.k());
+    }
+
+    /** Fuerza de resorte de un par partícula-partícula sobre los arreglos de la llamada en curso. */
+    private static final class PairForce implements NeighborFinder.PairVisitor {
+        private final double r, k;
+        double[] x, y, fx, fy;
+        double elastic;
+
+        PairForce(double r, double k) { this.r = r; this.k = k; }
+
+        @Override public void visit(int i, int j) {
+            double dx = x[j] - x[i], dy = y[j] - y[i], d = Math.sqrt(dx * dx + dy * dy);
+            double xi = 2 * r - d;
+            if (xi <= 0) return;
+            // e_n = (r_j − r_i)/|r_j − r_i|; F_i = −k·ξ·e_n, F_j = −F_i
+            double ex = dx / d, ey = dy / d;
+            fx[i] -= k * xi * ex; fy[i] -= k * xi * ey;
+            fx[j] += k * xi * ex; fy[j] += k * xi * ey;
+            elastic += 0.5 * k * xi * xi;
+        }
     }
 
     /** Centros de los obstáculos, en (obstacleX[i], 0). */
@@ -43,22 +61,10 @@ public final class ContactForces {
         Arrays.fill(fx, 0);
         Arrays.fill(fy, 0);
 
-        // Pares partícula-partícula: el id de la Particle es el índice en los arreglos
-        List<Particle> particles = new ArrayList<>(n);
-        for (int i = 0; i < n; i++) particles.add(new Particle(i, x[i], y[i], r));
-        Map<Integer, Set<Integer>> contacts = finder.findNeighbors(particles, 2 * big, 0, false);
-        for (int i = 0; i < n; i++)
-            for (int j : contacts.get(i)) {
-                if (j <= i) continue; // cada par una sola vez
-                double dx = x[j] - x[i], dy = y[j] - y[i], d = Math.sqrt(dx * dx + dy * dy);
-                double xi = 2 * r - d;
-                if (xi <= 0) continue;
-                // e_n = (r_j − r_i)/|r_j − r_i|; F_i = −k·ξ·e_n, F_j = −F_i
-                double ex = dx / d, ey = dy / d;
-                fx[i] -= k * xi * ex; fy[i] -= k * xi * ey;
-                fx[j] += k * xi * ex; fy[j] += k * xi * ey;
-                elastic += 0.5 * k * xi * xi;
-            }
+        // Pares partícula-partícula: el buscador entrega cada par una sola vez (i < j, índices de los arreglos)
+        pairs.x = x; pairs.y = y; pairs.fx = fx; pairs.fy = fy; pairs.elastic = 0;
+        finder.forEachContact(x, y, r, 2 * big, pairs);
+        elastic += pairs.elastic;
 
         for (int i = 0; i < n; i++) {
             // Obstáculos fijos de radio r (masa infinita: solo actúa la fuerza sobre i)

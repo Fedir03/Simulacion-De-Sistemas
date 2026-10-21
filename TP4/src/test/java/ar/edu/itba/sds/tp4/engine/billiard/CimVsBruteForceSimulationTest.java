@@ -19,8 +19,9 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Prueba de simulación completa del paso 04: la misma simulación (misma semilla, mismo estado inicial) con CIM y con
- * fuerza bruta. Se compara (1) el conjunto de pares en contacto en cada paso, (2) posiciones y velocidades en los
- * primeros 1000 pasos y (3) la energía y Nu en toda la corrida. Casos (a) N=300 sin obstáculos, (b) N máx = 714 con
+ * fuerza bruta. Se compara (1) el conjunto de pares en contacto (entre corridas en los primeros 1000 pasos y, en cada
+ * paso, contra la fuerza bruta sobre las mismas posiciones), (2) posiciones y velocidades en los primeros 1000 pasos y
+ * (3) la energía y Nu en toda la corrida. Casos (a) N=300 sin obstáculos, (b) N máx = 714 con
  * x0=r, (c) anillo contra la pared + racimo superpuesto en x<0, y<0; cada uno con M = 29 (máximo) y M = 7 (grueso).
  */
 class CimVsBruteForceSimulationTest {
@@ -28,9 +29,13 @@ class CimVsBruteForceSimulationTest {
     private static final int[] MS = {29, 7};
     /** dt2 = 10·dt: un cuadro cada 10 pasos; 100 cuadros = primeros 1000 pasos. */
     private static final double DT = 1e-4, DT2 = 1e-3;
-    private static final int CLOSE_FRAMES = 100;
+    private static final int CLOSE_FRAMES = 100, CLOSE_STEPS = 1000;
+    private static final NeighborFinder BRUTE = new BruteForceNeighborFinder();
 
-    /** Registra los pares de cada llamada (clave i·N + j con i < j, ordenadas) y el tiempo de la búsqueda. */
+    /**
+     * Registra los pares de cada llamada (clave i·N + j con i < j, ordenadas) y el tiempo de la búsqueda, por
+     * findNeighbors o por forEachContact (la que usa ContactForces).
+     */
     private static final class Recording implements NeighborFinder {
         final NeighborFinder inner;
         final List<long[]> pairs = new ArrayList<>();
@@ -52,6 +57,42 @@ class CimVsBruteForceSimulationTest {
             pairs.add(sorted);
             return result;
         }
+
+        /**
+         * Ruta que usa ContactForces: se cronometra solo la búsqueda (los pares se juntan en un arreglo y después se
+         * entregan al visitante en el mismo orden). Con el CIM se verifica además, sobre estas mismas posiciones, que
+         * coincida con su findNeighbors y con la fuerza bruta: es el criterio (1) para todos los pasos.
+         */
+        @Override public void forEachContact(double[] x, double[] y, double radius, double l, PairVisitor visitor) {
+            int n = x.length;
+            long start = System.nanoTime();
+            inner.forEachContact(x, y, radius, l, (i, j) -> {
+                if (size == buffer.length) buffer = Arrays.copyOf(buffer, 2 * buffer.length);
+                buffer[size++] = (long) i * n + j;
+            });
+            nanos += System.nanoTime() - start;
+            long[] got = Arrays.copyOf(buffer, size);
+            size = 0;
+            for (long key : got) visitor.visit((int) (key / n), (int) (key % n));
+            Arrays.sort(got);
+            for (int p = 1; p < got.length; p++) assertTrue(got[p] != got[p - 1], "par repetido en forEachContact");
+            pairs.add(got);
+            if (inner instanceof CellIndexMethod) {
+                List<Particle> ps = new ArrayList<>(n);
+                for (int i = 0; i < n; i++) ps.add(new Particle(i, x[i], y[i], radius));
+                Map<Integer, Set<Integer>> viaMap = inner.findNeighbors(ps, l, 0, false);
+                List<Long> keys = new ArrayList<>();
+                for (int i = 0; i < n; i++) for (int j : viaMap.get(i)) if (i < j) keys.add((long) i * n + j);
+                assertArrayEquals(keys.stream().mapToLong(Long::longValue).sorted().toArray(), got,
+                        "forEachContact ≠ findNeighbors del CIM en la llamada " + (pairs.size() - 1));
+                List<Long> brute = new ArrayList<>();
+                BRUTE.forEachContact(x, y, radius, l, (i, j) -> brute.add((long) i * n + j));
+                assertArrayEquals(brute.stream().mapToLong(Long::longValue).sorted().toArray(), got,
+                        "forEachContact ≠ fuerza bruta sobre las mismas posiciones en la llamada " + (pairs.size() - 1));
+            }
+        }
+        private long[] buffer = new long[1024];
+        private int size;
     }
 
     private record Frame(double t, double[] x, double[] y, double[] vx, double[] vy, int nu, double e) { }
@@ -74,11 +115,17 @@ class CimVsBruteForceSimulationTest {
         for (int m : MS) {
             Run cim = run(build, CellIndexMethod.forCircle(m, R));
             String c = name + " M=" + m;
-            // (1) mismos pares en contacto en cada paso
+            // (1) Mismos pares que la corrida de fuerza bruta en los primeros 1000 pasos; en todos los pasos, los de la
+            // fuerza bruta sobre las posiciones de la corrida del CIM (lo verifica Recording). Más allá de los 1000
+            // pasos no se comparan las dos corridas: cada una es determinista con la misma semilla, pero el CIM entrega
+            // los pares por celdas y la fuerza bruta por id, así que las fuerzas se suman en otro orden. Esa diferencia
+            // de redondeo (1e-16) crece en un sistema caótico (en (b), |Δr| ≈ 2e-8 en el paso 1808) y un par con
+            // |ξ| ≈ 1e-8 queda en contacto en una corrida y no en la otra.
             assertEquals(brute.finder.pairs.size(), cim.finder.pairs.size(), c + ": cantidad de pasos");
             long totalPairs = 0;
             for (int step = 0; step < brute.finder.pairs.size(); step++) {
-                assertArrayEquals(brute.finder.pairs.get(step), cim.finder.pairs.get(step), c + ": pares en el paso " + step);
+                if (step <= CLOSE_STEPS)
+                    assertArrayEquals(brute.finder.pairs.get(step), cim.finder.pairs.get(step), c + ": pares en el paso " + step);
                 totalPairs += brute.finder.pairs.get(step).length;
             }
             assertTrue(totalPairs > 0, c + ": sin contactos entre partículas, el caso no prueba nada");
