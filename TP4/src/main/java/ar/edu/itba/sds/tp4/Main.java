@@ -1,13 +1,17 @@
 package ar.edu.itba.sds.tp4;
 
 import ar.edu.itba.sds.tp4.engine.GridCapacity;
+import ar.edu.itba.sds.tp4.engine.billiard.BilliardSimulator;
+import ar.edu.itba.sds.tp4.engine.cim.CellIndexMethod;
 import ar.edu.itba.sds.tp4.engine.oscillator.IntegrationOptions;
 import ar.edu.itba.sds.tp4.engine.oscillator.IntegrationOptions.AccelerationUpdate;
 import ar.edu.itba.sds.tp4.engine.oscillator.IntegrationOptions.PredictedVelocity;
 import ar.edu.itba.sds.tp4.engine.oscillator.IntegrationOptions.VerletVelocity;
 import ar.edu.itba.sds.tp4.engine.oscillator.OscillatorStudy;
 import ar.edu.itba.sds.tp4.engine.oscillator.Scheme;
+import ar.edu.itba.sds.tp4.io.BilliardFiles;
 import ar.edu.itba.sds.tp4.io.OscillatorFiles;
+import ar.edu.itba.sds.tp4.models.BilliardConfig;
 import ar.edu.itba.sds.tp4.models.Oscillator;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -36,6 +40,12 @@ public final class Main {
                       [--acceleration-update predicted|corrected] a(t+dt) que Beeman y Velocity Verlet pasan al paso siguiente
                     Salidas predeterminadas: TP4/outputs/sistema1/ecm.txt y TP4/outputs/sistema1/trajectory.txt
                     grid-nmax      N máx colocable con la grilla (cuadrada/hex, 2 anclajes, separaciones extra), sin obstáculos y con x0=r
+                    billiard [--n 100] [--seed 1] [--x0 0.0175|none] [--dt 1e-4] [--dt2 0.04] [--tf 30]
+                             [--until tf|t100] [--dynamic no|yes] [--out carpeta]
+                                   Sistema 2 (Verlet, CIM). Escribe observables.txt (t E_tot E_cin E_el Nu) cada dt2 y,
+                                   con --dynamic yes, dynamic.txt (id x y vx vy used). dt2 debe ser múltiplo de dt y tf de dt2.
+                                   --until t100 corta en el primer cuadro con todas las partículas usadas.
+                                   Salida predeterminada: TP4/outputs/sistema2/
                     """);
             return;
         }
@@ -44,19 +54,19 @@ public final class Main {
             GridCapacity.report(System.out);
             return;
         }
+        if (args[0].equals("billiard")) {
+            billiard(options(args, Set.of("n", "seed", "x0", "dt", "dt2", "tf", "until", "dynamic", "out")));
+            return;
+        }
         Set<String> common = Set.of("mass", "k", "gamma", "amplitude", "tf", "verlet-velocity", "vv-velocity", "acceleration-update", "out");
         Set<String> specific = switch (args[0]) {
             case "oscillator-ecm" -> Set.of("dt-min", "dt-max", "count", "dts");
             case "oscillator-trajectory" -> Set.of("dt");
             default -> throw new IllegalArgumentException("Comando desconocido: " + args[0]);
         };
-        Map<String, String> options = new HashMap<>();
-        for (int i = 1; i < args.length; i += 2) {
-            if (!args[i].startsWith("--") || i + 1 >= args.length) throw new IllegalArgumentException("Se esperaba --opción valor");
-            String key = args[i].substring(2);
-            if (!common.contains(key) && !specific.contains(key) || options.put(key, args[i + 1]) != null)
-                throw new IllegalArgumentException("Opción inválida o repetida: " + key);
-        }
+        Set<String> allowed = new HashSet<>(common);
+        allowed.addAll(specific);
+        Map<String, String> options = options(args, allowed);
         Oscillator defaults = Oscillator.defaults();
         Oscillator o = new Oscillator(value(options, "mass", defaults.mass()), value(options, "k", defaults.k()),
                 value(options, "gamma", defaults.gamma()), value(options, "amplitude", defaults.amplitude()), value(options, "tf", defaults.finalTime()));
@@ -86,6 +96,43 @@ public final class Main {
             OscillatorFiles.writeTrajectory(out, o, opt, dt, steps, x);
             System.out.println("Trayectoria: " + out + " | pasos=" + steps);
         }
+    }
+    private static void billiard(Map<String, String> options) throws IOException {
+        String x0 = options.getOrDefault("x0", "0.0175");
+        BilliardConfig c = BilliardConfig.of(Integer.parseInt(options.getOrDefault("n", "100")),
+                Long.parseLong(options.getOrDefault("seed", "1")),
+                x0.equals("none") ? BilliardConfig.NO_OBSTACLES : Double.parseDouble(x0),
+                value(options, "dt", 1e-4), value(options, "dt2", 0.04), value(options, "tf", 30));
+        boolean untilT100 = choice(options, "until", "tf", "t100").equals("t100");
+        boolean dynamic = choice(options, "dynamic", "no", "yes").equals("yes");
+        int m = CellIndexMethod.maxValidM(2 * c.domainRadius(), 0, c.radius());
+        Path dir = output(options, "sistema2");
+        BilliardSimulator sim = BilliardSimulator.fromGrid(c, CellIndexMethod.forCircle(m, c.domainRadius()));
+        try (BilliardFiles files = new BilliardFiles(dir, c, "cim M=" + m, dynamic)) {
+            // Tiempo de ejecución (D11): solo la simulación con su escritura; sin arranque de la JVM ni colocación
+            long start = System.nanoTime();
+            BilliardSimulator.Summary s = sim.run(files, untilT100);
+            double runtime = (System.nanoTime() - start) / 1e9;
+            files.footer(s, runtime);
+            System.out.println("Billar: " + dir + " | estado=" + s.status() + " t=" + s.time() + " Nu=" + s.usedCount()
+                    + "/" + c.n() + " runtime=" + runtime + "s");
+        }
+    }
+    private static String choice(Map<String, String> options, String key, String fallback, String other) {
+        String v = options.getOrDefault(key, fallback);
+        if (!v.equals(fallback) && !v.equals(other))
+            throw new IllegalArgumentException("--" + key + " debe ser " + fallback + " o " + other + ": " + v);
+        return v;
+    }
+    private static Map<String, String> options(String[] args, Set<String> allowed) {
+        Map<String, String> options = new HashMap<>();
+        for (int i = 1; i < args.length; i += 2) {
+            if (!args[i].startsWith("--") || i + 1 >= args.length) throw new IllegalArgumentException("Se esperaba --opción valor");
+            String key = args[i].substring(2);
+            if (!allowed.contains(key) || options.put(key, args[i + 1]) != null)
+                throw new IllegalArgumentException("Opción inválida o repetida: " + key);
+        }
+        return options;
     }
     private static double value(Map<String, String> options, String key, double fallback) {
         return options.containsKey(key) ? Double.parseDouble(options.get(key)) : fallback;
