@@ -14,6 +14,14 @@ from observables import configure_matplotlib, load_study
 TP4_DIR = Path(__file__).resolve().parents[2]
 
 
+def power_label(value: float) -> str:
+    """10^{k} si value es una potencia exacta de 10; si no, notación corta."""
+    exponent = round(math.log10(value))
+    if math.isclose(value, 10.0**exponent, rel_tol=1e-12):
+        return rf"10^{{{exponent}}}"
+    return f"{value:g}"
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--input", type=Path, default=TP4_DIR / "outputs" / "2.1a")
@@ -88,13 +96,13 @@ def main() -> None:
             label="divergió (error hasta la última salida)",
         )
     ax.axhline(args.threshold, color="#C43C39", linestyle="--", linewidth=1.8,
-               label=rf"umbral $={args.threshold:g}$")
+               label=rf"umbral ${power_label(args.threshold)}$")
     if chosen is not None:
         ax.scatter([chosen[0]], [chosen[1]], marker="*", s=180, color="#15803D", zorder=4,
-                   label=rf"candidato $\Delta t={chosen[0]:g}\,\mathrm{{s}}$")
+                   label=rf"elegido: $\Delta t={power_label(chosen[0])}$ s")
     without_measurement = [item for item in points if not math.isfinite(item[1])]
     if without_measurement:
-        dt_text = ", ".join(f"{item[0]:g}" for item in without_measurement)
+        dt_text = ", ".join(power_label(item[0]) for item in without_measurement)
         ax.text(
             0.98,
             0.03,
