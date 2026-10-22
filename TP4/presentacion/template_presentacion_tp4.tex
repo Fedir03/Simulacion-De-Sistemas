@@ -416,12 +416,17 @@
 
 % 14 -- S08
 \begin{frame}[c]{Error de Energía en Función de $\Delta t$}
-  \resultadofigura{figuras/F3-epsE-vs-dt.pdf}{5.1cm}{F3: $\varepsilon_E$ vs.\ $\Delta t$}{}{}{}
+  \centering
+  \includegraphics[width=0.94\linewidth,height=6cm,keepaspectratio]{figuras/F3-epsE-vs-dt.pdf}
 \end{frame}
 
 % 15 -- S09
 \begin{frame}[c]{Tiempo de Ejecución en Función de $N$}
-  \resultadofigura{figuras/F4-tiempo-vs-n.pdf}{5.1cm}{F4: tiempo de ejecución vs.\ $N$}{}{}{}
+  \centering
+  {\small TP4 medido con $\Delta t=10^{-5}\,\mathrm{s}$}\par\vspace{0.1cm}
+  \IfFileExists{figuras/F4-tiempo-vs-n.pdf}
+    {\includegraphics[width=0.94\linewidth,height=5.6cm,keepaspectratio]{figuras/F4-tiempo-vs-n.pdf}}
+    {\placeholder[5.6cm]{F4 --- falta completar la medición de TP4 y ejecutar generate\_f4.py}}
 \end{frame}
 
 % 16 -- S10
