@@ -45,9 +45,19 @@ Decisiones tomadas ante las preguntas del agente:
 
 ## Federico Ruckauf
 
-_(sin entradas)_
+### 2026-10-16 · Federico Ruckauf · Módulo TP4 y Sistema 1 · Claude Code (Opus 5.5) · reconstruido
+Reconstruido por el agente a partir de la conversación; no es el texto original del prompt.
 
-> **Pendiente:** preguntarle a Federico Ruckauf por los prompts usados para el Sistema 1 (commit 38e890b).
+Pedido: leer el enunciado, Teórica 4 y el plan del grupo (`docs/plan/`: `DEFINICIONES.md`, `referencia/FORMULAS-VERIFICADAS.md`, `referencia/PLAN.md` y los pasos) y resumir lo entendido antes de escribir código. Después, crear el módulo Maven `TP4` con la estructura de TP3 e implementar el Sistema 1 a partir de lo que el grupo ya había definido: las fórmulas de los 4 esquemas verificadas contra las diapositivas, la estimación de la velocidad para la fuerza −kx − γv propuesta en D17, Δt²/(2m) en Velocity Verlet (D19) y el barrido de Δt y la definición de ECM de D18. Pedido explícito: que la estimación de la velocidad no quede fija en el código, sino como opción fácil de cambiar, aunque la intención es no cambiarla.
+
+Decisiones tomadas en la conversación:
+- Empezar por el módulo y el Sistema 1, porque no depende de nada más y da resultados para llevar a la consulta Q6 en la clase.
+- D17 como valor por defecto, expuesto como opciones con nombre (enums y flags de CLI: `--verlet-velocity backward|euler`, `--vv-velocity euler|half-step`).
+- Opción propuesta por el agente y aceptada: `--acceleration-update predicted|corrected`, para decidir si a(t+Δt) en Beeman y Velocity Verlet se re-evalúa con la velocidad corregida. Por defecto `predicted`, como en las diapos 17 y 20.
+- ECM sobre los pasos 1..n (t = 0 no se cuenta), con n = round(tf/Δt).
+- Tests: la analítica se reproduce a Δt chico; pendientes del ECM (4 para Beeman y Velocity Verlet, 2 para Verlet con v hacia atrás y para Euler PC); Verlet y Velocity Verlet coinciden sin amortiguamiento.
+- Hallazgo que se llevó a la consulta Q6: con v predicha por Euler, Verlet pasa a pendiente 4 e iguala a Velocity Verlet, así que la elección de la velocidad cambia cuál esquema resulta mejor.
+- Resultado: commits 214678c (módulo) y 38e890b (Sistema 1).
 
 ## Lolo
 
