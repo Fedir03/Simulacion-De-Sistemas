@@ -98,3 +98,30 @@ python scripts/graph_gen/generate_f2.py \
 python scripts/graph_gen/generate_f3.py \
   --input /tmp/tp4-2.1a-prueba --output /tmp/F3-prueba.pdf
 ```
+
+## F4 — tiempo de ejecución en función de N
+
+La corrida completa genera o reanuda primero TP3 y después TP4, con 10 semillas
+por N, una JVM calentada por motor y heap fijo de 2 GiB:
+
+```bash
+./scripts/sim_gen/generate_f4_data.sh
+```
+
+Escribe `outputs/runtime_tp3/runs.csv` y `outputs/runtime_tp4/runs.csv`. Puede
+durar horas y dividirse en tandas reanudables:
+
+```bash
+./scripts/sim_gen/generate_f4_data.sh --batch 5
+```
+
+Si TP3 ya está completo, puede omitirse con `--skip-tp3`. Con ambas mediciones
+completas, generar la figura mediante:
+
+```bash
+python scripts/graph_gen/generate_f4.py
+```
+
+F4 usa la mediana y barras p25–p75. Compara TP3 contra TP4 y muestra que TP4
+se midió con `dt=1e-5 s`. Su salida es
+`presentacion/figuras/F4-tiempo-vs-n.pdf`.

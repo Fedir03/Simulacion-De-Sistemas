@@ -14,6 +14,13 @@ from observables import configure_matplotlib, load_study
 TP4_DIR = Path(__file__).resolve().parents[2]
 
 
+def dt_label(dt: float) -> str:
+    exponent = round(math.log10(dt))
+    if math.isclose(dt, 10.0**exponent, rel_tol=1e-12):
+        return rf"10^{{{exponent}}}"
+    return f"{dt:g}"
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--input", type=Path, default=TP4_DIR / "outputs" / "2.1a")
@@ -65,7 +72,8 @@ def main() -> None:
                              chosen is not None and run is chosen[2]))
 
     plt = configure_matplotlib()
-    fig, ax = plt.subplots(figsize=(7.0, 4.4), layout="constrained")
+    # Relación ancha para ocupar el cuerpo completo de la diapositiva.
+    fig, ax = plt.subplots(figsize=(10.5, 4.8), layout="constrained")
     completed = [item for item in points if item[2].status == "completa" and math.isfinite(item[1]) and item[1] > 0]
     divergent = [item for item in points if item[2].status != "completa" and math.isfinite(item[1]) and item[1] > 0]
     ax.loglog(
@@ -73,8 +81,8 @@ def main() -> None:
         [item[1] for item in completed],
         "o-",
         color="#3939B5",
-        linewidth=2,
-        markersize=7,
+        linewidth=2.4,
+        markersize=9,
         label=r"$\varepsilon_E$ (corrida completa)",
     )
     if divergent:
@@ -82,19 +90,19 @@ def main() -> None:
             [item[0] for item in divergent],
             [item[1] for item in divergent],
             marker="x",
-            s=75,
-            linewidths=2,
+            s=110,
+            linewidths=2.4,
             color="#C43C39",
             label="divergió (error hasta la última salida)",
         )
     ax.axhline(args.threshold, color="#C43C39", linestyle="--", linewidth=1.8,
                label=rf"umbral $={args.threshold:g}$")
     if chosen is not None:
-        ax.scatter([chosen[0]], [chosen[1]], marker="*", s=180, color="#15803D", zorder=4,
-                   label=rf"candidato $\Delta t={chosen[0]:g}\,\mathrm{{s}}$")
+        ax.scatter([chosen[0]], [chosen[1]], marker="*", s=240, color="#15803D", zorder=4,
+                   label=rf"candidato $\Delta t={dt_label(chosen[0])}\,\mathrm{{s}}$")
     without_measurement = [item for item in points if not math.isfinite(item[1])]
     if without_measurement:
-        dt_text = ", ".join(f"{item[0]:g}" for item in without_measurement)
+        dt_text = ", ".join(dt_label(item[0]) for item in without_measurement)
         ax.text(
             0.98,
             0.03,
@@ -102,13 +110,13 @@ def main() -> None:
             transform=ax.transAxes,
             ha="right",
             va="bottom",
-            fontsize=9,
+            fontsize=11,
             color="#C43C39",
         )
     ax.set_xlabel(r"$\Delta t$ (s)")
     ax.set_ylabel(r"$\varepsilon_E$")
     ax.grid(alpha=0.25, which="both")
-    ax.legend(loc="best", fontsize=10)
+    ax.legend(loc="best", fontsize=12)
 
     output = args.output.resolve()
     output.parent.mkdir(parents=True, exist_ok=True)
