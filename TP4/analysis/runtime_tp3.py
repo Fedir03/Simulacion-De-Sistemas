@@ -12,7 +12,7 @@ el tiempo extra es de la máquina, no del motor.
 
 Uso (desde TP4/):
     .venv/Scripts/python analysis/runtime_tp3.py [--input outputs/runtime_tp3] [--out DIR] [--fig BASE]
-        [--expect "300:6,200:10,100:6,100:5"] [--scale loglog|semilogy|linear]
+        [--expect "300:6,200:10,100:6,100:5"] [--scale loglog|semilogy|linear] [--label TEXTO]
 Sin --out, la salida va a <input>_analisis/ (runtime_tp3_b -> runtime_tp3_b_analisis/).
 """
 import argparse
@@ -26,6 +26,11 @@ from pathlib import Path
 MODULE = Path(__file__).resolve().parents[1]
 LOCAL = timezone(timedelta(hours=-3), 'ART')  # Argentina, sin horario de verano
 EVENTS_TOL, RUNTIME_EXCESS = 0.01, 0.08
+# Leyenda de la serie TP3: la figura combinada TP3+TP4 tiene que reutilizar estas etiquetas y LEGEND_STYLE.
+# Adentro de los ejes, arriba a la izquierda: la curva sube hacia la derecha y esa esquina queda libre.
+# Con el recuadro por defecto de matplotlib, como las leyendas de las figuras del TP3 (plot_dcm.py, plot_fu.py).
+SERIES_LABELS = {'': 'TP3', '-b': 'TP3 (réplica)'}  # por sufijo de la carpeta de entrada
+LEGEND_STYLE = {'loc': 'upper left', 'frameon': True}
 
 
 def quartiles(values):
@@ -57,7 +62,7 @@ def write_csv(path, header, rows, comment=None):
         writer.writerows(rows)
 
 
-def figure(summary, base, scale):
+def figure(summary, base, scale, label):
     import matplotlib
     matplotlib.use('Agg')
     import matplotlib.pyplot as plt
@@ -71,7 +76,7 @@ def figure(summary, base, scale):
     # Tamaño de la columna de la diapositiva (0.66 del ancho), como en TP3.
     fig, ax = plt.subplots(figsize=(7.0, 4.4), layout='constrained')
     ax.errorbar(ns, med, yerr=[low, high], fmt='o-', color='#3939B5', ecolor='#3939B5',
-                capsize=4, linewidth=2, markersize=7)
+                capsize=4, linewidth=2, markersize=7, label=label)
     if scale in ('loglog', 'semilogy'):
         ax.set_yscale('log')
     if scale == 'loglog':
@@ -84,6 +89,7 @@ def figure(summary, base, scale):
         ax.set_xticks(ns)
     ax.set(xlabel='N', ylabel='tiempo (s)')
     ax.grid(alpha=.25, which='major')
+    ax.legend(**LEGEND_STYLE)
     base.parent.mkdir(parents=True, exist_ok=True)
     for ext in ('pdf', 'png'):
         # metadata fija: la misma entrada da el mismo PDF
@@ -99,6 +105,7 @@ def main(argv=None):
     parser.add_argument('--expect', help='perturbadas esperadas, "N:semilla,..."; si difieren, termina con error')
     parser.add_argument('--runs-per-n', type=int, default=10)
     parser.add_argument('--scale', choices=('loglog', 'semilogy', 'linear'), default='loglog')
+    parser.add_argument('--label', help='etiqueta de la leyenda (por defecto según SERIES_LABELS)')
     args = parser.parse_args(argv)
 
     source = args.input.resolve()
@@ -147,7 +154,7 @@ def main(argv=None):
         clean_median = statistics.median(clean)
         sensitivity.append([s['n'], s['median'], clean_median, len(clean), round(100 * (clean_median / s['median'] - 1), 3)])
     write_csv(out / 'sensibilidad.csv', ['n', 'mediana_todas_s', 'mediana_sin_marcadas_s', 'corridas_sin_marcadas', 'dif_pct'], sensitivity)
-    figure(summary, fig, args.scale)
+    figure(summary, fig, args.scale, args.label or SERIES_LABELS.get(suffix, 'TP3'))
 
     print('Perturbadas (N, semilla, exceso de tiempo, hora local):')
     for n, s, t, e, dt, de, utc, loc in flagged:

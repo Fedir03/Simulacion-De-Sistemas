@@ -45,9 +45,37 @@ Decisiones tomadas ante las preguntas del agente:
 
 ## Federico Ruckauf
 
-_(sin entradas)_
+### 2026-10-16 · Federico Ruckauf · Módulo TP4 y Sistema 1 · Claude Code (Opus 5.5) · reconstruido
+Reconstruido por el agente a partir de la conversación; no es el texto original del prompt.
 
-> **Pendiente:** preguntarle a Federico Ruckauf por los prompts usados para el Sistema 1 (commit 38e890b).
+Pedido: leer el enunciado, Teórica 4 y el plan del grupo (`docs/plan/`: `DEFINICIONES.md`, `referencia/FORMULAS-VERIFICADAS.md`, `referencia/PLAN.md` y los pasos) y resumir lo entendido antes de escribir código. Después, crear el módulo Maven `TP4` con la estructura de TP3 e implementar el Sistema 1 a partir de lo que el grupo ya había definido: las fórmulas de los 4 esquemas verificadas contra las diapositivas, la estimación de la velocidad para la fuerza −kx − γv propuesta en D17, Δt²/(2m) en Velocity Verlet (D19) y el barrido de Δt y la definición de ECM de D18. Pedido explícito: que la estimación de la velocidad no quede fija en el código, sino como opción fácil de cambiar, aunque la intención es no cambiarla.
+
+Decisiones tomadas en la conversación:
+- Empezar por el módulo y el Sistema 1, porque no depende de nada más y da resultados para llevar a la consulta Q6 en la clase.
+- D17 como valor por defecto, expuesto como opciones con nombre (enums y flags de CLI: `--verlet-velocity backward|euler`, `--vv-velocity euler|half-step`).
+- Opción propuesta por el agente y aceptada: `--acceleration-update predicted|corrected`, para decidir si a(t+Δt) en Beeman y Velocity Verlet se re-evalúa con la velocidad corregida. Por defecto `predicted`, como en las diapos 17 y 20.
+- ECM sobre los pasos 1..n (t = 0 no se cuenta), con n = round(tf/Δt).
+- Tests: la analítica se reproduce a Δt chico; pendientes del ECM (4 para Beeman y Velocity Verlet, 2 para Verlet con v hacia atrás y para Euler PC); Verlet y Velocity Verlet coinciden sin amortiguamiento.
+- Hallazgo que se llevó a la consulta Q6: con v predicha por Euler, Verlet pasa a pendiente 4 e iguala a Velocity Verlet, así que la elección de la velocidad cambia cuál esquema resulta mejor.
+- Resultado: commits 214678c (módulo) y 38e890b (Sistema 1).
+
+### 2026-10-20 / 21 · Federico Ruckauf · Sistema 2 · Claude Code (Opus 5.5) · reconstruido
+Resumen de la interacción reconstruido por el agente; no es prompt por prompt ni el texto original.
+
+**Contexto que se le dio al agente antes de escribir código.** Primero se le pidió leer el enunciado, el plan del grupo (`docs/plan/`: `DEFINICIONES.md`, `ESTADO.md`, los pasos y `referencia/`), lo ya implementado (Sistema 1, CIM y grilla de Fede) y analizar los pasos pendientes. Después se le pasaron las respuestas de la cátedra a las consultas Q1–Q15 y las decisiones del grupo (obstáculos en 2.1.b, criterio de corte de 2.1.a, energía sin la partícula imagen, grilla única, uso del CIM, contenido del ZIP), y se le pidió ajustar el plan a esas respuestas. Las fórmulas salieron de `referencia/FORMULAS-VERIFICADAS.md` (verificadas por el grupo contra Teórica 4), no de lo que el agente supiera.
+
+**Cómo se trabajó.**
+- El agente propuso un plan de implementación por etapas (configuración y fuerzas → Verlet → salidas y CLI → simulación completa CIM vs fuerza bruta → medición de tiempos), con los tests de `referencia/PLAN.md` asignados a cada etapa. Fue revisado y corregido antes de que se escribiera código.
+- Se implementó una etapa por pedido con los tests en verde antes de pasar a la siguiente y un resumen de lo hecho para revisar.
+
+**Qué se implementó (decisiones de diseño discutidas).**
+- `BilliardConfig`: dt2 múltiplo entero de dt y tf de dt2, con error en vez de redondeo silencioso; x₀ en [r, R−r]; sistema sin obstáculos.
+- `ContactForces`: resorte normal −kξ·e_n (diapos 42–46) entre pares obtenidos del `NeighborFinder` de Fede; obstáculos y pared por partícula imagen recalculada en cada paso, fuera de la grilla (D25); fresca→usada al primer contacto con un obstáculo; energía elástica con la pared sumada una vez (Q12, D21).
+- `BilliardSimulator`: Verlet original (diapo 13), primer paso por Euler en −dt (diapo 14), velocidad central para la energía y la salida, salida con contador entero cada n pasos (adaptación ya declarada en `auditoria-integradores.md`), corte informado (sin excepción) si un dt inestable saca una partícula del círculo, y corte opcional en t100 para 2.2.
+- `BilliardFiles` y el comando `billiard`: `observables.txt` y `dynamic.txt` (D4), energías con precisión completa y pie con el tiempo de ejecución (convención de TP3).
+- Tests, que el integrante pidió ligados a las respuestas de la cátedra: energía igual antes y después del choque con la pared (Q12); F(0) = 0 con la grilla, así que el primer paso por Euler es exacto (Q6); una corrida más larga reproduce exactamente los primeros 30 s (Q15); conservación de |v| y del momento angular, choque de frente, fresca→usada irreversible, misma semilla ⇒ mismos archivos.
+- Simulación completa CIM vs fuerza bruta del paso 04: 3 casos × 2 M, mismos pares en cada paso. Resultado anotado en el paso 04.
+- Commits 96a97e9, 014ac63, 850645a, 6336403 y 21cfaeb.
 
 ## Lolo
 

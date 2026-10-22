@@ -9,8 +9,40 @@ import static org.junit.jupiter.api.Assertions.*;
 class CellIndexMethodTest {
     private static final double R = 0.51, r = 0.0175, DT = 1e-3;
     private static final int M_MAX = CellIndexMethod.maxValidM(2 * R, 0, r);
-    private static final int[] MS = {M_MAX, 10, 1};
+    private static final int[] MS = {M_MAX, 10, 7, 1};
     private static final NeighborFinder BRUTE = new BruteForceNeighborFinder();
+
+    /**
+     * Pares de forEachContact como mapa id → vecinos, igual que findNeighbors. Falla si un par llega dos veces o
+     * con i ≥ j. Todas las partículas de ps tienen el mismo radio r.
+     */
+    static Map<Integer, Set<Integer>> pairsViaForEach(NeighborFinder finder, List<Particle> ps) {
+        int n = ps.size();
+        double[] x = new double[n], y = new double[n];
+        Map<Integer, Set<Integer>> neighbors = new HashMap<>();
+        for (int i = 0; i < n; i++) {
+            x[i] = ps.get(i).x(); y[i] = ps.get(i).y();
+            neighbors.put(ps.get(i).id(), new HashSet<>());
+        }
+        Set<Long> seen = new HashSet<>();
+        finder.forEachContact(x, y, r, 2 * R, (i, j) -> {
+            assertTrue(i < j, "par con i ≥ j: " + i + ", " + j);
+            assertTrue(seen.add((long) i * n + j), "par repetido: " + i + ", " + j);
+            neighbors.get(ps.get(i).id()).add(ps.get(j).id());
+            neighbors.get(ps.get(j).id()).add(ps.get(i).id());
+        });
+        return neighbors;
+    }
+
+    /** Fuerza bruta = findContacts = forEachContact para cada M. */
+    private static void assertAllAgree(List<Particle> ps, int... ms) {
+        Map<Integer, Set<Integer>> expected = BRUTE.findNeighbors(ps, 2 * R, 0, false);
+        for (int m : ms) {
+            CellIndexMethod cim = CellIndexMethod.forCircle(m, R);
+            assertEquals(expected, cim.findContacts(ps), "findContacts M=" + m);
+            assertEquals(expected, pairsViaForEach(cim, ps), "forEachContact M=" + m);
+        }
+    }
 
     private static List<Placed> grid(int n, long seed, List<Particle> obstacles) {
         List<Site> sites = GridPlacement.sites(Lattice.HEX, Anchor.SITE_AT_ORIGIN, 2 * r + 1e-4, R, r, obstacles);
@@ -37,6 +69,9 @@ class CellIndexMethodTest {
             Map<Integer, Set<Integer>> expected = BRUTE.findNeighbors(ps, 2 * R, 0, false);
             Map<Integer, Set<Integer>> actual = cim.findContacts(ps);
             if (!expected.equals(actual)) fail("M=" + m + ", paso " + step + ": " + firstDifference(expected, actual));
+            Map<Integer, Set<Integer>> viaForEach = pairsViaForEach(cim, ps);
+            if (!expected.equals(viaForEach))
+                fail("forEachContact M=" + m + ", paso " + step + ": " + firstDifference(expected, viaForEach));
             for (Set<Integer> s : expected.values()) contacts += s.size();
             for (int i = 0; i < n; i++) {
                 x[i] += vx[i] * DT; y[i] += vy[i] * DT;
@@ -115,6 +150,66 @@ class CellIndexMethodTest {
         for (List<Integer> pair : pairs)
             if (present.containsAll(pair)) assertTrue(expected.get(pair.get(0)).contains(pair.get(1)), "par armado " + pair);
         for (int m : MS) assertEquals(expected, CellIndexMethod.forCircle(m, R).findContacts(ps), "M=" + m);
+        assertAllAgree(ps, MS);
+    }
+
+    @Test void negativeCoordinatesAndBothClampedBordersMatch() {
+        // x + R = 0 cae en la celda 0 sin recorte; x = R da índice M y se recorta a M − 1
+        double d = 2 * r - 0.004, q = (R - r) / Math.sqrt(2);
+        List<Particle> ps = List.of(
+                new Particle(1, -R, 0, r), new Particle(2, -R + d, 0, r),
+                new Particle(3, 0, -R, r), new Particle(4, 0.003, -R + d, r),
+                new Particle(5, -q, -q, r), new Particle(6, -q + d, -q, r), new Particle(7, -q, -q + d, r),
+                new Particle(8, R, 0, r), new Particle(9, R - d, 0.002, r),
+                new Particle(10, 0, R, r), new Particle(11, -0.002, R - d, r));
+        Map<Integer, Set<Integer>> expected = BRUTE.findNeighbors(ps, 2 * R, 0, false);
+        assertEquals(Set.of(2), expected.get(1));
+        assertEquals(Set.of(6, 7), expected.get(5));
+        assertEquals(Set.of(9), expected.get(8));
+        assertAllAgree(ps, MS);
+    }
+
+    @Test void overlappingClusterInsideOneCellGivesEveryPairOnce() {
+        // 4 partículas superpuestas dentro de una misma celda (de 0,035 m con M = 29): 6 pares
+        double c = 2 * R / M_MAX, bx = 3 * c - R + 0.004, by = 20 * c - R + 0.004;
+        List<Particle> ps = List.of(new Particle(1, bx, by, r), new Particle(2, bx + 0.01, by, r),
+                new Particle(3, bx, by + 0.01, r), new Particle(4, bx + 0.01, by + 0.01, r));
+        Map<Integer, Set<Integer>> expected = BRUTE.findNeighbors(ps, 2 * R, 0, false);
+        for (Set<Integer> s : expected.values()) assertEquals(3, s.size());
+        assertAllAgree(ps, M_MAX, 7);
+    }
+
+    @Test void forEachContactValidatesLikeFindContacts() {
+        CellIndexMethod cim = CellIndexMethod.forCircle(M_MAX, R);
+        IllegalArgumentException e = assertThrows(IllegalArgumentException.class,
+                () -> cim.forEachContact(new double[]{0, -(R + 1e-9)}, new double[]{0, 0}, r, 2 * R, (i, j) -> { }));
+        assertTrue(e.getMessage().contains("Particula 1"), e.getMessage());
+        assertThrows(IllegalArgumentException.class,
+                () -> CellIndexMethod.forCircle(M_MAX + 1, R).forEachContact(new double[]{0}, new double[]{0}, r, 2 * R, (i, j) -> { }));
+        assertThrows(IllegalArgumentException.class,
+                () -> cim.forEachContact(new double[]{0}, new double[]{0}, r, 2 * R + 1e-6, (i, j) -> { }));
+        // N = 0 y N = 1: ningún par
+        assertTrue(pairsViaForEach(cim, List.of()).isEmpty());
+        assertEquals(Map.of(1, Set.of()), pairsViaForEach(cim, List.of(new Particle(1, 0.1, 0.1, r))));
+    }
+
+    @Test void forEachContactReusesItsBuffersAcrossSizes() {
+        CellIndexMethod cim = CellIndexMethod.forCircle(M_MAX, R);
+        List<Particle> big = new ArrayList<>();
+        for (Placed p : grid(-1, 7, GridPlacement.obstacles(r, r))) big.add(new Particle(p.id(), p.x() * 0.98, p.y() * 0.98, r));
+        Map<Integer, Set<Integer>> expectedBig = BRUTE.findNeighbors(big, 2 * R, 0, false);
+        List<Particle> small = big.subList(0, 10);
+        assertEquals(expectedBig, pairsViaForEach(cim, big));
+        assertEquals(BRUTE.findNeighbors(small, 2 * R, 0, false), pairsViaForEach(cim, small));
+        assertEquals(expectedBig, pairsViaForEach(cim, big));
+    }
+
+    @Test void squareModeForEachContactUsesTheGenericPath() {
+        List<Particle> ps = List.of(new Particle(0, 0.2, 0.2, r), new Particle(1, 0.22, 0.2, r), new Particle(2, 0.6, 0.6, r));
+        Map<Integer, Set<Integer>> expected = BRUTE.findNeighbors(ps, 2 * R, 0, false);
+        assertEquals(Set.of(1), expected.get(0));
+        assertEquals(expected, pairsViaForEach(new CellIndexMethod(5), ps));
+        assertEquals(expected, pairsViaForEach(BRUTE, ps));
     }
 
     @Test void particleOutsideCircleIsRejected() {

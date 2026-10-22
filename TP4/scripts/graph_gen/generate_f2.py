@@ -51,10 +51,12 @@ def main() -> None:
     colors = ("#D55E00", "#0072B2", "#009E73", "#CC79A7")
     for ax, run, color in zip(axes, measured, colors):
         errors = run.relative_error
-        ax.plot(run.times, errors, linewidth=1.6, color=color)
+        status = " (divergió)" if run.status != "completa" else ""
+        # Δt va como leyenda dentro del panel: nunca título embebido en la figura (skill sims-tp-format)
+        ax.plot(run.times, errors, linewidth=1.6, color=color,
+                label=rf"$\Delta t={dt_label(run.dt)}$ s{status}")
         ax.axhline(0, color="black", linewidth=0.7, alpha=0.4)
-        status = " — divergió" if run.status != "completa" else ""
-        ax.set_title(rf"$\Delta t={dt_label(run.dt)}\,\mathrm{{s}}${status}", fontsize=12, pad=3)
+        ax.legend(loc="upper left", fontsize=11, handlelength=1.2, frameon=True, framealpha=0.9)
         ax.grid(alpha=0.22)
         ax.ticklabel_format(axis="y", style="sci", scilimits=(0, 0), useMathText=True)
         ax.tick_params(labelsize=10.5)
