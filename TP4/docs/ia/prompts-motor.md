@@ -59,6 +59,24 @@ Decisiones tomadas en la conversación:
 - Hallazgo que se llevó a la consulta Q6: con v predicha por Euler, Verlet pasa a pendiente 4 e iguala a Velocity Verlet, así que la elección de la velocidad cambia cuál esquema resulta mejor.
 - Resultado: commits 214678c (módulo) y 38e890b (Sistema 1).
 
+### 2026-10-20 / 21 · Federico Ruckauf · Sistema 2 · Claude Code (Opus 5.5) · reconstruido
+Resumen de la interacción reconstruido por el agente; no es prompt por prompt ni el texto original.
+
+**Contexto que se le dio al agente antes de escribir código.** Primero se le pidió leer el enunciado, el plan del grupo (`docs/plan/`: `DEFINICIONES.md`, `ESTADO.md`, los pasos y `referencia/`), lo ya implementado (Sistema 1, CIM y grilla de Fede) y analizar los pasos pendientes. Después se le pasaron las respuestas de la cátedra a las consultas Q1–Q15 y las decisiones del grupo (obstáculos en 2.1.b, criterio de corte de 2.1.a, energía sin la partícula imagen, grilla única, uso del CIM, contenido del ZIP), y se le pidió ajustar el plan a esas respuestas. Las fórmulas salieron de `referencia/FORMULAS-VERIFICADAS.md` (verificadas por el grupo contra Teórica 4), no de lo que el agente supiera.
+
+**Cómo se trabajó.**
+- El agente propuso un plan de implementación por etapas (configuración y fuerzas → Verlet → salidas y CLI → simulación completa CIM vs fuerza bruta → medición de tiempos), con los tests de `referencia/PLAN.md` asignados a cada etapa. Fue revisado y corregido antes de que se escribiera código.
+- Se implementó una etapa por pedido con los tests en verde antes de pasar a la siguiente y un resumen de lo hecho para revisar.
+
+**Qué se implementó (decisiones de diseño discutidas).**
+- `BilliardConfig`: dt2 múltiplo entero de dt y tf de dt2, con error en vez de redondeo silencioso; x₀ en [r, R−r]; sistema sin obstáculos.
+- `ContactForces`: resorte normal −kξ·e_n (diapos 42–46) entre pares obtenidos del `NeighborFinder` de Fede; obstáculos y pared por partícula imagen recalculada en cada paso, fuera de la grilla (D25); fresca→usada al primer contacto con un obstáculo; energía elástica con la pared sumada una vez (Q12, D21).
+- `BilliardSimulator`: Verlet original (diapo 13), primer paso por Euler en −dt (diapo 14), velocidad central para la energía y la salida, salida con contador entero cada n pasos (adaptación ya declarada en `auditoria-integradores.md`), corte informado (sin excepción) si un dt inestable saca una partícula del círculo, y corte opcional en t100 para 2.2.
+- `BilliardFiles` y el comando `billiard`: `observables.txt` y `dynamic.txt` (D4), energías con precisión completa y pie con el tiempo de ejecución (convención de TP3).
+- Tests, que el integrante pidió ligados a las respuestas de la cátedra: energía igual antes y después del choque con la pared (Q12); F(0) = 0 con la grilla, así que el primer paso por Euler es exacto (Q6); una corrida más larga reproduce exactamente los primeros 30 s (Q15); conservación de |v| y del momento angular, choque de frente, fresca→usada irreversible, misma semilla ⇒ mismos archivos.
+- Simulación completa CIM vs fuerza bruta del paso 04: 3 casos × 2 M, mismos pares en cada paso. Resultado anotado en el paso 04.
+- Commits 96a97e9, 014ac63, 850645a, 6336403 y 21cfaeb.
+
 ## Lolo
 
 _(sin entradas)_
