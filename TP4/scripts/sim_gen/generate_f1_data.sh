@@ -22,7 +22,8 @@ Opciones:
 
 El estudio usa los parámetros acordados:
   m=70 kg, k=10000 N/m, gamma=100 kg/s, A=1 m, tf=5 s,
-  13 dt logarítmicos entre 1e-6 s y 5e-3 s y los cuatro esquemas.
+  13 dt logarítmicos entre 1e-6 s y 5e-3 s, más 1e-2 s como
+  control adicional fuera del rango pedido, y los cuatro esquemas.
 EOF
 }
 
@@ -68,6 +69,10 @@ export TP4_F1_CLASSES="$TP4_DIR/target/classes"
 
 cat >"$JSHELL_SCRIPT" <<'EOF'
 import ar.edu.itba.sds.tp4.Main;
+import ar.edu.itba.sds.tp4.engine.oscillator.OscillatorStudy;
+import java.util.stream.DoubleStream;
+import java.util.stream.Collectors;
+String dts = DoubleStream.concat(DoubleStream.of(1e-2), java.util.Arrays.stream(OscillatorStudy.logSpaced(1e-6, 5e-3, 13))).mapToObj(Double::toString).collect(Collectors.joining(","));
 
 String[] common = new String[]{
     "oscillator-ecm",
@@ -76,9 +81,7 @@ String[] common = new String[]{
     "--gamma", "100",
     "--amplitude", "1",
     "--tf", "5",
-    "--dt-min", "1e-6",
-    "--dt-max", "5e-3",
-    "--count", "13",
+    "--dts", dts,
     "--verlet-velocity", "backward",
     "--vv-velocity", "euler",
     "--acceleration-update", "predicted",
@@ -94,6 +97,7 @@ EOF
 
 echo "Ejecutando warmup y barrido significativo en la misma JVM..."
 java \
+    --class-path "$TP4_F1_CLASSES" \
     -Djava.util.prefs.userRoot="$TEMP_DIR/java-prefs" \
     --module jdk.jshell/jdk.internal.jshell.tool.JShellToolProvider \
     --execution local \
@@ -106,15 +110,15 @@ java \
 }
 
 # El warmup puede cambiar runtime_s, pero el método, dt, pasos y ECM deben ser
-# idénticos. También se comprueba que existan 4 métodos × 13 dt = 52 filas.
+# idénticos. También se comprueba que existan 4 métodos × 14 dt = 56 filas.
 awk '!/^#/ && $1 != "scheme" {print $1, $2, $3, $4}' "$WARMUP" >"$TEMP_DIR/warmup-values.txt"
 awk '!/^#/ && $1 != "scheme" {print $1, $2, $3, $4}' "$OUTPUT" >"$TEMP_DIR/output-values.txt"
 ROWS="$(wc -l <"$TEMP_DIR/output-values.txt")"
-[[ "$ROWS" -eq 52 ]] || { echo "Error: se esperaban 52 resultados y se obtuvieron $ROWS." >&2; exit 1; }
+[[ "$ROWS" -eq 56 ]] || { echo "Error: se esperaban 56 resultados y se obtuvieron $ROWS." >&2; exit 1; }
 diff -u "$TEMP_DIR/warmup-values.txt" "$TEMP_DIR/output-values.txt" >/dev/null || {
     echo "Error: el warmup y la corrida significativa difieren en esquema, dt, pasos o ECM." >&2
     exit 1
 }
 
 echo "Datos de F1 generados y validados: $OUTPUT"
-echo "Filas: 52 (4 esquemas × 13 valores de dt)."
+echo "Filas: 56 (4 esquemas × 14 valores de dt)."
