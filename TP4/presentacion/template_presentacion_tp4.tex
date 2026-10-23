@@ -94,9 +94,8 @@
 \institute{Instituto Tecnológico de Buenos Aires}
 \date{2026 2C --- Grupo N.º 02}
 
-% URLs de las animaciones (D16). Las de 2.2 (con obstáculos) y 2.3 (sin obstáculos) son las de Lorenzo
-% (scripts/sim_gen/generate_animations.sh); la de 2.4 sigue pendiente: reemplazar PENDIENTE al subirla.
-\newcommand{\animacionDosCuatroURL}{https://youtu.be/PENDIENTE}
+% URLs de las animaciones (D16): 2.2 (con obstáculos) y 2.3 (sin obstáculos), de Lorenzo
+% (scripts/sim_gen/generate_animations.sh). La de 2.4 se sacó de la presentación.
 % Videos del Sistema 2: sin obstáculos y con obstáculos, respectivamente.
 \newcommand{\animacionSinObstaculosURL}{https://youtu.be/82lP3rStJBo}
 \newcommand{\animacionConObstaculosURL}{https://youtu.be/uctSdF2HWXg}
@@ -114,7 +113,7 @@
 % Rangos de diapositivas:
 % Introducción 2--4 (incluye Modelo, fusionado -- ver TP2) | Implementación 5--8
 % Simulaciones 9--12 | Resultados 13--26 | Conclusiones 27--29
-% Anexo 31--32 (apéndice). El cierre (30) queda fuera de la barra.
+% Anexo 31--32 (apéndice: prompts del motor). El cierre (30) queda fuera de la barra.
 % Cada rango incluye su \sectiondivider como primera diapositiva del
 % bloque. Si se agregan o quitan diapositivas hay que renumerar estos
 % rangos a mano.
@@ -266,7 +265,8 @@
 % una secuencia de \item, ej. \parambox{\item A \item B \item C}.
 \newcommand{\parambox}[1]{%
   \begin{beamercolorbox}[wd=\linewidth,sep=2mm]{databox body}
-    \small
+    % Alineada a la izquierda y sin cortes con guion: en columnas angostas el justificado dejaba huecos
+    \small\raggedright\hyphenpenalty=10000\exhyphenpenalty=10000
     \begin{itemize}[label=\textcolor{TPBlue}{$\bullet$},leftmargin=3.2mm,labelsep=1mm,itemsep=1mm,topsep=0pt,parsep=0pt]
       #1
     \end{itemize}
@@ -477,7 +477,7 @@
     \item \textbf{Posición:} $\mathbf{r}(t+\Delta t) = 2\,\mathbf{r}(t) - \mathbf{r}(t-\Delta t) + \dfrac{\Delta t^2}{m}\,\mathbf{f}(t)$
     \item \textbf{Velocidad} (solo para la energía y la salida): $\mathbf{v}(t) = \dfrac{\mathbf{r}(t+\Delta t) - \mathbf{r}(t-\Delta t)}{2\,\Delta t}$
     \item \textbf{Primer paso} (Euler en $-\Delta t$): $\mathbf{r}(-\Delta t) = \mathbf{r}(0) - \Delta t\,\mathbf{v}(0) + \dfrac{\Delta t^2}{2m}\,\mathbf{f}(0)$
-    \item \textbf{Salida:} cada $\Delta t_2 = n\,\Delta t$, con $n$ entero
+    \item \textbf{Salida:} cada $\Delta t_2 = n_s\,\Delta t$ ($n_s$: pasos entre salidas)
     \item \textbf{Vecinos:} CIM de TP1, grilla rearmada en cada paso
   \end{itemize}
 \end{frame}
@@ -506,8 +506,9 @@
       \end{tikzpicture}
     \end{column}
     \begin{column}{0.47\textwidth}
-      % Un título por fórmula, como en «Modelo»
+      % Un título por fórmula, como en «Modelo». Primer uso de R y r: se definen acá
       \begin{itemize}
+        \item \textbf{Radios:} $R$ del recinto; $r$ de partícula y obstáculo
         \item \textbf{Contacto:} $|\mathbf{r}_i| > R - r$
         \item \textbf{Normal:} $\hat{\mathbf{n}} = \mathbf{r}_i/|\mathbf{r}_i|$
         \item \textbf{Imagen:} radio $r$ en $(R + r)\,\hat{\mathbf{n}}$, recalculada cada $\Delta t$
@@ -542,22 +543,24 @@
         \draw[thick, fill=black] (3.4,1.7) circle (0.45);
         \draw[white, thick] (3.4,1.7) -- node[above] {$r$} (3.85,1.7);
         \node[TPNavGray, below] at (3.4,1.2) {detalle};
-        % leyenda
-        \fill[TPFresca] (-2.5,-2.85) circle (0.1) node[right, black] {fresca};
-        \fill[TPUsada] (-0.8,-2.85) circle (0.1) node[right, black] {usada};
-        \fill (0.8,-2.85) circle (0.1) node[right] {obstáculo};
+        % leyenda (define fresca; usada se define con N_u en «Observables»)
+        \fill[TPFresca] (-2.5,-2.85) circle (0.1) node[right, black] {fresca: aún no tocó un obstáculo};
+        \fill[TPUsada] (-2.5,-3.35) circle (0.1) node[right, black] {usada};
+        \fill (-0.9,-3.35) circle (0.1) node[right] {obstáculo};
       \end{tikzpicture}
+      \par\vspace{1mm}
+      {\small $x_0$: posición de los obstáculos $(\pm x_0, 0)$}
 \end{frame}
 
 % 11 -- S05b (define ε_E, Nu, Fu, t₉₀, t₁₀₀, ρ, φ, realización, σ)
 \begin{frame}{Sistema 2: Observables}
   \begin{databox}{Observables}
     \begin{itemize}
-      \item $\varepsilon_E = \max_t |E(t)-E(0)|/E(0)$, con $t$ múltiplo de $\Delta t_2$
-      \item $N_u(t)$: partículas que ya tocaron un obstáculo (usadas)
-      \item $F_u(t) = N_u(t)/N$
+      \item Error relativo máximo de energía: $\varepsilon_E = \max_t |E(t)-E(0)|/E(0)$, con $t$ múltiplo de $\Delta t_2$
+      \item Cantidad de usadas: $N_u(t)$, partículas que ya tocaron un obstáculo
+      \item Fracción de usadas: $F_u(t) = N_u(t)/N$, con $N$ el número de partículas
       \item $t_{90}$, $t_{100}$: primer $t$ con $F_u \geq 0{,}9$ y con $F_u = 1$
-      \item $\rho = N/(\pi R^2)$, \quad $\varphi = N r^2/R^2$
+      \item Densidad: $\rho = N/(\pi R^2)$; fracción de área: $\varphi = N r^2/R^2$
     \end{itemize}
   \end{databox}
   \par\vspace{3mm}
@@ -573,16 +576,14 @@
   \begin{itemize}[itemsep=1pt,topsep=2pt]
     \item $R = 0{,}51$ m; $r = 0{,}0175$ m; $m = 0{,}025$ kg; $k = 10^{4}$ N/m
     \item $v_0 = 1$ m/s, dirección $\sim U[0, 2\pi)$; $N$ sitios al azar de una red hexagonal fija
-    \item $\Delta t = 10^{-5}$ s (salvo en el estudio de $\Delta t$); $\Delta t_2 = 0{,}04$ s; $t_f = 30$ s
+    \item $\Delta t_2 = 0{,}04$ s
   \end{itemize}
   Parámetros de entrada variables:
   \begin{itemize}[itemsep=1pt,topsep=2pt]
-    \item Paso temporal: $\Delta t = 10^{-2}, \dots, 10^{-6}$ s ($N = 300$, sin obstáculos)
-    \item Tiempo de ejecución: $N = 100, \dots, 600, 714$ ($x_0 = r$)
-    \item Obstáculos: 9 valores de $x_0$ en $[r, R-r]$ ($N = 100$ y $20$; $t_{\max} = 100$ s)
-    \item Distribución de rapidez: $N = 100$, sin obstáculos
-    \item Densidad: $N = 25, \dots, 714$ ($x_0 = r$)
-    \item Mapa: 9 valores de $x_0$ $\times$ $N = 100, \dots, 600, 700$
+    \item $\Delta t \in [10^{-6}, 10^{-2}]$ s;
+    \item $N \in [20, 714]$;
+    \item $x_0 \in [r, R-r]$ (9 valores), o sin obstáculos
+    \item $t_f = 30$ s; $t_{\max} = 100$ s en el barrido de $x_0$
   \end{itemize}
   \begin{databox}{Nro.\ de realizaciones}
     \centering

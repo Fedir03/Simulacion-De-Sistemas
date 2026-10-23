@@ -96,7 +96,7 @@ def main() -> None:
             label="divergió (error hasta la última salida)",
         )
     ax.axhline(args.threshold, color="#C43C39", linestyle="--", linewidth=1.8,
-               label=rf"tolerancia propuesta: ${power_label(args.threshold)}$ ({100 * args.threshold:g} %)")
+               label=rf"umbral: ${power_label(args.threshold)}$")
     if chosen is not None:
         ax.scatter([chosen[0]], [chosen[1]], marker="*", s=180, color="#15803D", zorder=4,
                    label=r"$\Delta t$ elegido")
