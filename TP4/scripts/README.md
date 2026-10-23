@@ -4,6 +4,10 @@ Todos los comandos se ejecutan desde `TP4/`.
 
 ## F1 — ECM del Sistema 1
 
+Se conservan los 13 pasos entre `1e-6` y `5e-3` s y se agrega `1e-2` s
+como control adicional, fuera del rango estricto pedido (`dt < 1e-2`).
+Son 56 resultados: 14 pasos por cada uno de los cuatro métodos.
+
 Generar el barrido de ECM:
 
 ```bash

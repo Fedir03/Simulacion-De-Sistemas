@@ -55,8 +55,8 @@ def read_ecm(path: Path) -> dict[str, list[tuple[float, float]]]:
     reference_dts: list[float] | None = None
     for scheme in SCHEMES:
         points = sorted(series[scheme])
-        if len(points) != 13:
-            raise ValueError(f"{scheme}: se esperaban 13 valores de dt y hay {len(points)}")
+        if len(points) != 14:
+            raise ValueError(f"{scheme}: se esperaban 14 valores de dt y hay {len(points)}")
         dts = [point[0] for point in points]
         if len(set(dts)) != len(dts):
             raise ValueError(f"{scheme}: hay valores de dt repetidos")
@@ -100,10 +100,12 @@ def main() -> None:
             label=label,
         )
 
+    ax.set_xlim(7e-7, 1.25e-2)
+    ax.set_xticks([1e-6, 1e-5, 1e-4, 1e-3, 1e-2])
     ax.set_xlabel(r"$\Delta t$ (s)")
     ax.set_ylabel(r"ECM (m$^2$)")
     ax.grid(alpha=0.25, which="both")
-    ax.legend(loc="upper left", fontsize=10)
+    ax.legend(loc="lower right", fontsize=12)
 
     output = args.output.resolve()
     output.parent.mkdir(parents=True, exist_ok=True)

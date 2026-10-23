@@ -103,7 +103,7 @@ def main() -> None:
     ax.set_xlabel(r"$\Delta t$ (s)")
     ax.set_ylabel(r"$\varepsilon_E$")
     ax.grid(alpha=0.25, which="both")
-    ax.legend(loc="best", fontsize=10)
+    ax.legend(loc="best", fontsize=12)
 
     output = args.output.resolve()
     output.parent.mkdir(parents=True, exist_ok=True)
