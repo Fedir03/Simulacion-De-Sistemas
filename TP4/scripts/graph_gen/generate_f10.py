@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Genera F10 (2.4.b): mapa x0 × N de ⟨Fu(tf)⟩ (D22) y su tabla (con ⟨t90⟩), con una fila por (x0, N).
 
-- Columnas: x0 de la grilla de D13 (categórico). Filas: N = 100…600 y N máx (714 en x0 = r y R−r, 713 en los
-  interiores; va en el caption). A la derecha, ρ de cada fila (D20; la fila de N máx usa 714).
+- Columnas: x0 de la grilla de D13 (categórico). Filas: N = 100…600 (barrido y obs) y N = 700 en todas las columnas
+  (outputs/runtime_tp4_barrido_n700, re-simulada el 23/10 en lugar de N máx = 713/714). A la derecha, ρ de cada fila
+  (D20). Las corridas de N máx se siguen validando con el barrido, pero no se grafican.
 - Un solo panel: ⟨Fu(tf)⟩ como color (sin números), curva de nivel Fu = 0,9 (interpolada entre centros de celda) y
   un punto en el x0 de máximo Fu de cada fila. ⟨t90⟩ (D14) queda solo en la tabla.
 - Tamaños pensados para proyectarla a todo el ancho de la diapositiva 4:3 (128 mm): ver FIGSIZE y FONT.
@@ -36,6 +37,7 @@ X0_LABELS = ("0.0175", "0.06", "0.12", "0.18", "0.24", "0.30", "0.36", "0.43", "
 # 128 mm / (6,3 in · 25,4) ≈ 0,80: 13,5 pt → 10,8 pt y 13 pt → 10,4 pt proyectados; alto 3,45 in → 69 mm
 FIGSIZE = (6.3, 3.45)
 FONT, TICK_FONT = 13.5, 13
+N_TOP = 700  # fila superior del mapa (outputs/runtime_tp4_barrido_n700); reemplaza a N máx = 713/714
 HEADER = ("x0", "N", "fuente", "rho_1/m2", "phi", "realizaciones", "Fu_tf_media", "Fu_tf_desvio",
           "llegan_a_0.9", "t90_media_s", "t90_desvio_s", "llegan_a_1")
 
@@ -116,17 +118,32 @@ def load_runs(barrido: Path, obs: Path) -> dict[tuple[int, int, int], UsedRun]:
     return runs
 
 
+def load_top(directory: Path) -> dict[tuple[int, int, int], UsedRun]:
+    """Fila superior con N = N_TOP en todas las columnas (re-simulada el 23/10 para tener un N fijo en vez de
+    713/714): runs/x0-<X0_LABEL>/n700_s<semilla>/observables.txt, completas y con el encabezado de la carpeta."""
+    runs: dict[tuple[int, int, int], UsedRun] = {}
+    for col, label in enumerate(X0_LABELS):
+        for seed in SEEDS:
+            path = directory / "runs" / f"x0-{label}" / f"n{N_TOP}_s{seed}" / "observables.txt"
+            run = read_used_run(path)
+            if (column(run.x0), run.n, run.seed) != (col, N_TOP, seed) or run.status != "completa":
+                raise ValueError(f"{path}: encabezado o estado inesperado")
+            runs[(col, N_TOP, seed)] = run
+    return runs
+
+
 def summarize(runs: dict[tuple[int, int, int], UsedRun]) -> list[tuple]:
     rows = []
     for col, x0 in enumerate(X0S):
-        for n in NS + (n_max(col),):
+        for n in NS + (N_TOP,):
             group = [runs[(col, n, seed)] for seed in SEEDS]
             fu_mean, fu_std = mean_std([run.used[-1] / n for run in group])
             reached = [t for t in (run.first_time(0.9) for run in group) if t is not None]
             # D14: ⟨t90⟩ solo si llegan las 3 semillas
             t90_mean, t90_std = mean_std(reached) if len(reached) == len(group) else (math.nan, math.nan)
             full = sum(run.first_time(1.0) is not None for run in group)
-            rows.append((x0, n, "obs" if col == 0 else "barrido", n / (math.pi * R * R), n * r * r / (R * R),
+            source = "n700" if n == N_TOP else ("obs" if col == 0 else "barrido")
+            rows.append((x0, n, source, n / (math.pi * R * R), n * r * r / (R * R),
                          len(group), fu_mean, fu_std, len(reached), t90_mean, t90_std, full))
     return rows
 
@@ -153,12 +170,15 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--barrido", type=Path, default=OUTPUTS / "runtime_tp4_barrido")
     parser.add_argument("--obs", type=Path, default=OUTPUTS / "runtime_tp4_obs", help="fuente de x0 = r (D22)")
+    parser.add_argument("--top", type=Path, default=OUTPUTS / "runtime_tp4_barrido_n700",
+                        help=f"fila superior, N = {N_TOP} en todas las columnas")
     parser.add_argument("--output", type=Path, default=TP4_DIR / "presentacion" / "figuras" / "F10-mapa-x0-n.pdf")
     parser.add_argument("--table-dir", type=Path, default=OUTPUTS / "runtime_tp4_analisis",
                         help="carpeta de F10-2.4b.csv y F10-2.4b.md")
     args = parser.parse_args()
     try:
         runs = load_runs(args.barrido.resolve(), args.obs.resolve())
+        runs.update(load_top(args.top.resolve()))
     except (OSError, KeyError, ValueError) as error:
         parser.error(str(error))
     rows = summarize(runs)
@@ -183,8 +203,8 @@ def main() -> None:
                 zorder=5)
     ax.set_xticks(range(len(X0S)), X0_LABELS)
     ax.set_xlabel("x₀ (m)")
-    # Última fila: N real de la grilla de D5 (714 en x0 = r y R−r, 713 en los interiores; D22)
-    ax.set_yticks(range(shape[0]), [str(n) for n in NS] + ["713/714"])
+    row_ns = NS + (N_TOP,)
+    ax.set_yticks(range(shape[0]), [str(n) for n in row_ns])
     ax.legend(handles=[Line2D([], [], color="black", linestyle="--", linewidth=1.4, label="Fu = 0,9"),
                        Line2D([], [], marker="o", linestyle="none", markersize=7, markerfacecolor="white",
                               markeredgecolor="black", markeredgewidth=1.2, label="máximo por fila")],
@@ -192,7 +212,6 @@ def main() -> None:
               loc="upper left", fontsize=TICK_FONT, framealpha=0.9)
     # "N" y "ρ" horizontales arriba de sus ticks: verticales al costado le quitan ancho al panel y los ticks de x0 se pegan
     ax.annotate("N", (0, 1), xycoords="axes fraction", xytext=(-8, 6), textcoords="offset points", ha="right")
-    row_ns = NS + (n_max(0),)  # la fila de N máx usa 714 (D22: 0,14 % con 713, va en el caption)
     rho = ax.secondary_yaxis("right")
     rho.set_yticks(range(shape[0]), [f"{n / (math.pi * R * R):.0f}" for n in row_ns])
     # alineado al borde derecho de los números de ρ (tick 3,5 + pad 3,5 + "874"), para no ensanchar el margen
@@ -206,7 +225,7 @@ def main() -> None:
 
     table_dir = args.table_dir.resolve()
     write_tables(table_dir, rows, tf)
-    ties = [NS[i] if i < len(NS) else "N máx" for i in range(shape[0]) if (fu[i] == fu[i].max()).sum() > 1]
+    ties = [row_ns[i] for i in range(shape[0]) if (fu[i] == fu[i].max()).sum() > 1]
     print(f"F10 generada: {output}")
     print(f"Tablas: {table_dir / 'F10-2.4b.csv'} y {table_dir / 'F10-2.4b.md'}")
     print(f"Celdas con ⟨t90⟩ (3/3): {sum(row[8] == row[5] for row in rows)} de {len(rows)}")

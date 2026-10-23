@@ -46,7 +46,7 @@
 \usepackage{amsmath,amssymb,bm}
 \usepackage{graphicx}
 \usepackage{tikz}
-\usetikzlibrary{arrows.meta,calc,positioning}
+\usetikzlibrary{arrows.meta,calc,positioning,decorations.pathmorphing}
 % Para controlar leftmargin/itemsep/topsep del itemize angosto de \parambox
 % (0.27\textwidth) -- el itemize default de beamer queda con demasiado
 % margen y espaciado para una caja tan chica.
@@ -114,7 +114,7 @@
 % Rangos de diapositivas:
 % Introducción 2--4 (incluye Modelo, fusionado -- ver TP2) | Implementación 5--8
 % Simulaciones 9--12 | Resultados 13--26 | Conclusiones 27--29
-% Anexo 31--33 (apéndice). El cierre (30) queda fuera de la barra.
+% Anexo 31--32 (apéndice). El cierre (30) queda fuera de la barra.
 % Cada rango incluye su \sectiondivider como primera diapositiva del
 % bloque. Si se agregan o quitan diapositivas hay que renumerar estos
 % rangos a mano.
@@ -169,7 +169,7 @@
     \navblock{0.16}{Simulaciones}{9}{12}%
     \navblock{0.25}{Resultados}{13}{26}%
     \navblock{0.15}{Conclusiones}{27}{29}%
-    \navblock{0.10}{Anexo}{31}{33}%
+    \navblock{0.10}{Anexo}{31}{32}%
   }%
 }
 
@@ -291,13 +291,15 @@
 % de la animación o esquema) con su epígrafe.
 % #1 figura, #2 altura, #3 texto del placeholder, #4 parámetros fijos,
 % #5 imagen chica (vacío = sin imagen), #6 epígrafe de la imagen chica.
+% Columnas 0.73 / 0.25 (antes 0.66 / 0.31): la figura queda lo más grande posible y la caja de
+% parámetros, en columna a la derecha (pedido del grupo, 23/10).
 \newcommand{\resultadofigura}[6]{%
   \begin{columns}[T,onlytextwidth]
-    \begin{column}{0.66\textwidth}
+    \begin{column}{0.73\textwidth}
       \centering
       \maybeimage{#1}{#2}{#3}%
     \end{column}
-    \begin{column}{0.31\textwidth}
+    \begin{column}{0.25\textwidth}
       \ifstrempty{#4}{}{\parambox{#4}\par\vspace{2mm}}%
       \ifstrempty{#5}{}{%
         \centering
@@ -362,11 +364,33 @@
 \sectiondivider{Introducción}
 
 % 3 -- S01 (nada del billar, de obstáculos ni del Sistema 1)
+% Formato de «Sistema Real y Objetivo» de TP3: texto a la izquierda, ilustración a la derecha (esquema genérico,
+% sin billar ni obstáculos).
 \begin{frame}{Introducción}
-  \begin{itemize}
-    \item Partículas que chocan entre sí como resortes lineales
-    \item Dinámica molecular por paso temporal: se integran las ecuaciones de Newton con un paso fijo
-  \end{itemize}
+  \begin{columns}[c,onlytextwidth]
+    \begin{column}{0.56\textwidth}
+      \begin{itemize}
+        \item Partículas que chocan entre sí como resortes lineales
+        \item Dinámica molecular por paso temporal: se integran las ecuaciones de Newton con un paso fijo
+      \end{itemize}
+      \vspace{0.3cm}
+      \textbf{Objetivo:} elegir un paso que conserve la energía y comparar el costo con la dinámica dirigida por eventos.
+    \end{column}
+    \begin{column}{0.41\textwidth}
+      \centering
+      \begin{tikzpicture}[font=\small]
+        \draw[thick, fill=TPFresca!25] (0,0) circle (0.75);
+        \draw[thick, fill=TPFresca!25, fill opacity=0.8] (1.35,0.3) circle (0.75);
+        \draw[decorate, decoration={coil, aspect=0.45, segment length=2mm, amplitude=1.5mm}, thick, TPBlue]
+          (0.1,0.02) -- (1.25,0.28);
+        \node[TPBlue, above] at (0.7,1.15) {resorte lineal};
+        \draw[thick, fill=TPFresca!25] (0.4,-2.0) circle (0.75);
+        \draw[->, thick] (0.4,-2.0) -- (1.3,-1.6);
+        \draw[thick, fill=TPFresca!25] (2.3,-1.6) circle (0.75);
+        \draw[->, thick] (2.3,-1.6) -- (2.0,-0.9);
+      \end{tikzpicture}
+    \end{column}
+  \end{columns}
 \end{frame}
 
 % 4 -- S02 (define ξ y E: DEFINICIONES.md §5). Posiciones en negrita; r_i es el radio (R es el del dominio)
@@ -417,41 +441,45 @@
   \centering
   \begin{tikzpicture}[
       caja/.style={rectangle, rounded corners=2pt, draw=TPBlue, thick, fill=TPPlaceholder, align=center,
-        minimum height=1.35cm, text width=3.0cm, font=\small, inner sep=3pt,
+        minimum height=1.15cm, text width=2.9cm, font=\small, inner sep=3pt,
         execute at begin node=\hyphenpenalty10000\relax},
       externa/.style={rectangle, rounded corners=2pt, draw=TPNavGray, dashed, align=center,
-        minimum height=1.35cm, text width=3.0cm, font=\small, inner sep=3pt,
+        minimum height=1.15cm, text width=2.9cm, font=\small, inner sep=3pt,
         execute at begin node=\hyphenpenalty10000\relax},
       flecha/.style={-{Latex[length=2.4mm]}, draw=TPBlue, thick},
       flechagris/.style={-{Latex[length=2.4mm]}, draw=TPNavGray, thick},
       etiqueta/.style={font=\small, inner sep=2pt},
     ]
-    \node[externa] (ic)  at (0.0,2.5) {\textbf{Estado inicial}\\[1pt]{\itshape red hexagonal y semilla}};
-    \node[caja]    (fu)  at (4.1,2.5) {\textbf{Fuerzas de contacto}\\[1pt]{\itshape CIM, obstáculos (usadas), pared}};
-    \node[caja]    (ve)  at (8.2,2.5) {\textbf{Verlet}\\[1pt]{\itshape posiciones nuevas}};
-    \node[caja]    (av)  at (4.1,0.0) {\textbf{Avance de un paso}};
-    \node[externa] (out) at (8.2,0.0) {\textbf{Guardado del estado}\\[1pt]{\itshape cada cierto número de pasos, con velocidad central}\\[1pt]\texttt{observables.txt}\\\texttt{dynamic.txt}};
+    % Lazo cerrado como en TP3: fuerzas -> Verlet -> ¿guardar? -> avance -> fuerzas; rama gris al guardado
+    \node[externa] (ic)  at (0.0,2.1)  {\textbf{Estado inicial}\\[1pt]{\itshape red hexagonal y semilla}};
+    \node[caja, text width=3.3cm] (fu) at (4.0,2.1) {\textbf{Fuerzas de contacto}\\[1pt]{\itshape CIM: pares, obstáculos (usadas) y pared}};
+    \node[caja]    (ve)  at (8.0,2.1)  {\textbf{Verlet}\\[1pt]{\itshape posiciones nuevas}};
+    \node[caja]    (sa)  at (8.0,0.35) {\textbf{Control de salida}\\[1pt]{\itshape ¿toca guardar?}};
+    \node[caja]    (av)  at (4.0,0.35) {\textbf{Avance}\\[1pt]{\itshape siguiente paso}};
+    \node[externa, text width=3.3cm] (out) at (8.0,-1.35) {\textbf{Guardado del estado}\\[1pt]{\itshape velocidad central}\\\texttt{observables.txt}, \texttt{dynamic.txt}};
 
     \draw[flecha] (ic) -- (fu);
     \draw[flecha] (fu) -- (ve);
-    \draw[flecha] (ve.south west) -- (av.north east);
-    \draw[flecha] (av) -- node[etiqueta, left] {siguiente paso} (fu);
-    \draw[flechagris] (ve) -- (out);
+    \draw[flecha] (ve) -- (sa);
+    \draw[flecha] (sa) -- node[etiqueta, above] {no} (av);
+    \draw[flecha] (av) -- (fu);
+    \draw[flechagris] (sa) -- node[etiqueta, right] {sí} (out);
+    \draw[flechagris] (out.west) -| (av.south);
   \end{tikzpicture}
-  \par\vspace{3mm}
+  \par\vspace{2mm}
   {\small Misma semilla y configuración $\Rightarrow$ mismo \texttt{observables.txt} (salvo el tiempo de ejecución)}
 \end{frame}
 
 % 7 -- S03a (solo Sistema 2: el Sistema 1 va en una sola diapositiva, enunciado; define Δt, Δt₂)
 \begin{frame}{Integración: Verlet Original}
+  % Un título por fórmula, como en «Modelo»
   \begin{itemize}
-    \item $\mathbf{r}(t+\Delta t) = 2\,\mathbf{r}(t) - \mathbf{r}(t-\Delta t) + \dfrac{\Delta t^2}{m}\,\mathbf{f}(t)$
-    \item $\mathbf{v}(t) = \dfrac{\mathbf{r}(t+\Delta t) - \mathbf{r}(t-\Delta t)}{2\,\Delta t}$, solo para la energía y la salida
-    \item Primer paso: $\mathbf{r}(-\Delta t) = \mathbf{r}(0) - \Delta t\,\mathbf{v}(0) + \dfrac{\Delta t^2}{2m}\,\mathbf{f}(0)$ (Euler en $-\Delta t$)
-    \item Vecinos: CIM de TP1, grilla rearmada en cada paso
+    \item \textbf{Posición:} $\mathbf{r}(t+\Delta t) = 2\,\mathbf{r}(t) - \mathbf{r}(t-\Delta t) + \dfrac{\Delta t^2}{m}\,\mathbf{f}(t)$
+    \item \textbf{Velocidad} (solo para la energía y la salida): $\mathbf{v}(t) = \dfrac{\mathbf{r}(t+\Delta t) - \mathbf{r}(t-\Delta t)}{2\,\Delta t}$
+    \item \textbf{Primer paso} (Euler en $-\Delta t$): $\mathbf{r}(-\Delta t) = \mathbf{r}(0) - \Delta t\,\mathbf{v}(0) + \dfrac{\Delta t^2}{2m}\,\mathbf{f}(0)$
+    \item \textbf{Salida:} cada $\Delta t_2 = n\,\Delta t$, con $n$ entero
+    \item \textbf{Vecinos:} CIM de TP1, grilla rearmada en cada paso
   \end{itemize}
-  \vspace{2mm}
-  \centering
 \end{frame}
 
 % 8 -- S03c: contacto con la pared (enunciado, Fig. 1(b); ContactForces.java:79-86)
@@ -478,13 +506,14 @@
       \end{tikzpicture}
     \end{column}
     \begin{column}{0.47\textwidth}
+      % Un título por fórmula, como en «Modelo»
       \begin{itemize}
-        \item Contacto si $|\mathbf{r}_i| > R - r$
-        \item $\hat{\mathbf{n}} = \mathbf{r}_i/|\mathbf{r}_i|$
-        \item Imagen de radio $r$ en $(R + r)\,\hat{\mathbf{n}}$, recalculada cada $\Delta t$
-        \item $\xi_{iw} = |\mathbf{r}_i| + r - R$
-        \item Misma fuerza que entre partículas
-        \item La imagen no suma energía; $\tfrac{1}{2}k\,\xi_{iw}^2$ se suma una vez
+        \item \textbf{Contacto:} $|\mathbf{r}_i| > R - r$
+        \item \textbf{Normal:} $\hat{\mathbf{n}} = \mathbf{r}_i/|\mathbf{r}_i|$
+        \item \textbf{Imagen:} radio $r$ en $(R + r)\,\hat{\mathbf{n}}$, recalculada cada $\Delta t$
+        \item \textbf{Superposición:} $\xi_{iw} = |\mathbf{r}_i| + r - R$
+        \item \textbf{Fuerza:} la misma que entre partículas
+        \item \textbf{Energía:} la imagen no suma; $\tfrac{1}{2}k\,\xi_{iw}^2$ se suma una vez
       \end{itemize}
     \end{column}
   \end{columns}
@@ -553,7 +582,7 @@
     \item Obstáculos: 9 valores de $x_0$ en $[r, R-r]$ ($N = 100$ y $20$; $t_{\max} = 100$ s)
     \item Distribución de rapidez: $N = 100$, sin obstáculos
     \item Densidad: $N = 25, \dots, 714$ ($x_0 = r$)
-    \item Mapa: 9 valores de $x_0$ $\times$ $N = 100, \dots, 600$ y máximo
+    \item Mapa: 9 valores de $x_0$ $\times$ $N = 100, \dots, 600, 700$
   \end{itemize}
   \begin{databox}{Nro.\ de realizaciones}
     \centering
@@ -592,36 +621,27 @@
 
 % 17 -- F2 principal (enunciado 2.1.a)
 \begin{frame}[c]{Energía Total en Función del Tiempo}
-  % F2 es ancha: figura a todo el ancho y parámetros debajo (como F4)
-  \centering
-  \maybeimage{figuras/F2-energia-vs-t.pdf}{4.6cm}{F2}
-  \par\vspace{2mm}
-  \parambox{\item $N = 300$}
+  \resultadofigura{figuras/F2-energia-vs-t.pdf}{6.5cm}{F2}{\item $N = 300$}{}{}
 \end{frame}
 
 % 18 -- S08
 \begin{frame}[c]{Error de Energía en Función de $\Delta t$}
-  % F3 es ancha: figura a todo el ancho y parámetros debajo (como F4)
-  \centering
-  \maybeimage{figuras/F3-epsE-vs-dt.pdf}{4.4cm}{F3}
-  \par\vspace{2mm}
-  \parambox{\item $N = 300$, $\Delta t = 10^{-5}$ s}
+  \resultadofigura{figuras/F3-epsE-vs-dt.pdf}{6.5cm}{F3}{\item $N = 300$
+     \item $\Delta t = 10^{-5}$ s}{}{}
 \end{frame}
 
 
 % 19 -- S09
 \begin{frame}[c]{Tiempo de Ejecución en Función de $N$}
-  % F4 es ancha: figura a todo el ancho y parámetros debajo
-  \centering
-  \maybeimage{figuras/F4-tiempo-vs-n.pdf}{4.6cm}{F4}
-  \par\vspace{2mm}
-  \parambox{\item TP4: obstáculos en $x_0 = r$; TP3: sin obstáculos; $t_f = 30$ s; 10 realizaciones por $N$}
+  \resultadofigura{figuras/F4-tiempo-vs-n.pdf}{6.5cm}{F4}{\item TP4: obstáculos en $x_0 = r$
+     \item TP3: sin obstáculos
+     \item 10 realizaciones por $N$}{}{}
 \end{frame}
 
 
 % 20 -- S11
 \begin{frame}[c]{Fracción Usada en el Tiempo}
-  \resultadofigura{figuras/F5-fu-vs-t.pdf}{5.1cm}{F5}
+  \resultadofigura{figuras/F5-fu-vs-t.pdf}{6.5cm}{F5}
     {\item $N = 100$
      \item 8 realizaciones por $x_0$}{}{}
 \end{frame}
@@ -635,7 +655,7 @@
 
 % 22 -- S13z: ⟨v⟩(t) con zoom en t ≤ 3 s; define t_est (D15; figura de fedir03, b974871)
 \begin{frame}[c]{Rapidez Media en el Tiempo}
-  \resultadofigura{figuras/F7-v-media-vs-t-zoom-test.pdf}{5.1cm}{F7 zoom}
+  \resultadofigura{figuras/F7-v-media-vs-t-zoom-test.pdf}{6.5cm}{F7 zoom}
     {\item $N = 100$, sin obstáculos, 30 realizaciones
      \item Punteada: $t_{est} = 0{,}75$ s, inicio del estacionario
      \item Banda: $\pm\sigma$}{}{}
@@ -643,7 +663,7 @@
 
 % 23 -- S13 (usa t_est)
 \begin{frame}[c]{Distribución de Rapidez en el Tiempo}
-  \resultadofigura{figuras/F7b-fv-instantes.pdf}{5.1cm}{F7}
+  \resultadofigura{figuras/F7b-fv-instantes.pdf}{6.5cm}{F7}
     {\item $N = 100$
      \item sin obstáculos
      \item 30 realizaciones}{}{}
@@ -658,21 +678,16 @@
 
 % 25 -- S15 (D14, D33; datos de outputs/runtime_tp4_analisis/F9-2.4.md)
 \begin{frame}[c]{$\langle F_u(30\,\mathrm{s})\rangle$ en Función de la Densidad}
-  \resultadofigura{figuras/F9-fu-vs-densidad.pdf}{5.1cm}{F9}
+  \resultadofigura{figuras/F9-fu-vs-densidad.pdf}{6.5cm}{F9}
     {\item $x_0 = r$
      \item 10 realizaciones por $N$}{}{}
 \end{frame}
 
 % 26 -- extra 2.4.b (D22; datos de outputs/runtime_tp4_analisis/F10-2.4b.md)
 \begin{frame}[c]{$\langle F_u(30\,\mathrm{s})\rangle$ en Función de $x_0$ y $N$}
-  % F10 (un panel, 6,3 x 3,45 in): figura a todo el ancho y parámetros debajo, en caja chica
+  % F10 (un panel, 6,3 x 3,45 in) a todo el ancho; la caja de abajo quedó vacía y se sacó
   \centering
   \maybeimage{figuras/F10-mapa-x0-n.pdf}{7cm}{F10}
-  \par
-  % Caja compacta (no \parambox, que fuerza \small) para que la figura conserve sus 7 cm
-  \begin{beamercolorbox}[wd=\linewidth,sep=1mm]{databox body}
-    \footnotesize $n = 3$ por celda, $t_f = 30$ s; fila 713/714: $N = 714$ en $x_0 = r$ y $R-r$, $713$ en el resto.
-  \end{beamercolorbox}
 \end{frame}
 
 % ---------------- CONCLUSIONES ----------------
@@ -710,27 +725,23 @@
   \vfill
 \end{frame}
 
-% 31--33 -- S17b (D31, M5: dentro del PDF, después de "Muchas gracias" para que
+% 31--32 -- S17b (D31, M5: dentro del PDF, después de "Muchas gracias" para que
 % Uso de IA sea la última diapositiva de la exposición; fuente docs/ia/prompts-motor.md).
-% Van solo los pedidos, copiados del .md; las decisiones quedan en el .md.
-\begin{frame}{Anexo: Prompts del Motor (1/3)}
-  \scriptsize
-  \textbf{CIM, grilla y N máx · Claude Code}\par\smallskip
-  Pedido: reconstrucción del TP1 al módulo TP4 \texttt{CellIndexMethod}, \texttt{NeighborFinder} y \texttt{Particle}, y revisar qué devuelve el CIM; agregar dentro del CIM el corrimiento $+R$ y la validación $|r| \leq R$; escribir el script que mide el N máximo con la grilla (cuadrada y hexagonal); escribir el test CIM contra fuerza bruta con la misma semilla. Explicar todo el código aplicado.\par\medskip
-  \textbf{Grilla del TP3 y medición de tiempos · Claude Code}\par\smallskip
-  Pedido: leer el generador de escenarios del TP3 (\texttt{StageGeneration} y lo que lo usa) y proponer un plan para que el TP3 genere la condición inicial con la misma grilla que el TP4 (\texttt{GridPlacement}: hexagonal) y volver a correr el TP3. Condiciones: pedir confirmación antes de tocar código del TP3 que no sea el generador; corrida por tandas y reanudable; salidas fuera del repo o ignoradas por git.\par
-\end{frame}
-
-\begin{frame}{Anexo: Prompts del Motor (2/3)}
-  \scriptsize
+% Dos diapositivas (23/10): integradores (Sistema 1 y 2) y vecinos/grilla (CIM y TP3). Texto sin cambios.
+\begin{frame}{Anexo: Prompts del Motor (1/2)}
+  \small
   \textbf{Módulo TP4 y Sistema 1 · Claude Code (Opus 5.5)}\par\smallskip
-  Pedido: leer el enunciado, Teórica 4 y el plan de implementación (\texttt{docs/plan/}: \texttt{DEFINICIONES.md}, \texttt{referencia/FORMULAS-VERIFICADAS.md}, \texttt{referencia/PLAN.md} y los pasos) y resumir lo entendido antes de escribir código. Después, implementar el Sistema 1 a partir de lo que el grupo ya había definido: las fórmulas de los 4 esquemas verificadas contra las diapositivas.\par
+  Pedido: leer el enunciado, Teórica 4 y el plan de implementación (\texttt{docs/plan/}: \texttt{DEFINICIONES.md}, \texttt{referencia/FORMULAS-VERIFICADAS.md}, \texttt{referencia/PLAN.md} y los pasos) y resumir lo entendido antes de escribir código. Después, implementar el Sistema 1 a partir de lo que el grupo ya había definido: las fórmulas de los 4 esquemas verificadas contra las diapositivas.\par\bigskip
+  \textbf{Sistema 2 · Claude Code (Opus 5.5)}\par\smallskip
+  Pedido: Leer el contexto. Después consultar las respuestas de la cátedra a las preguntas hechas en la clase de consultas y las decisiones del grupo (obstáculos en 2.1.b, criterio de corte de 2.1.a, energía sin la partícula imagen, grilla única, uso del CIM), y ajustar el plan a esas respuestas.\par
 \end{frame}
 
-\begin{frame}{Anexo: Prompts del Motor (3/3)}
-  \scriptsize
-  \textbf{Sistema 2 · Claude Code (Opus 5.5)}\par\smallskip
-   Pedido: Leer el contexto. Después consultar las respuestas de la cátedra a las preguntas hechas en la clase de consultas y las decisiones del grupo (obstáculos en 2.1.b, criterio de corte de 2.1.a, energía sin la partícula imagen, grilla única, uso del CIM), y ajustar el plan a esas respuestas.\par\medskip
+\begin{frame}{Anexo: Prompts del Motor (2/2)}
+  \small
+  \textbf{CIM, grilla y N máx · Claude Code (Opus 5.5)}\par\smallskip
+  Pedido: reconstrucción del TP1 al módulo TP4 \texttt{CellIndexMethod}, \texttt{NeighborFinder} y \texttt{Particle}, y revisar qué devuelve el CIM; agregar dentro del CIM el corrimiento $+R$ y la validación $|r| \leq R$; escribir el script que mide el N máximo con la grilla (cuadrada y hexagonal); escribir el test CIM contra fuerza bruta con la misma semilla. Explicar todo el código aplicado.\par\bigskip
+  \textbf{Grilla del TP3 y medición de tiempos · Claude Code (Opus 5.5)}\par\smallskip
+  Pedido: leer el generador de escenarios del TP3 (\texttt{StageGeneration} y lo que lo usa) y proponer un plan para que el TP3 genere la condición inicial con la misma grilla que el TP4 (\texttt{GridPlacement}: hexagonal) y volver a correr el TP3. Condiciones: pedir confirmación antes de tocar código del TP3 que no sea el generador; corrida por tandas y reanudable; salidas fuera del repo o ignoradas por git.\par
 \end{frame}
 
 \end{document}

@@ -73,7 +73,7 @@ def main() -> None:
                              chosen is not None and run is chosen[2]))
 
     plt = configure_matplotlib()
-    fig, ax = plt.subplots(figsize=(9.0, 5.0), layout="constrained")
+    fig, ax = plt.subplots(figsize=(7.0, 4.4), layout="constrained")
     completed = [item for item in points if item[2].status == "completa" and math.isfinite(item[1]) and item[1] > 0]
     divergent = [item for item in points if item[2].status != "completa" and math.isfinite(item[1]) and item[1] > 0]
     ax.loglog(

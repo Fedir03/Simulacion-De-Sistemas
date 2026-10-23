@@ -91,7 +91,7 @@ def main() -> None:
         parser.error(str(error))
 
     plt = configure_matplotlib()
-    fig, ax = plt.subplots(figsize=(10.5, 4.8), layout="constrained")
+    fig, ax = plt.subplots(figsize=(7.0, 4.4), layout="constrained")
     for data, label, color, marker in ((tp3, "TP3", "#D55E00", "s"), (tp4, "TP4", "#0072B2", "o")):
         ns = [row[0] for row in data]; means = [row[1] for row in data]; stds = [row[2] for row in data]
         ax.errorbar(ns, means, yerr=stds, fmt=marker + "-", color=color, ecolor=color,

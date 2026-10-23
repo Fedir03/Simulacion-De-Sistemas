@@ -51,7 +51,7 @@ def main() -> None:
     width = 1e-8  # J: escala de transición suave alrededor de la energía inicial
     forward = lambda energy: np.arcsinh((np.asarray(energy) - reference) / width)
     inverse = lambda value: reference + width * np.sinh(np.asarray(value))
-    fig, ax = plt.subplots(figsize=(11.2, 5.6), layout="constrained")
+    fig, ax = plt.subplots(figsize=(7.0, 4.4), layout="constrained")
     colors = [plt.get_cmap("tab10")(i % 10) for i in range(len(measured))]
     for run, color in zip(measured, colors):
         status = " (divergió)" if run.status != "completa" else ""
