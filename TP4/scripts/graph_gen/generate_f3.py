@@ -37,7 +37,7 @@ def main() -> None:
         help="CSV de resumen (predeterminado: <input>/epsilon_energy.csv)",
     )
     args = parser.parse_args()
-    if args.threshold <= 0:
+    if not math.isfinite(args.threshold) or args.threshold <= 0:
         parser.error("--threshold debe ser positivo")
 
     try:
@@ -59,7 +59,7 @@ def main() -> None:
     eligible = [
         item
         for item in points
-        if math.isfinite(item[1]) and item[1] <= args.threshold and item[2].status == "completa"
+        if item[0] < 1e-2 and math.isfinite(item[1]) and item[1] <= args.threshold and item[2].status == "completa"
     ]
     chosen = max(eligible, key=lambda item: item[0]) if eligible else None
 
@@ -73,7 +73,7 @@ def main() -> None:
                              chosen is not None and run is chosen[2]))
 
     plt = configure_matplotlib()
-    fig, ax = plt.subplots(figsize=(7.0, 4.4), layout="constrained")
+    fig, ax = plt.subplots(figsize=(9.0, 5.0), layout="constrained")
     completed = [item for item in points if item[2].status == "completa" and math.isfinite(item[1]) and item[1] > 0]
     divergent = [item for item in points if item[2].status != "completa" and math.isfinite(item[1]) and item[1] > 0]
     ax.loglog(
@@ -96,23 +96,10 @@ def main() -> None:
             label="divergió (error hasta la última salida)",
         )
     ax.axhline(args.threshold, color="#C43C39", linestyle="--", linewidth=1.8,
-               label=rf"umbral ${power_label(args.threshold)}$")
+               label=rf"tolerancia propuesta: ${power_label(args.threshold)}$ ({100 * args.threshold:g} %)")
     if chosen is not None:
         ax.scatter([chosen[0]], [chosen[1]], marker="*", s=180, color="#15803D", zorder=4,
-                   label=rf"elegido: $\Delta t={power_label(chosen[0])}$ s")
-    without_measurement = [item for item in points if not math.isfinite(item[1])]
-    if without_measurement:
-        dt_text = ", ".join(power_label(item[0]) for item in without_measurement)
-        ax.text(
-            0.98,
-            0.03,
-            rf"$\Delta t={dt_text}$ s: divergió antes de $\Delta t_2$",
-            transform=ax.transAxes,
-            ha="right",
-            va="bottom",
-            fontsize=9,
-            color="#C43C39",
-        )
+                   label=r"$\Delta t$ elegido")
     ax.set_xlabel(r"$\Delta t$ (s)")
     ax.set_ylabel(r"$\varepsilon_E$")
     ax.grid(alpha=0.25, which="both")
@@ -120,7 +107,8 @@ def main() -> None:
 
     output = args.output.resolve()
     output.parent.mkdir(parents=True, exist_ok=True)
-    fig.savefig(output, metadata={"CreationDate": None})
+    fig.savefig(output, bbox_inches="tight", metadata={"CreationDate": None})
+    fig.savefig(output.with_suffix(".png"), bbox_inches="tight", dpi=180)
     plt.close(fig)
 
     print(f"F3 generada: {output}")

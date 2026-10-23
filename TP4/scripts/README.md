@@ -62,10 +62,64 @@ python scripts/graph_gen/generate_f3.py
 
 Las salidas son:
 
-- `presentacion/figuras/F2-energia-vs-t.pdf`: `(E(t)-E(0))/E(0)` para cada `dt`.
+- `presentacion/figuras/F2-energia-vs-t.pdf`: energía total en un único
+  gráfico con todas las curvas. Escala vertical no lineal
+  `asinh((E-E_ref)/1e-8 J)`, con `E_ref=N*m*v0²/2`; el eje muestra
+  valores absolutos de energía en joules. La transformación es monótona
+  y permite distinguir variaciones pequeñas sin ocultar la divergencia.
+  Se exporta también a PNG. `dt=1e-2` es un control adicional fuera del rango pedido.
 - `presentacion/figuras/F3-epsE-vs-dt.pdf`: `epsilon_E` contra `dt`, umbral `1e-3`
-  y el mayor `dt` completo que lo cumple.
+  y el mayor `dt < 1e-2` completo que lo cumple. La tolerancia del 0,1 % es
+  propuesta por nosotros: no está fijada por el enunciado. El observable es
+  `max_i |E(t_i)-E(0)|/E(0)`, sobre un intervalo común de 30 s para corridas completas.
 - `outputs/2.1a/epsilon_energy.csv`: valores numéricos usados por F3.
+
+Para repetir todas las simulaciones, incluso las terminadas, usar
+`./scripts/sim_gen/generate_f2_f3_data.sh --force`. Después ejecutar ambos
+generadores (F2 y F3). `--output /tmp/F2-prueba.pdf` también genera
+`/tmp/F2-prueba.png`.
+
+El lector rechaza archivos sin pie de finalización, energías incompatibles
+con `E_tot = E_cin + E_el`, muestras faltantes y parámetros físicos distintos.
+Los errores máximos se calculan sobre las salidas cada `dt2`, no sobre todos
+los pasos internos. `dt=1e-2` es un control adicional fuera del rango estricto
+`dt < 1e-2` del enunciado; si diverge antes de la segunda muestra, se informa
+sin inventar una curva ni asignarle error cero en F3.
+
+Tests del lector: `python -m unittest discover -s scripts/graph_gen -p 'test_*.py'`.
+
+### Revisión del motor para F2 (22/10/2026)
+
+Se revisaron `BilliardSimulator`, `ContactForces`, `BilliardConfig`,
+`GridPlacement`, `CellIndexMethod` y `BilliardFiles` contra el enunciado
+y las fórmulas de Verlet documentadas en `docs/plan/referencia/FORMULAS-VERIFICADAS.md`.
+No se modificaron las ecuaciones del motor.
+
+- Se sortean 300 sitios de una red hexagonal sin solapamientos, separados
+  `2r + 0.1 mm`, con semilla 1; las direcciones son uniformes en `[0, 2π)`
+  y el módulo inicial es `1 m/s`. Es una colocación aleatoria sobre grilla,
+  no una distribución espacial continua uniforme.
+- Se usan `R=0.51 m`, `r=0.0175 m`, `m=0.025 kg` y `k=10000 N/m`.
+  Sin obstáculos ni disipación, la energía inicial esperada es `3.75 J`.
+- Verlet calcula `r(t+dt)=2r(t)-r(t-dt)+F(t)dt²/m`, con inicialización
+  `r(-dt)=r(0)-v(0)dt+F(0)dt²/(2m)`. La velocidad central y la energía
+  elástica corresponden al mismo instante `t`.
+- Los contactos aportan `k ξ²/2` una sola vez por par. Las fuerzas del par
+  son opuestas; la pared aporta fuerza radial hacia dentro con
+  `ξ=|r_i|+r-R`, consistente con su energía potencial.
+- Se guarda por contador entero cada `dt2/dt` pasos, incluyendo cero y
+  los 30 segundos finales: 751 muestras por corrida completa. El corte
+  por divergencia ocurre si un centro sale del dominio o deja de ser finito.
+
+La compilación con JDK 21 pasó los 48 tests Java, incluyendo choques,
+rebotes, conservación, reproducibilidad y comparación CIM contra fuerza
+bruta. El lector pasó 4 tests Python con casos truncados e inconsistentes.
+Una repetición independiente de `dt=1e-3` reprodujo exactamente todas las
+muestras y la divergencia a `t=4.811 s` de la nueva compilación.
+Los archivos anteriores no son idénticos bit a bit a esta corrida: se
+regeneran todos los datos del barrido y ambas figuras F2/F3 conjuntamente.
+Estos chequeos respaldan el cálculo para este estudio; no sustituyen la
+auditoría cruzada del grupo ni la validación posterior con N=714.
 
 ### 3. Validar el dt elegido
 

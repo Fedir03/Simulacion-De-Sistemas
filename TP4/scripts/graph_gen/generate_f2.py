@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Genera F2: error relativo de energía en función del tiempo para cada dt."""
+"""Genera F2: energía total en función del tiempo."""
 
 from __future__ import annotations
 
@@ -37,64 +37,43 @@ def main() -> None:
 
     plt = configure_matplotlib()
     measured = [run for run in runs if len(run.times) > 1]
-    without_measurement = [run for run in runs if len(run.times) == 1]
-    if len(measured) > 4:
-        parser.error("F2 admite como máximo cuatro corridas con más de una muestra")
-
-    # Los errores abarcan más de ocho órdenes de magnitud. Una sola escala
-    # lineal aplasta las curvas estables contra cero; pequeños múltiplos
-    # mantienen la escala lineal pedida y permiten ver la evolución de cada dt.
-    # Relación ancha para aprovechar la diapositiva completa sin reducir la
-    # figura a una columna angosta.
-    fig, axes = plt.subplots(2, 2, figsize=(11.2, 4.8), layout="constrained")
-    axes = list(axes.flat)
-    colors = ("#D55E00", "#0072B2", "#009E73", "#CC79A7")
-    for ax, run, color in zip(axes, measured, colors):
-        errors = run.relative_error
-        status = " (divergió)" if run.status != "completa" else ""
-        # Δt va como leyenda dentro del panel: nunca título embebido en la figura (skill sims-tp-format)
-        ax.plot(run.times, errors, linewidth=1.6, color=color,
-                label=rf"$\Delta t={dt_label(run.dt)}$ s{status}")
-        ax.axhline(0, color="black", linewidth=0.7, alpha=0.4)
-        ax.legend(loc="upper left", fontsize=11, handlelength=1.2, frameon=True, framealpha=0.9)
-        ax.grid(alpha=0.22)
-        ax.ticklabel_format(axis="y", style="sci", scilimits=(0, 0), useMathText=True)
-        ax.tick_params(labelsize=10.5)
-
-        low, high = min(errors), max(errors)
-        span = high - low
-        padding = 0.08 * span if span > 0 else max(abs(high) * 0.08, 1e-15)
-        ax.set_ylim(min(low - padding, -padding), max(high + padding, padding))
-        ax.set_xlim(0, max(run.times))
-
-    for ax in axes[len(measured):]:
-        ax.set_visible(False)
-
-    if without_measurement:
-        descriptions = []
-        for run in without_measurement:
-            status = "divergió" if run.status != "completa" else "sin segunda muestra"
-            descriptions.append(rf"$\Delta t={dt_label(run.dt)}$ s: {status} antes de $\Delta t_2$")
-        axes[0].text(
-            0.97,
-            0.06,
-            "\n".join(descriptions),
-            transform=axes[0].transAxes,
-            ha="right",
-            va="bottom",
-            fontsize=9.5,
-            color="#A61B1B",
-            bbox={"facecolor": "white", "edgecolor": "#A61B1B", "alpha": 0.9, "pad": 3},
-        )
-
-    fig.supxlabel(r"$t$ (s)", fontsize=14)
-    fig.supylabel(r"$(E(t)-E(0))/E(0)$", fontsize=14)
+    if not measured:
+        parser.error("F2 necesita al menos una corrida con más de una muestra")
 
     output = args.output.resolve()
     output.parent.mkdir(parents=True, exist_ok=True)
-    fig.savefig(output, metadata={"CreationDate": None})
+    import numpy as np
+    from matplotlib.ticker import FixedLocator, FuncFormatter
+
+    # Transformación monótona de la escala, sin modificar los datos E(t).
+    # Log(E) no separa variaciones de 1e-7 J alrededor de 3.75 J.
+    reference = float(measured[0].metadata["N"]) * float(measured[0].metadata["m"]) * float(measured[0].metadata["v0"])**2 / 2
+    width = 1e-8  # J: escala de transición suave alrededor de la energía inicial
+    forward = lambda energy: np.arcsinh((np.asarray(energy) - reference) / width)
+    inverse = lambda value: reference + width * np.sinh(np.asarray(value))
+    fig, ax = plt.subplots(figsize=(11.2, 5.6), layout="constrained")
+    colors = [plt.get_cmap("tab10")(i % 10) for i in range(len(measured))]
+    for run, color in zip(measured, colors):
+        status = " (divergió)" if run.status != "completa" else ""
+        ax.plot(run.times, run.total_energy, color=color, linewidth=1.5,
+                label=rf"$\Delta t={dt_label(run.dt)}$ s{status}")
+    ax.set_yscale("function", functions=(forward, inverse))
+    ticks = reference + np.array([-1e-2, -1e-4, -1e-6, -1e-7, 0,
+                                  1e-7, 1e-6, 1e-4, 1e-2, 1, 10, 100])
+    ax.yaxis.set_major_locator(FixedLocator(ticks))
+    ax.yaxis.set_major_formatter(FuncFormatter(lambda value, _: f"{value:.7f}".rstrip("0").rstrip(".")))
+    ax.axhline(reference, color="black", linewidth=0.7, alpha=0.5)
+    ax.set_xlim(0, max(run.times[-1] for run in measured))
+    ax.set_xlabel(r"$t$ (s)")
+    ax.set_ylabel(r"$E(t)$ (J; escala asinh)")
+    ax.tick_params(labelsize=11)
+    ax.grid(alpha=0.22)
+    ax.legend(loc="upper right", fontsize=11)
+    fig.savefig(output, bbox_inches="tight", metadata={"CreationDate": None})
+    fig.savefig(output.with_suffix(".png"), bbox_inches="tight", dpi=180)
     plt.close(fig)
-    print(f"F2 generada: {output}")
+    print(f"F2 energía total: {output}")
+
 
 
 if __name__ == "__main__":
