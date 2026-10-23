@@ -16,7 +16,7 @@ import math
 from pathlib import Path
 
 from observables import configure_matplotlib
-from speed_distribution import bin_edges, density, load_runs, maxwell_boltzmann_2d
+from speed_distribution import bin_edges, density, fit_kbt, load_runs, maxwell_boltzmann_2d
 
 
 TP4_DIR = Path(__file__).resolve().parents[2]
@@ -52,14 +52,13 @@ def main() -> None:
     mean = [s / n for s in total]
     sigma = [math.sqrt(max(sq - n * m * m, 0.0) / (n - 1)) for sq, m in zip(total_sq, mean)]
 
-    # Ajuste por barrido de k_BT (Teórica 0)
+    # Ajuste por barrido de k_BT (Teórica 0); el mismo que usa F7b
     reference = MASS * V0 ** 2 / 2  # m v0²/2
-    grid = [reference * (0.2 + 2.8 * k / 20000) for k in range(20001)]
-    errors = [sum((f - maxwell_boltzmann_2d(v, MASS, kbt)) ** 2 for v, f in zip(centers, mean)) for kbt in grid]
-    best = min(range(len(grid)), key=errors.__getitem__)
-    if best in (0, len(grid) - 1):
-        parser.error("el mínimo de E(k_BT) cae en el borde del barrido: ampliar el rango")
-    kbt = grid[best]
+    try:
+        kbt, grid, errors = fit_kbt(centers, mean, MASS, reference)
+    except ValueError as error:
+        parser.error(str(error))
+    best = grid.index(kbt)
     v2 = sum(s * s for s in all_speeds) / len(all_speeds)
 
     plt = configure_matplotlib()

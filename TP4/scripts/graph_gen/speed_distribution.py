@@ -83,3 +83,18 @@ def pdf(speeds: list[float], width: float, v_max: float, center: float | None = 
 def maxwell_boltzmann_2d(v: float, mass: float, kbt: float) -> float:
     """f(v) = (m v / k_BT) exp(−m v² / (2 k_BT)) (enunciado, 2.3)."""
     return mass * v / kbt * math.exp(-mass * v * v / (2 * kbt))
+
+
+def fit_kbt(centers: list[float], values: list[float], mass: float, reference: float,
+            low: float = 0.2, high: float = 3.0, steps: int = 20000) -> tuple[float, list[float], list[float]]:
+    """Ajuste por mínimos cuadrados de la Teórica 0 con k_BT como único parámetro libre.
+
+    E(k_BT) = Σ_i [f_i − f_MB(v_i; k_BT)]² sobre los centros de bin, barriendo k_BT en [low, high]·reference.
+    Devuelve (k_BT del mínimo, barrido, E del barrido). Error si el mínimo cae en un borde del barrido.
+    """
+    grid = [reference * (low + (high - low) * k / steps) for k in range(steps + 1)]
+    errors = [sum((f - maxwell_boltzmann_2d(v, mass, kbt)) ** 2 for v, f in zip(centers, values)) for kbt in grid]
+    best = min(range(len(grid)), key=errors.__getitem__)
+    if best in (0, len(grid) - 1):
+        raise ValueError("el mínimo de E(k_BT) cae en el borde del barrido: ampliar el rango")
+    return grid[best], grid, errors

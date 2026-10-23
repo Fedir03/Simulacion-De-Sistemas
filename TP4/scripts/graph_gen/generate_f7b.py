@@ -11,12 +11,12 @@ import argparse
 from pathlib import Path
 
 from observables import configure_matplotlib
-from speed_distribution import bin_edges, density, load_runs
+from speed_distribution import bin_edges, density, fit_kbt, load_runs, maxwell_boltzmann_2d
 
 
 TP4_DIR = Path(__file__).resolve().parents[2]
-V0, WIDTH = 1.0, 0.1  # D15
-TIMES = (0.12, 0.24, 0.48)  # instantes del transitorio (además de t = 0)
+V0, WIDTH, MASS = 1.0, 0.1, 0.025  # D15; m del enunciado
+TIMES = (0.12, 0.24, 0.48)  # instantes del transitorio
 
 
 def label_time(t: float) -> str:
@@ -49,17 +49,36 @@ def main() -> None:
     transient = {t: at(t) for t in TIMES}
     v_max = max(max(stationary), *(max(s) for s in transient.values())) + 1e-9
     edges = bin_edges(WIDTH, v_max, center=V0)
+    centers = [(a + b) / 2 for a, b in zip(edges, edges[1:])]
+    # Mismo ajuste que F8 (mismos bins: los de la estacionaria sola), para que k_BT sea idéntico
+    fit_edges = bin_edges(WIDTH, max(stationary) + 1e-9, center=V0)
+    fit_centers = [(a + b) / 2 for a, b in zip(fit_edges, fit_edges[1:])]
+    try:
+        kbt, _, _ = fit_kbt(fit_centers, density(stationary, fit_edges), MASS, MASS * V0 ** 2 / 2)
+    except ValueError as error:
+        parser.error(str(error))
 
     plt = configure_matplotlib()
     fig, ax = plt.subplots(figsize=(7.0, 4.4), layout="constrained")
-    # Tiempos del transitorio: pasos de viridis (oscuro → claro); la estacionaria en negro
-    colors = ("#440154", "#3B528B", "#21918C", "#5EC962")
-    ax.axvline(V0, color=colors[0], linewidth=2, linestyle="--", label=label_time(0) + r" (todas con $v_0$)")
-    for t, color in zip(TIMES, colors[1:]):
-        ax.stairs(density(transient[t], edges), edges, color=color, linewidth=2, label=label_time(t))
+    # Tiempos del transitorio: pasos de viridis (oscuro → claro); la estacionaria en negro.
+    # t = 0 no se dibuja: f(v) = δ(v − v0) no es comparable con las otras curvas (se dice en el pie); solo se marca v0
+    colors = ("#3B528B", "#21918C", "#5EC962")
+    ax.plot([V0], [0], marker="v", color="#555555", markersize=9, clip_on=False, zorder=5,
+            transform=ax.get_xaxis_transform())
+    ax.text(V0, 0.04, r"$v_0$", transform=ax.get_xaxis_transform(), ha="center", va="bottom", fontsize=12,
+            color="#555555")
+    # Puntos en los centros de bin (v_i, f_i), unidos para seguir cada curva
+    for t, color in zip(TIMES, colors):
+        ax.plot(centers, density(transient[t], edges), color=color, marker="o", markersize=4, linewidth=1.6,
+                label=label_time(t))
     t_est = f"{args.t_est:g}".replace(".", "{,}")
-    ax.stairs(density(stationary, edges), edges, color="black", linewidth=2.2,
-              label=rf"estacionaria ($t \geq {t_est}$ s)")
+    # La curva ajustada de F8 (mismo color y mismo k_BT) debajo; la estacionaria solo con puntos, como en F8,
+    # porque coincide con el ajuste y una línea encima la taparía
+    smooth = [k * 3.0 / 400 for k in range(401)]
+    ax.plot(smooth, [maxwell_boltzmann_2d(v, MASS, kbt) for v in smooth], color="#D55E00", linewidth=2.2,
+            label="Maxwell-Boltzmann 2D (ajuste)", zorder=2)
+    ax.plot(centers, density(stationary, edges), color="black", marker="o", markersize=5, linestyle="none",
+            label=rf"estacionaria ($t \geq {t_est}$ s)", zorder=3)
     ax.set_xlim(0, 3)
     ax.set_ylim(bottom=0)
     ax.set_xlabel(r"$v$ (m/s)")
@@ -73,7 +92,7 @@ def main() -> None:
     plt.close(fig)
     above = sum(s >= 3 for s in stationary) / len(stationary)
     print(f"F7b generada: {output} ({len(runs)} realizaciones; estacionaria con {len(stationary)} rapideces; "
-          f"fracción con v ≥ 3 m/s fuera del eje: {above:.1e})")
+          f"fracción con v ≥ 3 m/s fuera del eje: {above:.1e}; k_BT del ajuste = {kbt * 1e3:.3f} mJ)")
 
 
 if __name__ == "__main__":
