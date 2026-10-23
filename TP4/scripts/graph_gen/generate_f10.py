@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Genera F10 (2.4.b): mapas x0 × N de ⟨t90⟩ y ⟨Fu(tf)⟩ (D22) y su tabla, con una fila por (x0, N).
+"""Genera F10 (2.4.b): mapa x0 × N de ⟨Fu(tf)⟩ (D22) y su tabla (con ⟨t90⟩), con una fila por (x0, N).
 
 - Columnas: x0 de la grilla de D13 (categórico). Filas: N = 100…600 y N máx (714 en x0 = r y R−r, 713 en los
-  interiores, rotulado arriba de cada columna). A la derecha, ρ y φ de cada fila (D20; la fila de N máx usa 714).
-- Panel 1: ⟨t90⟩ solo si llegan las 3 semillas; si no, gris con "k/3" en las parciales y "—" si no llega ninguna
-  (D14). Panel 2: ⟨Fu(tf)⟩ en todas las celdas, curva de nivel Fu = 0,9 (interpolada entre centros de celda) y un
-  punto en el x0 de máximo Fu de cada fila.
+  interiores; va en el caption). A la derecha, ρ de cada fila (D20; la fila de N máx usa 714).
+- Un solo panel: ⟨Fu(tf)⟩ como color (sin números), curva de nivel Fu = 0,9 (interpolada entre centros de celda) y
+  un punto en el x0 de máximo Fu de cada fila. ⟨t90⟩ (D14) queda solo en la tabla.
+- Tamaños pensados para proyectarla a todo el ancho de la diapositiva 4:3 (128 mm): ver FIGSIZE y FONT.
 - x0 = r sale de runtime_tp4_obs (semillas 1–3, según "reused" de meta.json del barrido); el resto, del barrido.
 Se niega a graficar si falta alguna corrida. Los tiempos de ejecución no se usan.
 """
@@ -19,6 +19,7 @@ import math
 from pathlib import Path
 
 import numpy as np
+from matplotlib.ticker import MaxNLocator
 
 from observables import configure_matplotlib
 from used_fraction import UsedRun, mean_std, read_used_run
@@ -31,7 +32,9 @@ X0S = (0.0175, 0.06, 0.12, 0.18, 0.24, 0.30, 0.36, 0.43, 0.4925)  # D13
 NS = (100, 200, 300, 400, 500, 600)  # más el N máx de cada columna (D22)
 SEEDS = (1, 2, 3)
 X0_LABELS = ("0.0175", "0.06", "0.12", "0.18", "0.24", "0.30", "0.36", "0.43", "0.4925")  # como en D13, con el 0 final
-GRAY = "#BDBDBD"
+# 128 mm / (6,3 in · 25,4) ≈ 0,80: 13,5 pt → 10,8 pt y 13 pt → 10,4 pt proyectados; alto 3,45 in → 69 mm
+FIGSIZE = (6.3, 3.45)
+FONT, TICK_FONT = 13.5, 13
 HEADER = ("x0", "N", "fuente", "rho_1/m2", "phi", "realizaciones", "Fu_tf_media", "Fu_tf_desvio",
           "llegan_a_0.9", "t90_media_s", "t90_desvio_s", "llegan_a_1")
 
@@ -145,20 +148,6 @@ def write_tables(directory: Path, rows, tf: float) -> None:
     (directory / "F10-2.4b.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
-def draw(ax, plt, grid, labels: dict[tuple[int, int], str]):
-    """Mapa de una magnitud por celda; NaN en gris, con el texto de cada celda en blanco o negro según el fondo.
-    El texto lleva un recuadro del color de su celda, así la curva de nivel pasa por detrás de los números."""
-    cmap = plt.get_cmap("viridis").copy()
-    cmap.set_bad(GRAY)
-    image = ax.imshow(np.ma.masked_invalid(grid), cmap=cmap, origin="lower", aspect="auto")
-    for (i, j), text in labels.items():
-        background = GRAY if math.isnan(grid[i, j]) else image.cmap(image.norm(grid[i, j]))
-        dark = not math.isnan(grid[i, j]) and sum(background[:3]) < 1.5
-        ax.text(j, i, text, ha="center", va="center", fontsize=9, color="white" if dark else "black", zorder=4,
-                bbox=dict(boxstyle="square,pad=0.1", facecolor=background, edgecolor="none"))
-    return image
-
-
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--barrido", type=Path, default=OUTPUTS / "runtime_tp4_barrido")
@@ -175,41 +164,34 @@ def main() -> None:
     tf = next(iter(runs.values())).times[-1]
 
     shape = (len(NS) + 1, len(X0S))
-    t90, fu = np.full(shape, np.nan), np.full(shape, np.nan)
-    t90_text, fu_text = {}, {}
-    for x0, n, _, _, _, count, fu_mean, _, reached, t90_mean, _, _ in rows:
-        cell = (NS.index(n) if n in NS else len(NS), column(x0))
-        fu[cell], t90[cell] = fu_mean, t90_mean
-        fu_text[cell] = f"{fu_mean:.2f}"
-        # D14: valor si llegan 3/3, "k/3" en las parciales, "—" si no llega ninguna
-        t90_text[cell] = f"{t90_mean:.1f}" if reached == count else f"{reached}/{count}" if reached else "—"
+    fu = np.full(shape, np.nan)
+    for x0, n, _, _, _, _, fu_mean, *_ in rows:
+        fu[NS.index(n) if n in NS else len(NS), column(x0)] = fu_mean
 
     plt = configure_matplotlib()
-    fig, (left, right) = plt.subplots(1, 2, figsize=(14.0, 5.8), sharey=True, layout="constrained")
-    for ax, grid, labels, label in ((left, t90, t90_text, "t90 (s)"), (right, fu, fu_text, f"Fu({tf:g} s)")):
-        image = draw(ax, plt, grid, labels)
-        if not np.isnan(grid).all():
-            fig.colorbar(image, ax=ax, location="bottom", shrink=0.8, label=label)
-        ax.set_xticks(range(len(X0S)), X0_LABELS)
-        ax.set_xlabel("x₀ (m)")
-        top = ax.secondary_xaxis("top")
-        top.set_xticks(range(len(X0S)), [str(n_max(col)) for col in range(len(X0S))])
-        top.set_xlabel("N máx")
-    right.contour(range(shape[1]), range(shape[0]), fu, levels=[0.9], colors="black", linestyles="--", linewidths=1.6,
-                  zorder=3)
+    plt.rcParams.update({"font.size": FONT, "xtick.labelsize": TICK_FONT, "ytick.labelsize": TICK_FONT})
+    fig, ax = plt.subplots(figsize=FIGSIZE, layout="constrained")
+    image = ax.imshow(fu, cmap="viridis", origin="lower", aspect="auto")
+    bar = fig.colorbar(image, ax=ax, location="bottom", shrink=0.8, aspect=40, label=f"Fu({tf:g} s)")
+    bar.ax.xaxis.set_major_locator(MaxNLocator(nbins=5))
+    ax.contour(range(shape[1]), range(shape[0]), fu, levels=[0.9], colors="black", linestyles="--", linewidths=1.4,
+               zorder=3)
     for i in range(shape[0]):
         j = int(np.argmax(fu[i]))  # primer x0 de máximo Fu de la fila
-        # a la izquierda del número, para no tocar el borde en la fila de N máx
-        right.plot(j - 0.36, i, "o", markersize=5, markerfacecolor="white", markeredgecolor="black", zorder=5)
-    left.set_yticks(range(shape[0]), [str(n) for n in NS] + ["N máx"])
-    left.set_ylabel("N")
+        ax.plot(j, i, "o", markersize=7, markerfacecolor="white", markeredgecolor="black", markeredgewidth=1.2,
+                zorder=5)
+    ax.set_xticks(range(len(X0S)), X0_LABELS)
+    ax.set_xlabel("x₀ (m)")
+    ax.set_yticks(range(shape[0]), [str(n) for n in NS] + ["máx"])
+    # "N" y "ρ" horizontales arriba de sus ticks: verticales al costado le quitan ancho al panel y los ticks de x0 se pegan
+    ax.annotate("N", (0, 1), xycoords="axes fraction", xytext=(-8, 6), textcoords="offset points", ha="right")
     row_ns = NS + (n_max(0),)  # la fila de N máx usa 714 (D22: 0,14 % con 713, va en el caption)
-    rho = right.secondary_yaxis("right")
+    rho = ax.secondary_yaxis("right")
     rho.set_yticks(range(shape[0]), [f"{n / (math.pi * R * R):.0f}" for n in row_ns])
-    rho.set_ylabel("ρ (1/m²)")
-    phi = right.secondary_yaxis(1.22)
-    phi.set_yticks(range(shape[0]), [f"{n * r * r / (R * R):.2f}" for n in row_ns])
-    phi.set_ylabel("φ")
+    # alineado al borde derecho de los números de ρ (tick 3,5 + pad 3,5 + "874"), para no ensanchar el margen
+    rho_edge = 7 + 3 * 0.636 * TICK_FONT
+    ax.annotate("ρ (1/m²)", (1, 1), xycoords="axes fraction", xytext=(rho_edge, 6), textcoords="offset points",
+                ha="right")
     output = args.output.resolve()
     output.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(output, metadata={"CreationDate": None})
