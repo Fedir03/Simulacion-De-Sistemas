@@ -36,7 +36,7 @@ en un recuadro al costado del fotograma; el video muestra el tiempo y
 `Usadas: Nu/100`. Los fotogramas son de t=5 s,
 extraídos de los MP4 de `TP4/generated/animaciones/`. Los enlaces bajo estas
 imágenes muestran y abren los videos de YouTube: sin obstáculos,
-https://youtu.be/AfBOIIxCbrw; con obstáculos, https://youtu.be/9todHGuL2gw.
+https://youtu.be/82lP3rStJBo; con obstáculos, https://youtu.be/uctSdF2HWXg.
 Las URL se definen en `\animacionSinObstaculosURL` y `\animacionConObstaculosURL`.
 
 ## Versión para Google Slides

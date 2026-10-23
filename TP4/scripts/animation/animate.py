@@ -131,13 +131,14 @@ def render_animation(data, output, *, dpi=100):
         ax.add_patch(Circle((x, y), r, color='black', zorder=4))
     particles = PatchCollection([], edgecolor='white', linewidth=0.35, zorder=3)
     ax.add_collection(particles)
-    counter = ax.text(0.5, 1.025, '', transform=ax.transAxes, ha='center', fontsize=14)
+    counter = ax.text(0.5, 1.025, '', transform=ax.transAxes, ha='center', fontsize=28)
     colors = np.array(['#2563eb', '#dc2626'])
     entries = [(colors[0], 'No usadas'), (colors[1], 'Usadas')]
     if data.obstacles:
         entries.append(('black', 'Obstáculos'))
     ax.legend(handles=[Line2D([], [], marker='o', linestyle='', color=c, label=label) for c, label in entries],
-              loc='upper center', bbox_to_anchor=(0.5, -0.035), ncol=len(entries), frameon=False)
+              loc='upper center', bbox_to_anchor=(0.5, -0.035), ncol=len(entries), frameon=False,
+              fontsize=22, markerscale=1.6, columnspacing=1.2, handletextpad=0.4)
     fig.subplots_adjust(top=0.86, bottom=0.10)
     writer = FFMpegWriter(fps=1 / float(meta['dt2']), codec='libx264',
                          extra_args=['-pix_fmt', 'yuv420p', '-crf', '20'])
