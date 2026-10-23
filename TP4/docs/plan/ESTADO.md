@@ -2,18 +2,19 @@
 
 > Solo la persona de rol E edita este archivo (DEFINICIONES.md, D24).
 
-**Última actualización: 19/10/2026**
+**Última actualización: 22/10/2026**
 
 ## Dónde estamos
-- Enunciado leído y resumido. Fórmulas de Teórica 4 verificadas por el grupo contra el PDF nuevo (19/10; diapos 9–23, 31–37, 42–46) y de Teórica 0 (diapos 60–72). Pendiente: auditar el código contra ellas (D29, `auditoria-integradores.md`).
-- Consultas a la cátedra respondidas (16/10) salvo la Q4 (densidad). Decisiones del grupo del 19/10 en `DEFINICIONES.md`; las PROPUESTA restantes se adoptaron por defecto, menos D1, D6, D7 y D20, que esperan medición o respuesta. D12 (máquina: la de Fede) y D23 (roles y pares de auditoría) DECIDIDO 19/10. Nuevas D29–D32 (auditoría de integradores, auditoría cruzada, anexo de prompts, preparación de la oral) en PROPUESTA.
-- En el repo: módulo Maven `TP4` (214678c) y Sistema 1 completo, con 4 esquemas, ECM(dt) y tests (38e890b). Los tests no se corrieron en esta revisión (sin verificar).
-- No hay todavía: Sistema 2, CIM copiado, colocación por grilla, medición del N máx, `docs/formatos.md`, runner, `analysis/`, F1, README del motor, script del ZIP.
-- Sin verificar (no está en los commits): plantilla de presentación de TP4 compilada sin Overfull vbox, figuras E1–E3, hoja de consultas.
-- La clase virtual del lun 19/10 ya pasó: las consultas (a)–(e) del paso 09 y la Q4 van **por mail** a la cátedra (pendiente, antes del vie 23).
+- **dt = 1e-5 elegido y validado** (D1): ε_E = 1,99e-5 con N=300 y 1,87e-5 con N=714, x₀=r, 30 s (umbral 1e-3).
+- **2.1.a hecho** (F2 y F3).
+- **2.1.b: benchmark corriendo en la máquina de TP3** (commit cf581d5; `scripts/sim_gen/runtime_tp4.sh`, calentamiento 300:1,600:0.52, `order_seed` 20261025, 10 rondas), con **re-medición de TP3 (tanda limpia, `outputs/runtime_tp3_limpia`) en la misma sesión** (D12: la tanda A se midió con la máquina cargada; queda como referencia histórica).
+- **F5–F8 hechas** (2.2 y 2.3).
+- **Pendientes de los datos de 2.1.b:** F4 combinada (TP4 contra la tanda limpia de TP3; media ± σ en la figura y mediana en tabla, D7) y 2.4 (F9 y F10).
+- Respuestas de la cátedra a las consultas por mail del 22/10 (M1–M6) pasadas a `DEFINICIONES.md` (D7, D12, D17, D18, D20, D29, D31). ZIP: lleva todo el código que genera datos y figuras (D16, D26, D28).
+- **Pendientes:** anexo de prompts (D31), auditorías (`auditoria-integradores.md` D29, `auditoria-codigo.md` D30), ZIP (`tools/build_zip`, README del motor).
 
 ## Paso actual
-Estamos en el paso 04 (`pasos/04-motores-con-tests.md`), con pendientes del paso 02 (`formatos.md`, E1–E3). Sistema 1 hecho; falta el Sistema 2 y sus tests, la simulación completa CIM vs fuerza bruta, la medición del N máx y el generador de TP3 con grilla.
+Pasos 06 (tiempos, en curso en la máquina de TP3) y 07 (2.2 y 2.3 con figuras hechas; falta 2.4). **Entrega: vie 23/10, 13:00** (subida prevista ~11:00).
 
 ## Bitácora
 - 14/10: se verificaron fórmulas contra Teórica 4; se resolvió Euler predictor-corrector (diapo 23); se detectó que la fuerza del oscilador depende de la velocidad; se agregó la regla "llenar el dominio lo más posible" (corrección de TP3).
@@ -22,3 +23,4 @@ Estamos en el paso 04 (`pasos/04-motores-con-tests.md`), con pendientes del paso
 - 19/10: pull de 3 commits del 16/10 (214678c módulo Maven, 38e890b Sistema 1, 90ffd06 Teórica 4 nueva). La Teórica 4 nueva es una re-exportación del 2/10: misma cantidad de páginas; cambia el título de la diapo 12 ("Algoritmos Euler" → "Algoritmo de Verlet") y tiene una imagen más, en una página sin identificar. Hay que revisar a ojo las diapos con fórmulas (13–23, 37) contra `referencia/FORMULAS-VERIFICADAS.md`. PROPUESTA restantes adoptadas por defecto. Pasos 05–08 no empezados.
 - 19/10: respuestas del grupo: D12 y D23 cerradas (Fede: grilla, CIM, N máx, tiempos 2.1.b + TP3, rol E; Ruckauf: Sistema 2; Lolo: Sistema 1, presentación, figuras, animaciones, rol C). Anuncio de la cátedra "Criterios de Evaluación TP4 y TP5": la oral pesa más, cuenta la participación, auditar integradores y código, anexo de prompts. Se crearon `auditoria-integradores.md`, `auditoria-codigo.md` y `../ia/prompts-motor.md`; se agregaron D29–D32 y las diapositivas S03b y S17b a la plantilla (sin compilar).
 - 19/10: cambios de alcance: D12 solo exige TP3 y TP4 en la misma computadora (la de Fede), sin anotar CPU/RAM/SO/Java; consultas del paso 09 y Q4 por mail; prompts del motor marcados "textual" o "reconstruido", sin cargar todos (D31); anexo de prompts como apéndice después de "Muchas gracias" (plantilla ajustada, sin compilar); tiempo por integrador: primera corrida descartada, 5 repeticiones, mediana (paso 05); tarea de ordenar la presentación de lo más importante a lo secundario (paso 08, D32).
+- 22/10: dt = 1e-5 verificado (D1). Benchmark de 2.1.b (cf581d5) lanzado en la máquina de TP3; el control de TP3 dio 26,4–27,0 s con la PC libre contra 40,84 s de la tanda A, así que TP3 se re-mide en la misma sesión (tanda limpia, D12). Respuestas de la cátedra a las consultas por mail del 22/10 (M1–M6) en DEFINICIONES. Nueva regla del ZIP: todo el código que genera datos y figuras (D26, D28).

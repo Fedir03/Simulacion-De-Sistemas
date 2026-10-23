@@ -20,6 +20,10 @@ La cátedra pide coordinar y auditar los códigos del motor y del análisis (anu
 | TP3: `StageGeneration.generateGrid` / `gridSites` (red hex, s = 2r + 0,1 mm, ancla `corner` con margen de 0,1 mm a las paredes, D7); test `engine/GridGenerationTest` | Fede | Ruckauf | | | pendiente de auditoría (código del 20/10, commit f29b0d7) |
 | TP3: `Main` (`generate --placement random\|grid --grid-anchor --grid-margin`, comando `grid-nmax`; `random` por defecto, sin cambios en el original) | Fede | Ruckauf | | | pendiente de auditoría (código del 20/10, commit f29b0d7) |
 | TP3: paquete `bench` (`TimedCase`, `Tp3Case`, `RuntimeBenchmark`: JVM calentada y reutilizada, heap fijo, orden mezclado, reanudable, control; D11, D12) | Fede | Lolo | | | pendiente de auditoría (código del 20/10, commit 5d2882d) |
+| TP4: `Main` (comandos `oscillator-ecm`, `oscillator-trajectory`, `billiard`) | Ruckauf | Lolo | | | pendiente de auditoría (commits 38e890b, 850645a) |
+| TP4: `Main` (comando `grid-nmax`) | Fede | Ruckauf | | | pendiente de auditoría (commit d8f7a1a) |
+| CIM sin asignaciones por paso (`forEachContact` en `CellIndexMethod` y `NeighborFinder`, uso en `ContactForces`; tests `CellIndexMethodTest`, `CimVsBruteForceSimulationTest`) | Fede | Ruckauf | | | pendiente de auditoría (código del 21/10, commit 1733b42) |
+| Benchmark 2.1.b: `TP4/bench` (`TimedCase`, `Tp4Case`, `RuntimeBenchmark`, `maquina_tp3.properties`) y `scripts/sim_gen` (`build_runtime_tp4.sh`, `runtime_tp4.sh`, `control_tp3.sh`, `check_machine_tp3.sh`; D12) | Fede | Ruckauf | | | pendiente de auditoría (código del 22/10, commit cf581d5) |
 | Estudio del Sistema 1 (ECM vs dt, F1, calentamiento de JVM) | Lolo | Fede | | | pendiente (sin código) |
 | Scripts de `analysis/` (runner, observables, ajuste MB, figuras, animaciones) | Lolo | Fede | | | pendiente (sin código) |
 | README del motor y script del ZIP (D26) | Fede | Ruckauf | | | pendiente (sin código) |
