@@ -30,6 +30,15 @@ Requiere `latexmk`. El PDF se genera en `generated/`, que no se versiona.
 Si se agregan o quitan diapositivas, renumerar a mano los rangos de
 `\TPnavrow` (barra de secciones) en el `.tex`.
 
+Después del resultado del Sistema 1 se muestran dos animaciones del Sistema 2:
+sin obstáculos y con obstáculos en ±0.25 m. N=100 y Δt=1e-5 s se indican
+en un recuadro al costado del fotograma; el video muestra el tiempo y
+`Usadas: Nu/100`. Los fotogramas son de t=5 s,
+extraídos de los MP4 de `TP4/generated/animaciones/`. Los enlaces bajo estas
+imágenes muestran y abren los videos de YouTube: sin obstáculos,
+https://youtu.be/82lP3rStJBo; con obstáculos, https://youtu.be/uctSdF2HWXg.
+Las URL se definen en `\animacionSinObstaculosURL` y `\animacionConObstaculosURL`.
+
 ## Versión para Google Slides
 
 Después de compilar el PDF, ejecutar `python3 create_google_slides_sources.py`
