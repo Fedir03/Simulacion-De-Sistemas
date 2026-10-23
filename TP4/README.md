@@ -39,6 +39,31 @@ java -Xms2g -Xmx2g -cp "target/tp4.jar:target/bench-classes" ar.edu.itba.sds.tp4
 En Windows, el separador de `-cp` es `;` en lugar de `:`.
 
 ## Scripts
+- `scripts/animation/`: módulo independiente para exportar las trayectorias del billar a MP4.
 - `scripts/sim_gen/`: generan los datos de cada estudio a partir del motor (`generate_f1_data.sh`, `generate_f2_f3_data.sh`, `validate_dt.sh`, `generate_studies_data.sh`, `generate_f4_data.sh`, `runtime_tp4.sh`). `control_tp3.sh` necesita el TP3 del repositorio y no corre desde el ZIP.
 - `scripts/graph_gen/`: generan las figuras a partir de los outputs.
 - `analysis/`: análisis de los tiempos de ejecución de TP3 (`runtime_tp3.py`, `runtime_tp3_ab.py`).
+
+## Animaciones del billar
+
+Requieren FFmpeg en PATH y las dependencias de `requirements.txt` (`python3 -m pip install -r requirements.txt`). Desde TP4:
+
+```bash
+bash scripts/sim_gen/generate_animations.sh
+```
+
+Compila y verifica el motor, ejecuta dos simulaciones completas de 100 s con N=100, semilla 1, Δt=1e-5 s y salida cada 0.04 s, y exporta los videos. Un caso no tiene obstáculos; el otro tiene sus centros en (±0.25 m, 0). Las salidas quedan en `generated/animaciones/{sin_obstaculos,con_obstaculos}/`: `observables.txt`, `dynamic.txt` y `animacion.mp4`. El script usa el Python de `.venv` del repositorio si existe; se puede elegir otro con la variable `PYTHON`.
+
+Para animar una trayectoria guardada, sin volver a simular:
+
+```bash
+python3 scripts/animation/animate.py --input ruta/dynamic.txt --out ruta/animacion.mp4
+```
+
+La animación lee los parámetros del archivo, mantiene los radios a escala y muestra el tiempo simulado y el contador `Usadas: Nu/N` (por ejemplo, `Usadas: 55/100`), sin título ni ejes cartesianos. Las usadas son rojas y las no usadas azules. N y Δt se indican al costado del fotograma en la presentación. Sin obstáculos, todas permanecen azules. La velocidad de reproducción es real: con dt2=0.04 s se exportan 25 cuadros/s. Los 2501 estados, incluido el final, producen un MP4 de 100.04 s. No se interpolan estados ni se ejecuta el motor durante el render.
+
+Pruebas del lector:
+
+```bash
+python3 -m unittest discover -s scripts/animation -p 'test_*.py'
+```

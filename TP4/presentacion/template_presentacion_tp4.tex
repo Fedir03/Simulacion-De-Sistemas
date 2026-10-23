@@ -99,6 +99,9 @@
 \newcommand{\animacionDosDosURL}{https://youtu.be/PENDIENTE}
 \newcommand{\animacionDosTresURL}{https://youtu.be/PENDIENTE}
 \newcommand{\animacionDosCuatroURL}{https://youtu.be/PENDIENTE}
+% Videos del Sistema 2: sin obstáculos y con obstáculos, respectivamente.
+\newcommand{\animacionSinObstaculosURL}{https://youtu.be/AfBOIIxCbrw}
+\newcommand{\animacionConObstaculosURL}{https://youtu.be/9todHGuL2gw}
 
 % Si existe logo_itba.png o logo_itba.pdf junto al .tex, se inserta.
 \newcommand{\institutionlogo}{%
@@ -112,8 +115,8 @@
 % ---------- Barra superior por sección ----------
 % Rangos de diapositivas:
 % Introducción 2--4 (incluye Modelo, fusionado -- ver TP2) | Implementación 5--7
-% Simulaciones 8--10 | Resultados 11--21 | Conclusiones 22--24
-% El cierre (25) y el anexo de prompts (26, apéndice) quedan fuera de la barra.
+% Simulaciones 8--10 | Resultados 11--23 | Conclusiones 24--26
+% El cierre (27) y el anexo de prompts (28, apéndice) quedan fuera de la barra.
 % Cada rango incluye su \sectiondivider como primera diapositiva del
 % bloque. Si se agregan o quitan diapositivas hay que renumerar estos
 % rangos a mano.
@@ -166,8 +169,8 @@
     \navblock{0.21}{Introducción}{2}{4}%
     \navblock{0.19}{Implementación}{5}{7}%
     \navblock{0.17}{Simulaciones}{8}{10}%
-    \navblock{0.26}{Resultados}{11}{21}%
-    \navblock{0.17}{Conclusiones}{22}{24}%
+    \navblock{0.26}{Resultados}{11}{23}%
+    \navblock{0.17}{Conclusiones}{24}{26}%
   }%
 }
 
@@ -408,23 +411,62 @@
   \includegraphics[width=0.92\linewidth,height=6cm,keepaspectratio]{figuras/F1-ecm-vs-dt.pdf}
 \end{frame}
 
-% 13 -- F2 principal (enunciado 2.1.a)
+% 13 -- Animación del Sistema 2 sin obstáculos
+\begin{frame}[c]{Sistema 2: Billar sin Obstáculos}
+  \begin{columns}[c,onlytextwidth]
+    \begin{column}{0.70\textwidth}
+      \centering
+      \includegraphics[width=\linewidth,height=5.6cm,keepaspectratio]{figuras/anim-sistema2-sin-obstaculos.png}
+      \par\vspace{1mm}
+      \href{\animacionSinObstaculosURL}{\textcolor{TPBlue}{\small\expandafter\nolinkurl\expandafter{\animacionSinObstaculosURL}}}
+    \end{column}
+    \begin{column}{0.27\textwidth}
+      \parambox{\item $N=100$\item $\Delta t=10^{-5}\,\mathrm{s}$}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% 14 -- Animación del Sistema 2 con obstáculos
+\begin{frame}[c]{Sistema 2: Billar con Obstáculos}
+  \begin{columns}[c,onlytextwidth]
+    \begin{column}{0.70\textwidth}
+      \centering
+      \includegraphics[width=\linewidth,height=5.6cm,keepaspectratio]{figuras/anim-sistema2-con-obstaculos.png}
+      \par\vspace{1mm}
+      \href{\animacionConObstaculosURL}{\textcolor{TPBlue}{\small\expandafter\nolinkurl\expandafter{\animacionConObstaculosURL}}}
+    \end{column}
+    \begin{column}{0.27\textwidth}
+      \parambox{\item $N=100$\item $\Delta t=10^{-5}\,\mathrm{s}$}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% 15 -- F2 principal (enunciado 2.1.a)
 \begin{frame}[c]{Energía Total en Función del Tiempo}
   \centering
   \includegraphics[width=0.96\linewidth,height=6cm,keepaspectratio]{figuras/F2-energia-vs-t.pdf}
-  \par\vspace{0.1cm}
-  {\small $N=300$}
+  \par\vspace{1mm}
+  \begin{minipage}{0.24\linewidth}
+  \begin{beamercolorbox}[wd=\linewidth,sep=1mm,center]{databox body}
+    \small\textcolor{TPBlue}{$\bullet$}\enspace $N=300$
+  \end{beamercolorbox}
+  \end{minipage}
 \end{frame}
 
-% 14 -- S08
+% 16 -- S08
 \begin{frame}[c]{Error de Energía en Función de $\Delta t$}
   \centering
   \includegraphics[width=0.98\linewidth,height=6.1cm,keepaspectratio]{figuras/F3-epsE-vs-dt.pdf}
-  \par\vspace{0.1cm}
-  {\small $N=300$ \qquad $\Delta t$ elegido $=10^{-5}\,\mathrm{s}$}
+  \par\vspace{1mm}
+  \begin{minipage}{0.70\linewidth}
+  \begin{beamercolorbox}[wd=\linewidth,sep=1mm,center]{databox body}
+    \small\textcolor{TPBlue}{$\bullet$}\enspace $N=300$\qquad
+    \textcolor{TPBlue}{$\bullet$}\enspace $\Delta t$ elegido $=10^{-5}\,\mathrm{s}$
+  \end{beamercolorbox}
+  \end{minipage}
 \end{frame}
 
-% 15 -- S09
+% 17 -- S09
 \begin{frame}[c]{Tiempo de Ejecución en Función de $N$}
   \centering
   {\small TP4 medido con $\Delta t=10^{-5}\,\mathrm{s}$}\par\vspace{0.1cm}
@@ -433,57 +475,57 @@
     {\placeholder[5.6cm]{F4 --- falta completar la medición de TP4 y ejecutar generate\_f4.py}}
 \end{frame}
 
-% 16 -- S10
+% 18 -- S10
 \begin{frame}[c]{Obstáculos en $\pm x_0$ --- Evolución del Sistema}
   \animacionsimple{figuras/anim-2-2.png}{5.1cm}{\animacionDosDosURL}
     {Fotograma de la animación de 2.2}
     {\item Pendiente}
 \end{frame}
 
-% 17 -- S11
+% 19 -- S11
 \begin{frame}[c]{Fracción Usada en el Tiempo}
   \resultadofigura{figuras/F5-fu-vs-t.pdf}{5.1cm}{F5: $F_u(t)$ para 3 valores de $x_0$}{}{}{}
 \end{frame}
 
-% 18 -- S12
+% 20 -- S12
 \begin{frame}[c]{$\langle t_{90}\rangle$ en Función de $x_0$}
   \resultadofigura{figuras/F6-t90-vs-x0.pdf}{5.1cm}{F6: $\langle t_{90}\rangle$ vs.\ $x_0$}{}{}{}
 \end{frame}
 
-% 19 -- S13 (define t_est)
+% 21 -- S13 (define t_est)
 \begin{frame}[c]{Distribución de Rapidez en el Tiempo}
   \resultadofigura{figuras/F7-fv-temporal.pdf}{5.1cm}{F7: $f(v)$ a varios tiempos}{}
     {figuras/anim-2-3.png}{\href{\animacionDosTresURL}{\nolinkurl{\animacionDosTresURL}}}
 \end{frame}
 
-% 20 -- S14 (define k_BT)
+% 22 -- S14 (define k_BT)
 \begin{frame}[c]{Distribución Estacionaria y Ajuste de Maxwell-Boltzmann}
   \resultadofigura{figuras/F8-fv-mb.pdf}{5.1cm}{F8: $f(v)$ estacionaria y ajuste}{}{}{}
 \end{frame}
 
-% 21 -- S15
+% 23 -- S15
 \begin{frame}[c]{$\langle t_{90}\rangle$ y $\langle t_{100}\rangle$ en Función de la Densidad}
   \resultadofigura{figuras/F9-t-vs-rho.pdf}{5.1cm}{F9: $\langle t_{90}\rangle$, $\langle t_{100}\rangle$ vs.\ $\rho$}{}
     {figuras/anim-2-4.png}{\href{\animacionDosCuatroURL}{\nolinkurl{\animacionDosCuatroURL}}}
 \end{frame}
 
 % ---------------- CONCLUSIONES ----------------
-% 22
+% 24
 \sectiondivider{Conclusiones}
 
-% 23 -- S16
+% 25 -- S16
 % RECORDATORIOS: cada afirmación dice a qué caso se refiere; nada sobre
 % el dt elegido (eso queda en 2.1.a).
 \begin{frame}{Conclusiones}
   \placeholder[6cm]{S16 --- Una afirmación por estudio, aclarando el caso}
 \end{frame}
 
-% 24 -- S17
+% 26 -- S17
 \begin{frame}{Uso de IA}
   \placeholder[6cm]{S17 --- Agente/modelo usado y de qué manera}
 \end{frame}
 
-% 25. Cierre
+% 27. Cierre
 \begin{frame}{}
   \vfill
   \begin{beamercolorbox}[wd=0.86\paperwidth,ht=0.72cm,dp=0.20cm,center]{frametitle}
