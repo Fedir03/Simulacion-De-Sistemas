@@ -53,7 +53,7 @@ def main() -> None:
     ax.set_xlabel(r"$t$ (s)")
     ax.set_ylabel(r"$\langle F_u \rangle$")
     ax.grid(alpha=0.22)
-    ax.legend(loc="lower right", fontsize=12)
+    ax.legend(loc="lower right", fontsize=17, handlelength=2.5)
 
     output = args.output.resolve()
     output.parent.mkdir(parents=True, exist_ok=True)

@@ -47,7 +47,7 @@ def main() -> None:
     # t_est se marca con una línea vertical (DEFINICIONES.md §5)
     ax.axvline(args.t_est, color="#555555", linestyle="--", linewidth=1.2)
     ax.text(args.t_est, 0.98, r" $t_{est}$", transform=ax.get_xaxis_transform(), ha="left", va="top",
-            fontsize=13, color="#555555")
+            fontsize=18, color="#555555")
     ax.set_xlim(0, args.t_max)
     ax.set_xlabel(r"$t$ (s)")
     ax.set_ylabel(r"$\langle v \rangle$ (m/s)")
