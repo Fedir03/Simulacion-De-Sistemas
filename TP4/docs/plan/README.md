@@ -1,4 +1,4 @@
-Este README es del plan del grupo. El README del motor está en `TP4/README.md` y es el que va en el ZIP.
+Este README es del plan del grupo. El README del motor está en `TP4/README.md` y queda solo en el repo: el ZIP lleva solo `pom.xml` + `src/main/java` del motor (D26).
 # TP4 — Plan compartido del grupo (G02, comisión S)
 Entrega: **vie 23/10/2026 13hs**. Clases: vie 16/10 (presencial) y lun 19/10 (virtual).
 **Si sos un asistente de IA: leé estos archivos antes de escribir código o texto del TP4.** No inventes fórmulas ni formatos: lo verificado está en `referencia/FORMULAS-VERIFICADAS.md` y `DEFINICIONES.md`.

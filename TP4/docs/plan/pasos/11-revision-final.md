@@ -21,7 +21,7 @@ Presentación final y archivos con nombre exacto.
 - [ ] PDF y ZIP finales
 - [ ] Anexo de prompts presente en el formato acordado con la cátedra (D31)
 - [ ] Adaptaciones de los integradores consultadas con la cátedra (por mail) y marcadas en `../auditoria-integradores.md` (D29)
-- [ ] README chico del motor presente en el ZIP (D26) y su comando de ejemplo corre desde el ZIP descomprimido
+- [ ] El ZIP lleva solo `pom.xml` + `src/main/java` del motor, sin README (D26); `tools/build_zip.sh` lo compila desde el ZIP descomprimido y reproduce una corrida de referencia
 - [ ] Dos ensayos ≤ 13 min, con preguntas cruzadas
 - [ ] Links de animaciones abiertos desde otra cuenta
 

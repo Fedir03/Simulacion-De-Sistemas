@@ -19,6 +19,7 @@ import math
 from pathlib import Path
 
 import numpy as np
+from matplotlib.lines import Line2D
 from matplotlib.ticker import MaxNLocator
 
 from observables import configure_matplotlib
@@ -182,7 +183,13 @@ def main() -> None:
                 zorder=5)
     ax.set_xticks(range(len(X0S)), X0_LABELS)
     ax.set_xlabel("x₀ (m)")
-    ax.set_yticks(range(shape[0]), [str(n) for n in NS] + ["máx"])
+    # Última fila: N real de la grilla de D5 (714 en x0 = r y R−r, 713 en los interiores; D22)
+    ax.set_yticks(range(shape[0]), [str(n) for n in NS] + ["713/714"])
+    ax.legend(handles=[Line2D([], [], color="black", linestyle="--", linewidth=1.4, label="Fu = 0,9"),
+                       Line2D([], [], marker="o", linestyle="none", markersize=7, markerfacecolor="white",
+                              markeredgecolor="black", markeredgewidth=1.2, label="máximo por fila")],
+              # arriba a la izquierda no hay puntos de máximo (están en x0 = 0,18 y 0,24)
+              loc="upper left", fontsize=TICK_FONT, framealpha=0.9)
     # "N" y "ρ" horizontales arriba de sus ticks: verticales al costado le quitan ancho al panel y los ticks de x0 se pegan
     ax.annotate("N", (0, 1), xycoords="axes fraction", xytext=(-8, 6), textcoords="offset points", ha="right")
     row_ns = NS + (n_max(0),)  # la fila de N máx usa 714 (D22: 0,14 % con 713, va en el caption)

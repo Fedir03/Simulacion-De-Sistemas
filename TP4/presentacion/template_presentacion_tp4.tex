@@ -94,10 +94,8 @@
 \institute{Instituto Tecnológico de Buenos Aires}
 \date{2026 2C --- Grupo N.º 02}
 
-% URLs de las animaciones (D16): 2.2, 2.3 y 2.4. Reemplazar PENDIENTE
-% por el link de YouTube no listado cuando esté subido.
-\newcommand{\animacionDosDosURL}{https://youtu.be/PENDIENTE}
-\newcommand{\animacionDosTresURL}{https://youtu.be/PENDIENTE}
+% URLs de las animaciones (D16). Las de 2.2 (con obstáculos) y 2.3 (sin obstáculos) son las de Lorenzo
+% (scripts/sim_gen/generate_animations.sh); la de 2.4 sigue pendiente: reemplazar PENDIENTE al subirla.
 \newcommand{\animacionDosCuatroURL}{https://youtu.be/PENDIENTE}
 % Videos del Sistema 2: sin obstáculos y con obstáculos, respectivamente.
 \newcommand{\animacionSinObstaculosURL}{https://youtu.be/82lP3rStJBo}
@@ -114,9 +112,9 @@
 
 % ---------- Barra superior por sección ----------
 % Rangos de diapositivas:
-% Introducción 2--4 (incluye Modelo, fusionado -- ver TP2) | Implementación 5--7
-% Simulaciones 8--10 | Resultados 11--23 | Conclusiones 24--26
-% El cierre (27) y el anexo de prompts (28, apéndice) quedan fuera de la barra.
+% Introducción 2--4 (incluye Modelo, fusionado -- ver TP2) | Implementación 5--8
+% Simulaciones 9--12 | Resultados 13--26 | Conclusiones 27--29
+% Anexo 31--33 (apéndice). El cierre (30) queda fuera de la barra.
 % Cada rango incluye su \sectiondivider como primera diapositiva del
 % bloque. Si se agregan o quitan diapositivas hay que renumerar estos
 % rangos a mano.
@@ -166,11 +164,12 @@
 % entre las dos ramas de \TPheadline (con y sin franja de relleno).
 \newcommand{\TPnavrow}{%
   \makebox[\paperwidth][l]{%
-    \navblock{0.21}{Introducción}{2}{4}%
-    \navblock{0.19}{Implementación}{5}{7}%
-    \navblock{0.17}{Simulaciones}{8}{10}%
-    \navblock{0.26}{Resultados}{11}{23}%
-    \navblock{0.17}{Conclusiones}{24}{26}%
+    \navblock{0.16}{Introducción}{2}{4}%
+    \navblock{0.18}{Implementación}{5}{8}%
+    \navblock{0.16}{Simulaciones}{9}{12}%
+    \navblock{0.25}{Resultados}{13}{26}%
+    \navblock{0.15}{Conclusiones}{27}{29}%
+    \navblock{0.10}{Anexo}{31}{33}%
   }%
 }
 
@@ -322,7 +321,7 @@
 % ================================================================
 % PRESENTACIÓN
 % Una diapositiva por fila S01--S17 de DEFINICIONES.md §3.
-% Figuras: nombres fijos que escribe analysis/make_figures.py (D28).
+% Figuras: nombres fijos que escriben los scripts de scripts/graph_gen (D28).
 % ================================================================
 \begin{document}
 
@@ -362,170 +361,343 @@
 % 2
 \sectiondivider{Introducción}
 
-% 3 -- S01
+% 3 -- S01 (nada del billar, de obstáculos ni del Sistema 1)
 \begin{frame}{Introducción}
-  \placeholder[6cm]{S01 --- Fenómeno y método general.\\Nada del billar ni de obstáculos}
+  \begin{itemize}
+    \item Partículas que chocan entre sí como resortes lineales
+    \item Dinámica molecular por paso temporal: se integran las ecuaciones de Newton con un paso fijo
+  \end{itemize}
 \end{frame}
 
-% 4 -- S02 (define ξ y E: DEFINICIONES.md §5)
+% 4 -- S02 (define ξ y E: DEFINICIONES.md §5). Posiciones en negrita; r_i es el radio (R es el del dominio)
 \begin{frame}{Modelo}
-  \placeholder[6cm]{S02 --- Solo ecuaciones: Newton, fuerza de contacto, energía.\\Sin números ni geometría}
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.60\textwidth}
+      % Un título por fórmula (pedido del grupo, 23/10); menos aire entre fórmulas para que entren las cuatro
+      \setlength{\abovedisplayskip}{3pt}\setlength{\belowdisplayskip}{3pt}
+      {\small\textbf{Ecuación de movimiento}}
+      \[ m\,\ddot{\mathbf{r}}_i = \mathbf{F}_i = \sum_{j:\,\xi_{ij} > 0} -k\,\xi_{ij}\,\hat{\mathbf{e}}_n \]
+      {\small\textbf{Versor normal}}
+      \[ \hat{\mathbf{e}}_n = \frac{\mathbf{r}_j - \mathbf{r}_i}{|\mathbf{r}_j - \mathbf{r}_i|} \]
+      {\small\textbf{Superposición}}
+      \[ \xi_{ij} = r_i + r_j - |\mathbf{r}_j - \mathbf{r}_i| \]
+      {\small\textbf{Energía total}}
+      \[ E = \sum_i \tfrac{1}{2}\, m\, v_i^2 + \sum_{\text{contactos}} \tfrac{1}{2}\, k\, \xi^2 \]
+    \end{column}
+    \begin{column}{0.37\textwidth}
+      \centering
+      % E2: contacto entre dos partículas con la superposición ξ
+      \begin{tikzpicture}[font=\small]
+        \draw[thick, fill=TPLight] (0,0) circle (1.1);
+        \draw[thick, fill=TPLight, fill opacity=0.6] (1.6,0) circle (0.9);
+        \fill (0,0) circle (0.04) (1.6,0) circle (0.04);
+        \node[below left] at (0,0) {$i$};
+        \node[below right] at (1.6,0) {$j$};
+        \draw (0,0) -- node[left] {$r_i$} (120:1.1);
+        \draw (1.6,0) -- node[right] {$r_j$} ($(1.6,0)+(60:0.9)$);
+        \draw[->, thick, TPBlue] (0.05,0) -- (0.55,0) node[midway, above] {$\hat{\mathbf{e}}_n$};
+        \draw[dashed] (0.7,0) -- (0.7,-1.35) (1.1,0) -- (1.1,-1.35);
+        \draw[<->] (0.7,-1.3) -- (1.1,-1.3) node[midway, below] {$\xi_{ij}$};
+      \end{tikzpicture}
+      \par\vspace{2mm}
+      {\small $r_i$, $r_j$: radios de partículas}
+    \end{column}
+  \end{columns}
 \end{frame}
 
 % ---------------- IMPLEMENTACIÓN ----------------
 % 5
 \sectiondivider{Implementación}
 
-% 6 -- S03 (define Δt, Δt₂)
-\begin{frame}{Esquemas de Integración}
-  \placeholder[6cm]{S03 --- 4 esquemas del Sistema 1 y Verlet del Sistema 2,\\velocidad (D17), pared imagen, CIM mencionado}
+% 6 -- Arquitectura del motor, con el estilo del «Diagrama del Motor» de TP3 (sin \resizebox: letra ≥ 10 pt).
+% El lazo sigue el orden de BilliardSimulator.run (l.73-115): fuerzas (CIM, obstáculos/usadas, pared) -> Verlet
+% -> guardado cada n pasos con v central -> avanzar. Sin símbolos: Δt, Δt₂, x₀, N y t_f se definen después.
+% Archivos de salida: io/BilliardFiles.java:24.
+\begin{frame}[c]{Arquitectura}
+  \centering
+  \begin{tikzpicture}[
+      caja/.style={rectangle, rounded corners=2pt, draw=TPBlue, thick, fill=TPPlaceholder, align=center,
+        minimum height=1.35cm, text width=3.0cm, font=\small, inner sep=3pt,
+        execute at begin node=\hyphenpenalty10000\relax},
+      externa/.style={rectangle, rounded corners=2pt, draw=TPNavGray, dashed, align=center,
+        minimum height=1.35cm, text width=3.0cm, font=\small, inner sep=3pt,
+        execute at begin node=\hyphenpenalty10000\relax},
+      flecha/.style={-{Latex[length=2.4mm]}, draw=TPBlue, thick},
+      flechagris/.style={-{Latex[length=2.4mm]}, draw=TPNavGray, thick},
+      etiqueta/.style={font=\small, inner sep=2pt},
+    ]
+    \node[externa] (ic)  at (0.0,2.5) {\textbf{Estado inicial}\\[1pt]{\itshape red hexagonal y semilla}};
+    \node[caja]    (fu)  at (4.1,2.5) {\textbf{Fuerzas de contacto}\\[1pt]{\itshape CIM, obstáculos (usadas), pared}};
+    \node[caja]    (ve)  at (8.2,2.5) {\textbf{Verlet}\\[1pt]{\itshape posiciones nuevas}};
+    \node[caja]    (av)  at (4.1,0.0) {\textbf{Avance de un paso}};
+    \node[externa] (out) at (8.2,0.0) {\textbf{Guardado del estado}\\[1pt]{\itshape cada cierto número de pasos, con velocidad central}\\[1pt]\texttt{observables.txt}\\\texttt{dynamic.txt}};
+
+    \draw[flecha] (ic) -- (fu);
+    \draw[flecha] (fu) -- (ve);
+    \draw[flecha] (ve.south west) -- (av.north east);
+    \draw[flecha] (av) -- node[etiqueta, left] {siguiente paso} (fu);
+    \draw[flechagris] (ve) -- (out);
+  \end{tikzpicture}
+  \par\vspace{3mm}
+  {\small Misma semilla y configuración $\Rightarrow$ mismo \texttt{observables.txt} (salvo el tiempo de ejecución)}
 \end{frame}
 
-% 7 -- S03b (D29: adaptaciones respecto de la teórica; ver docs/plan/auditoria-integradores.md)
-\begin{frame}{Adaptaciones de los Integradores}
-  \placeholder[6cm]{S03b --- Qué cambia respecto de la Teórica 4 y por qué:\\primer paso por Euler, estimación de $v$ (D17), guardado con contador entero}
+% 7 -- S03a (solo Sistema 2: el Sistema 1 va en una sola diapositiva, enunciado; define Δt, Δt₂)
+\begin{frame}{Integración: Verlet Original}
+  \begin{itemize}
+    \item $\mathbf{r}(t+\Delta t) = 2\,\mathbf{r}(t) - \mathbf{r}(t-\Delta t) + \dfrac{\Delta t^2}{m}\,\mathbf{f}(t)$
+    \item $\mathbf{v}(t) = \dfrac{\mathbf{r}(t+\Delta t) - \mathbf{r}(t-\Delta t)}{2\,\Delta t}$, solo para la energía y la salida
+    \item Primer paso: $\mathbf{r}(-\Delta t) = \mathbf{r}(0) - \Delta t\,\mathbf{v}(0) + \dfrac{\Delta t^2}{2m}\,\mathbf{f}(0)$ (Euler en $-\Delta t$)
+    \item Vecinos: CIM de TP1, grilla rearmada en cada paso
+  \end{itemize}
+  \vspace{2mm}
+  \centering
+\end{frame}
+
+% 8 -- S03c: contacto con la pared (enunciado, Fig. 1(b); ContactForces.java:79-86)
+\begin{frame}{Contacto con la Pared: Partícula Imagen}
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.50\textwidth}
+      \centering
+      % Esquema no a escala
+      \begin{tikzpicture}[font=\small]
+        \draw[very thick] (-20:3.2) arc (-20:20:3.2);
+        \draw[dashed, TPNavGray] (0,0) -- (4.6,0);
+        \fill (0,0) circle (0.04) node[left] {$O$};
+        \draw[thick, fill=TPFresca!25] (2.95,0) circle (0.6);
+        \draw[thick, dashed, fill=TPNavGray!20, fill opacity=0.6] (3.8,0) circle (0.6);
+        \node at (2.75,0.25) {$i$};
+        \node at (3.95,0.25) {img};
+        \fill (3.2,0) circle (0.04);
+        \draw[->, thick, TPBlue] (0.3,0.3) -- (1.1,0.3) node[above] {$\hat{\mathbf{n}}$};
+        \draw[|<->|] (0,1.2) -- (3.2,1.2) node[midway, above] {$R$};
+        \draw[dashed] (3.2,0) -- (3.2,-0.95) (3.55,0) -- (3.55,-0.95);
+        \node[left] at (3.2,-0.85) {$C$};
+        \draw[<->] (3.2,-0.85) -- (3.55,-0.85) node[right] {$\xi_{iw}$};
+        \draw[|<->|] (0,-1.35) -- (3.8,-1.35) node[midway, below] {$R + r$};
+      \end{tikzpicture}
+    \end{column}
+    \begin{column}{0.47\textwidth}
+      \begin{itemize}
+        \item Contacto si $|\mathbf{r}_i| > R - r$
+        \item $\hat{\mathbf{n}} = \mathbf{r}_i/|\mathbf{r}_i|$
+        \item Imagen de radio $r$ en $(R + r)\,\hat{\mathbf{n}}$, recalculada cada $\Delta t$
+        \item $\xi_{iw} = |\mathbf{r}_i| + r - R$
+        \item Misma fuerza que entre partículas
+        \item La imagen no suma energía; $\tfrac{1}{2}k\,\xi_{iw}^2$ se suma una vez
+      \end{itemize}
+    \end{column}
+  \end{columns}
 \end{frame}
 
 % ---------------- SIMULACIONES ----------------
-% 8
+% 9
 \sectiondivider{Simulaciones}
 
-% 9 -- S04 (define ECM)
-\begin{frame}{Sistema 1: Oscilador Amortiguado}
-  \placeholder[6cm]{S04 --- Parámetros del oscilador y definición de ECM}
+% 10 -- S05a: solo el esquema, como «Geometría del Sistema» de TP3; los valores van en «Parámetros»
+\begin{frame}{Sistema 2: Geometría}
+  \centering
+      % E1 a escala (1 m = 4,9 cm), con x₀ = 0,24 m; Fig. 1(a) del enunciado
+      \begin{tikzpicture}[font=\small]
+        \draw[thick] (0,0) circle (2.5);
+        \foreach \x/\y in {0.93/0.27,-1.23/-0.38,1.52/-0.18,-0.69/0.12,-1.68/0.30,1.36/0.60,1.78/0.53,0.33/0.41,2.02/-0.44,-0.83/-0.91}
+          \fill[TPUsada] (\x,\y) circle (0.0858);
+        \foreach \x/\y in {-0.40/-0.81,1.23/1.19,0.69/1.10,1.26/-1.21,1.83/-1.04,-1.52/-1.19,0.07/0.75,-1.93/1.22,0.81/-1.45,1.60/-1.46,0.11/-1.10,-1.25/1.60,-1.10/-1.61,0.11/1.35,-0.68/1.73,1.00/-1.86,0.18/-1.84,0.50/2.21,-0.25/-2.16,0.01/2.35}
+          \fill[TPFresca] (\x,\y) circle (0.0858);
+        \fill (1.176,0) circle (0.0858) (-1.176,0) circle (0.0858);
+        \fill (0,0) circle (0.03);
+        \draw[|<->|] (0,0) -- node[above right, pos=0.6] {$R$} (135:2.5);
+        \draw[|<->|] (0,-0.3) -- (1.176,-0.3) node[midway, below] {$x_0$};
+        % detalle ampliado de un obstáculo para la cota de r
+        \draw[dashed, TPNavGray] (1.176,0) -- (3.0,1.4);
+        \draw[thick, fill=black] (3.4,1.7) circle (0.45);
+        \draw[white, thick] (3.4,1.7) -- node[above] {$r$} (3.85,1.7);
+        \node[TPNavGray, below] at (3.4,1.2) {detalle};
+        % leyenda
+        \fill[TPFresca] (-2.5,-2.85) circle (0.1) node[right, black] {fresca};
+        \fill[TPUsada] (-0.8,-2.85) circle (0.1) node[right, black] {usada};
+        \fill (0.8,-2.85) circle (0.1) node[right] {obstáculo};
+      \end{tikzpicture}
 \end{frame}
 
-% 10 -- S05 (define R, r, x₀, N, m, k, v₀, ε_E, Nu, Fu, t₉₀, t₁₀₀, ρ, f(v))
-\begin{frame}{Sistema 2: Geometría, Parámetros y Observables}
-  \resultadofigura{figuras/E1-esquema-sistema.png}{5.1cm}{E1: esquema con $R$, $r$, $x_0$ marcados}
-    {\item Pendiente}{}{}
+% 11 -- S05b (define ε_E, Nu, Fu, t₉₀, t₁₀₀, ρ, φ, realización, σ)
+\begin{frame}{Sistema 2: Observables}
+  \begin{databox}{Observables}
+    \begin{itemize}
+      \item $\varepsilon_E = \max_t |E(t)-E(0)|/E(0)$, con $t$ múltiplo de $\Delta t_2$
+      \item $N_u(t)$: partículas que ya tocaron un obstáculo (usadas)
+      \item $F_u(t) = N_u(t)/N$
+      \item $t_{90}$, $t_{100}$: primer $t$ con $F_u \geq 0{,}9$ y con $F_u = 1$
+      \item $\rho = N/(\pi R^2)$, \quad $\varphi = N r^2/R^2$
+    \end{itemize}
+  \end{databox}
+  \par\vspace{3mm}
+  \parambox{\item Realización: corrida con una semilla (posiciones y direcciones iniciales)
+    \item $\langle\cdot\rangle$: media entre realizaciones; barras: $\pm\sigma$, desvío estándar muestral entre realizaciones}
+\end{frame}
+
+% 12 -- S05c: parámetros fijos y variables, con el formato de «Parámetros» de TP3 (sin rótulos 2.x;
+% DEFINICIONES.md:78; D7, D8, D9, D13, D22, D33). Recibe los fijos que antes estaban en «Geometría».
+\begin{frame}{Sistema 2: Parámetros}
+  \small
+  Parámetros de entrada fijos:
+  \begin{itemize}[itemsep=1pt,topsep=2pt]
+    \item $R = 0{,}51$ m; $r = 0{,}0175$ m; $m = 0{,}025$ kg; $k = 10^{4}$ N/m
+    \item $v_0 = 1$ m/s, dirección $\sim U[0, 2\pi)$; $N$ sitios al azar de una red hexagonal fija
+    \item $\Delta t = 10^{-5}$ s (salvo en el estudio de $\Delta t$); $\Delta t_2 = 0{,}04$ s; $t_f = 30$ s
+  \end{itemize}
+  Parámetros de entrada variables:
+  \begin{itemize}[itemsep=1pt,topsep=2pt]
+    \item Paso temporal: $\Delta t = 10^{-2}, \dots, 10^{-6}$ s ($N = 300$, sin obstáculos)
+    \item Tiempo de ejecución: $N = 100, \dots, 600, 714$ ($x_0 = r$)
+    \item Obstáculos: 9 valores de $x_0$ en $[r, R-r]$ ($N = 100$ y $20$; $t_{\max} = 100$ s)
+    \item Distribución de rapidez: $N = 100$, sin obstáculos
+    \item Densidad: $N = 25, \dots, 714$ ($x_0 = r$)
+    \item Mapa: 9 valores de $x_0$ $\times$ $N = 100, \dots, 600$ y máximo
+  \end{itemize}
+  \begin{databox}{Nro.\ de realizaciones}
+    \centering
+    Paso: 1 \hfill Tiempo: 10 \hfill Obstáculos: 8 \hfill Rapidez: 30 \hfill Densidad: 10 \hfill Mapa: 3
+  \end{databox}
 \end{frame}
 
 % ---------------- RESULTADOS ----------------
-% 11
+% 13
 \sectiondivider{Resultados}
 
-% 12 -- S06
+% 14 -- S06 (única diapositiva del Sistema 1)
 \begin{frame}[c]{Sistema 1: Error Cuadrático Medio en Función de $\Delta t$}
+  % Sin caja de parámetros: figura centrada a todo el ancho disponible
   \centering
-  \includegraphics[width=0.92\linewidth,height=6cm,keepaspectratio]{figuras/F1-ecm-vs-dt.pdf}
+  \maybeimage{figuras/F1-ecm-vs-dt.pdf}{6.9cm}{F1}
 \end{frame}
 
-% 13 -- Animación del Sistema 2 sin obstáculos
-\begin{frame}[c]{Sistema 2: Billar sin Obstáculos}
-  \begin{columns}[c,onlytextwidth]
-    \begin{column}{0.70\textwidth}
-      \centering
-      \includegraphics[width=\linewidth,height=5.6cm,keepaspectratio]{figuras/anim-sistema2-sin-obstaculos.png}
-      \par\vspace{1mm}
-      \href{\animacionSinObstaculosURL}{\textcolor{TPBlue}{\small\expandafter\nolinkurl\expandafter{\animacionSinObstaculosURL}}}
-    \end{column}
-    \begin{column}{0.27\textwidth}
-      \parambox{\item $N=100$\item $\Delta t=10^{-5}\,\mathrm{s}$}
-    \end{column}
-  \end{columns}
+% 15 -- S13a: animación de 2.3 en su propia diapositiva, como la de 2.2
+\begin{frame}[c]{Sin Obstáculos --- Evolución del Sistema}
+  % Corrida de generate_animations.sh: N = 100, semilla 1, sin obstáculos, t_f = 100 s
+  \animacionsimple{figuras/anim-sistema2-sin-obstaculos.png}{5.1cm}{\animacionSinObstaculosURL}
+  {Fotograma de la animación de 2.3}
+  {\item $N = 100$}
 \end{frame}
 
-% 14 -- Animación del Sistema 2 con obstáculos
-\begin{frame}[c]{Sistema 2: Billar con Obstáculos}
-  \begin{columns}[c,onlytextwidth]
-    \begin{column}{0.70\textwidth}
-      \centering
-      \includegraphics[width=\linewidth,height=5.6cm,keepaspectratio]{figuras/anim-sistema2-con-obstaculos.png}
-      \par\vspace{1mm}
-      \href{\animacionConObstaculosURL}{\textcolor{TPBlue}{\small\expandafter\nolinkurl\expandafter{\animacionConObstaculosURL}}}
-    \end{column}
-    \begin{column}{0.27\textwidth}
-      \parambox{\item $N=100$\item $\Delta t=10^{-5}\,\mathrm{s}$\item $x=\pm 0{,}25\,\mathrm{m}$}
-    \end{column}
-  \end{columns}
-\end{frame}
-
-% 15 -- F2 principal (enunciado 2.1.a)
-\begin{frame}[c]{Energía Total en Función del Tiempo}
-  \centering
-  \includegraphics[width=0.96\linewidth,height=6cm,keepaspectratio]{figuras/F2-energia-vs-t.pdf}
-  \par\vspace{1mm}
-  \begin{minipage}{0.24\linewidth}
-  \begin{beamercolorbox}[wd=\linewidth,sep=1mm,center]{databox body}
-    \small\textcolor{TPBlue}{$\bullet$}\enspace $N=300$
-  \end{beamercolorbox}
-  \end{minipage}
-\end{frame}
-
-% 16 -- S08
-\begin{frame}[c]{Error de Energía en Función de $\Delta t$}
-  \centering
-  \includegraphics[width=0.98\linewidth,height=6.1cm,keepaspectratio]{figuras/F3-epsE-vs-dt.pdf}
-  \par\vspace{1mm}
-  \begin{minipage}{0.70\linewidth}
-  \begin{beamercolorbox}[wd=\linewidth,sep=1mm,center]{databox body}
-    \small\textcolor{TPBlue}{$\bullet$}\enspace $N=300$\qquad
-    \textcolor{TPBlue}{$\bullet$}\enspace $\Delta t$ elegido $=10^{-5}\,\mathrm{s}$
-  \end{beamercolorbox}
-  \end{minipage}
-\end{frame}
-
-% 17 -- S09
-\begin{frame}[c]{Tiempo de Ejecución en Función de $N$}
-  \centering
-  {\small TP4 medido con $\Delta t=10^{-5}\,\mathrm{s}$}\par\vspace{0.1cm}
-  \IfFileExists{figuras/F4-tiempo-vs-n.pdf}
-    {\includegraphics[width=0.94\linewidth,height=5.6cm,keepaspectratio]{figuras/F4-tiempo-vs-n.pdf}}
-    {\placeholder[5.6cm]{F4 --- falta completar la medición de TP4 y ejecutar generate\_f4.py}}
-\end{frame}
-
-% 18 -- S10
+% 16 -- S10
 \begin{frame}[c]{Obstáculos en $\pm x_0$ --- Evolución del Sistema}
-  \animacionsimple{figuras/anim-2-2.png}{5.1cm}{\animacionDosDosURL}
-    {Fotograma de la animación de 2.2}
-    {\item Pendiente}
+  % Corrida de generate_animations.sh: N = 100, semilla 1, x₀ = 0,25 m, t_f = 100 s
+  \animacionsimple{figuras/anim-sistema2-con-obstaculos.png}{5.1cm}{\animacionConObstaculosURL}
+  {Fotograma de la animación de 2.2}
+  {\item $N = 100$
+    \item $x_0 = 0{,}25$ m}
 \end{frame}
 
-% 19 -- S11
+
+% 17 -- F2 principal (enunciado 2.1.a)
+\begin{frame}[c]{Energía Total en Función del Tiempo}
+  % F2 es ancha: figura a todo el ancho y parámetros debajo (como F4)
+  \centering
+  \maybeimage{figuras/F2-energia-vs-t.pdf}{4.6cm}{F2}
+  \par\vspace{2mm}
+  \parambox{\item $N = 300$}
+\end{frame}
+
+% 18 -- S08
+\begin{frame}[c]{Error de Energía en Función de $\Delta t$}
+  % F3 es ancha: figura a todo el ancho y parámetros debajo (como F4)
+  \centering
+  \maybeimage{figuras/F3-epsE-vs-dt.pdf}{4.4cm}{F3}
+  \par\vspace{2mm}
+  \parambox{\item $N = 300$, $\Delta t = 10^{-5}$ s}
+\end{frame}
+
+
+% 19 -- S09
+\begin{frame}[c]{Tiempo de Ejecución en Función de $N$}
+  % F4 es ancha: figura a todo el ancho y parámetros debajo
+  \centering
+  \maybeimage{figuras/F4-tiempo-vs-n.pdf}{4.6cm}{F4}
+  \par\vspace{2mm}
+  \parambox{\item TP4: obstáculos en $x_0 = r$; TP3: sin obstáculos; $t_f = 30$ s; 10 realizaciones por $N$}
+\end{frame}
+
+
+% 20 -- S11
 \begin{frame}[c]{Fracción Usada en el Tiempo}
-  \resultadofigura{figuras/F5-fu-vs-t.pdf}{5.1cm}{F5: $F_u(t)$ para 3 valores de $x_0$}{}{}{}
+  \resultadofigura{figuras/F5-fu-vs-t.pdf}{5.1cm}{F5}
+    {\item $N = 100$
+     \item 8 realizaciones por $x_0$}{}{}
 \end{frame}
 
-% 20 -- S12
+% 21 -- S12
 \begin{frame}[c]{$\langle t_{90}\rangle$ en Función de $x_0$}
-  \resultadofigura{figuras/F6-t90-vs-x0.pdf}{5.1cm}{F6: $\langle t_{90}\rangle$ vs.\ $x_0$}{}{}{}
+  % Sin caja de parámetros: figura centrada a todo el ancho disponible
+  \centering
+  \maybeimage{figuras/F6-t90-vs-x0.pdf}{6.9cm}{F6}
 \end{frame}
 
-% 21 -- S13 (define t_est)
+% 22 -- S13z: ⟨v⟩(t) con zoom en t ≤ 3 s; define t_est (D15; figura de fedir03, b974871)
+\begin{frame}[c]{Rapidez Media en el Tiempo}
+  \resultadofigura{figuras/F7-v-media-vs-t-zoom-test.pdf}{5.1cm}{F7 zoom}
+    {\item $N = 100$, sin obstáculos, 30 realizaciones
+     \item Punteada: $t_{est} = 0{,}75$ s, inicio del estacionario
+     \item Banda: $\pm\sigma$}{}{}
+\end{frame}
+
+% 23 -- S13 (usa t_est)
 \begin{frame}[c]{Distribución de Rapidez en el Tiempo}
-  \resultadofigura{figuras/F7-fv-temporal.pdf}{5.1cm}{F7: $f(v)$ a varios tiempos}{}
-    {figuras/anim-2-3.png}{\href{\animacionDosTresURL}{\nolinkurl{\animacionDosTresURL}}}
+  \resultadofigura{figuras/F7b-fv-instantes.pdf}{5.1cm}{F7}
+    {\item $N = 100$
+     \item sin obstáculos
+     \item 30 realizaciones}{}{}
 \end{frame}
 
-% 22 -- S14 (define k_BT)
+% 24 -- S14 (define k_BT)
 \begin{frame}[c]{Distribución Estacionaria y Ajuste de Maxwell-Boltzmann}
-  \resultadofigura{figuras/F8-fv-mb.pdf}{5.1cm}{F8: $f(v)$ estacionaria y ajuste}{}{}{}
+  % Sin caja de parámetros: figura centrada a todo el ancho disponible
+  \centering
+  \maybeimage{figuras/F8-fv-mb.pdf}{6.9cm}{F8}
 \end{frame}
 
-% 23 -- S15
-\begin{frame}[c]{$\langle t_{90}\rangle$ y $\langle t_{100}\rangle$ en Función de la Densidad}
-  \resultadofigura{figuras/F9-t-vs-rho.pdf}{5.1cm}{F9: $\langle t_{90}\rangle$, $\langle t_{100}\rangle$ vs.\ $\rho$}{}
-    {figuras/anim-2-4.png}{\href{\animacionDosCuatroURL}{\nolinkurl{\animacionDosCuatroURL}}}
+% 25 -- S15 (D14, D33; datos de outputs/runtime_tp4_analisis/F9-2.4.md)
+\begin{frame}[c]{$\langle F_u(30\,\mathrm{s})\rangle$ en Función de la Densidad}
+  \resultadofigura{figuras/F9-fu-vs-densidad.pdf}{5.1cm}{F9}
+    {\item $x_0 = r$
+     \item 10 realizaciones por $N$}{}{}
+\end{frame}
+
+% 26 -- extra 2.4.b (D22; datos de outputs/runtime_tp4_analisis/F10-2.4b.md)
+\begin{frame}[c]{$\langle F_u(30\,\mathrm{s})\rangle$ en Función de $x_0$ y $N$}
+  % F10 (un panel, 6,3 x 3,45 in): figura a todo el ancho y parámetros debajo, en caja chica
+  \centering
+  \maybeimage{figuras/F10-mapa-x0-n.pdf}{7cm}{F10}
+  \par
+  % Caja compacta (no \parambox, que fuerza \small) para que la figura conserve sus 7 cm
+  \begin{beamercolorbox}[wd=\linewidth,sep=1mm]{databox body}
+    \footnotesize $n = 3$ por celda, $t_f = 30$ s; fila 713/714: $N = 714$ en $x_0 = r$ y $R-r$, $713$ en el resto.
+  \end{beamercolorbox}
 \end{frame}
 
 % ---------------- CONCLUSIONES ----------------
-% 24
+% 27
 \sectiondivider{Conclusiones}
 
-% 25 -- S16
+% 28 -- S16
 % RECORDATORIOS: cada afirmación dice a qué caso se refiere; nada sobre
 % el dt elegido (eso queda en 2.1.a).
 \begin{frame}{Conclusiones}
-  \placeholder[6cm]{S16 --- Una afirmación por estudio, aclarando el caso}
+  \begin{itemize}
+    \item En el oscilador amortiguado, Beeman resultó el mejor esquema de integración y Euler predictor-corrector, el peor.
+    \item Para sistemas con muchas partículas ($N \gtrsim 460$), la dinámica molecular regida por el paso temporal tiene mejor desempeño que la dirigida por eventos.
+  \end{itemize}
 \end{frame}
 
-% 26 -- S17
+% 29 -- S17
 \begin{frame}{Uso de IA}
-  \placeholder[6cm]{S17 --- Agente/modelo usado y de qué manera}
+  \begin{itemize}
+    \item Agentes: Claude Code (Anthropic), modelo Opus 5.5 y Chat GPT (OpenAI), modelo Sol 6.1
+    \item Motor: código escrito por el agente, por etapas, a partir de fórmulas verificadas por el grupo contra la presentación teórica y de las decisiones del grupo; cada etapa se revisó con sus tests antes de seguir
+  \end{itemize}
 \end{frame}
 
-% 27. Cierre
+% 30. Cierre
 \begin{frame}{}
   \vfill
   \begin{beamercolorbox}[wd=0.86\paperwidth,ht=0.72cm,dp=0.20cm,center]{frametitle}
@@ -538,11 +710,27 @@
   \vfill
 \end{frame}
 
-% 26 -- S17b (apéndice, D31: va después de "Muchas gracias" para que Uso de IA
-% sea la última diapositiva de la exposición; queda fuera de las secciones de la
-% barra; fuente docs/ia/prompts-motor.md)
-\begin{frame}{Anexo: Prompts del Motor}
-  \placeholder[6cm]{S17b --- Prompts enviados al agente para construir el motor (textual o reconstruido).\\Dentro del PDF o aparte: según la consulta del paso 09}
+% 31--33 -- S17b (D31, M5: dentro del PDF, después de "Muchas gracias" para que
+% Uso de IA sea la última diapositiva de la exposición; fuente docs/ia/prompts-motor.md).
+% Van solo los pedidos, copiados del .md; las decisiones quedan en el .md.
+\begin{frame}{Anexo: Prompts del Motor (1/3)}
+  \scriptsize
+  \textbf{CIM, grilla y N máx · Claude Code}\par\smallskip
+  Pedido: reconstrucción del TP1 al módulo TP4 \texttt{CellIndexMethod}, \texttt{NeighborFinder} y \texttt{Particle}, y revisar qué devuelve el CIM; agregar dentro del CIM el corrimiento $+R$ y la validación $|r| \leq R$; escribir el script que mide el N máximo con la grilla (cuadrada y hexagonal); escribir el test CIM contra fuerza bruta con la misma semilla. Explicar todo el código aplicado.\par\medskip
+  \textbf{Grilla del TP3 y medición de tiempos · Claude Code}\par\smallskip
+  Pedido: leer el generador de escenarios del TP3 (\texttt{StageGeneration} y lo que lo usa) y proponer un plan para que el TP3 genere la condición inicial con la misma grilla que el TP4 (\texttt{GridPlacement}: hexagonal) y volver a correr el TP3. Condiciones: pedir confirmación antes de tocar código del TP3 que no sea el generador; corrida por tandas y reanudable; salidas fuera del repo o ignoradas por git.\par
+\end{frame}
+
+\begin{frame}{Anexo: Prompts del Motor (2/3)}
+  \scriptsize
+  \textbf{Módulo TP4 y Sistema 1 · Claude Code (Opus 5.5)}\par\smallskip
+  Pedido: leer el enunciado, Teórica 4 y el plan de implementación (\texttt{docs/plan/}: \texttt{DEFINICIONES.md}, \texttt{referencia/FORMULAS-VERIFICADAS.md}, \texttt{referencia/PLAN.md} y los pasos) y resumir lo entendido antes de escribir código. Después, implementar el Sistema 1 a partir de lo que el grupo ya había definido: las fórmulas de los 4 esquemas verificadas contra las diapositivas.\par
+\end{frame}
+
+\begin{frame}{Anexo: Prompts del Motor (3/3)}
+  \scriptsize
+  \textbf{Sistema 2 · Claude Code (Opus 5.5)}\par\smallskip
+   Pedido: Leer el contexto. Después consultar las respuestas de la cátedra a las preguntas hechas en la clase de consultas y las decisiones del grupo (obstáculos en 2.1.b, criterio de corte de 2.1.a, energía sin la partícula imagen, grilla única, uso del CIM), y ajustar el plan a esas respuestas.\par\medskip
 \end{frame}
 
 \end{document}

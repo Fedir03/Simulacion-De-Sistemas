@@ -35,3 +35,6 @@ Thumbs.db
 
 # Salidas de corridas
 outputs/
+
+# ZIP de entrega (tools/build_zip.sh)
+entrega/

@@ -10,7 +10,7 @@
 - **2.1.b: benchmark corriendo en la máquina de TP3** (commit cf581d5; `scripts/sim_gen/runtime_tp4.sh`, calentamiento 300:1,600:0.52, `order_seed` 20261025, 10 rondas), con **re-medición de TP3 (tanda limpia, `outputs/runtime_tp3_limpia`) en la misma sesión** (D12: la tanda A se midió con la máquina cargada; queda como referencia histórica).
 - **F5–F8 hechas** (2.2 y 2.3).
 - **Pendientes de los datos de 2.1.b:** F4 combinada (TP4 contra la tanda limpia de TP3; media ± σ en la figura y mediana en tabla, D7) y 2.4 (F9 y F10).
-- Respuestas de la cátedra a las consultas por mail del 22/10 (M1–M6) pasadas a `DEFINICIONES.md` (D7, D12, D17, D18, D20, D29, D31). ZIP: lleva todo el código que genera datos y figuras (D16, D26, D28).
+- Respuestas de la cátedra a las consultas por mail del 22/10 (M1–M6) pasadas a `DEFINICIONES.md` (D7, D12, D17, D18, D20, D29, D31). ZIP (corregido 23/10 según el enunciado): lleva solo `pom.xml` + `src/main/java` del motor; ni scripts, ni `analysis/`, ni `bench/`, ni README (D16, D26, D28).
 - **Pendientes:** anexo de prompts (D31), auditorías (`auditoria-integradores.md` D29, `auditoria-codigo.md` D30), ZIP (`tools/build_zip`, README del motor).
 
 ## Paso actual
