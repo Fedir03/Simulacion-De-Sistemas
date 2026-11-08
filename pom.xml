@@ -14,6 +14,7 @@
         <module>TP2</module>
         <module>TP3</module>
         <module>TP4</module>
+        <module>TP5</module>
     </modules>
 
     <build>
