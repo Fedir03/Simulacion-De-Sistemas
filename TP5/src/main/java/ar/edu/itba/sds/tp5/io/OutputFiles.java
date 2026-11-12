@@ -11,7 +11,7 @@ import java.util.Locale;
 
 /**
  * Salida del motor: la trayectoria de cada evento. Sin marcas de tiempo, para que dos corridas iguales den archivos
- * idénticos. Los observables (ECM, distancia mínima, contactos) los escribe el análisis (analysis.EcmReport), no el motor.
+ * idénticos. El motor no escribe observables (ECM, distancia mínima, contactos).
  */
 public final class OutputFiles {
     private OutputFiles() { }

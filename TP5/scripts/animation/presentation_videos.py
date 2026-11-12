@@ -64,7 +64,7 @@ plt.rcParams.update({"font.size": 22, "axes.labelsize": 24, "legend.fontsize": 2
 # Rótulo de cada corrida en la leyenda (con el par: la diapositiva no lo repite)
 LABELS = {"sin capa": "sin capa", "A": "A(3; 0,5)", "B": "B(3,5; 1)"}
 FRAME_SIZE = (6.6, 3.4)     # pulgadas: a ~5,7 cm de ancho en la diapositiva, 20–24 pt quedan en ~7–9 pt
-FRAME_SIZE_COMPACT = (8.4, 2.05)     # lámina 13: rango de y ajustado y leyenda a la derecha; el lienzo del MP4 sigue al PNG
+FRAME_SIZE_COMPACT = (9.1, 2.08)     # lámina 13: rango de y ajustado y leyenda a la derecha; el lienzo del MP4 sigue al PNG
 
 
 def style(ax):
@@ -120,11 +120,16 @@ class Overlay:
         handles += [Line2D([], [], color=COLORS[n], lw=3, label=LABELS[n]) for n in runs]
         handles += [Line2D([], [], ls="none", marker="o", ms=17, color=COLORS["real"], alpha=0.35, label="posición real")]
         if compact:
-            # A la derecha del eje, fuera del área del gráfico, una entrada por fila, letra 19 pt (≤ ticks, 21 pt). Así el
-            # área del gráfico usa toda la altura de la figura (la leyenda ya no ocupa una franja debajo)
-            ax.legend(handles=handles, loc="center left", bbox_to_anchor=(1.02, 0.5), borderaxespad=0, ncol=1, frameon=False,
-                      fontsize=19, handlelength=1.5, borderpad=0.3, labelspacing=0.35)
-            self.clock = ax.text(1.0, 1.03, "", transform=ax.transAxes, ha="right", va="bottom", fontsize=19, color=INK)
+            # A la derecha del eje, fuera del área del gráfico, una entrada por fila. Letra y muestras chicas (18 pt: ≈ 8,5 pt
+            # en la lámina) para que la leyenda ocupe poco ancho: con escala 1:1, el alto del eje y sale del ancho que le
+            # queda al gráfico. Ticks y rótulos también un poco más chicos (siguen ≥ 8 pt en la lámina)
+            ax.legend(handles=handles, loc="center left", bbox_to_anchor=(1.01, 0.5), borderaxespad=0, ncol=1, frameon=False,
+                      fontsize=18, handlelength=1.0, handletextpad=0.4, borderpad=0.2, labelspacing=0.3, markerscale=0.8)
+            ax.tick_params(labelsize=18)
+            ax.xaxis.label.set_size(20)
+            ax.yaxis.label.set_size(20)
+            ax.yaxis.labelpad = 2
+            self.clock = ax.text(1.0, 1.03, "", transform=ax.transAxes, ha="right", va="bottom", fontsize=18, color=INK)
         else:
             ax.legend(handles=handles, loc="upper right", ncol=2, frameon=True, framealpha=0.95, fontsize=20,
                       handlelength=1.5, columnspacing=0.9, borderpad=0.3)

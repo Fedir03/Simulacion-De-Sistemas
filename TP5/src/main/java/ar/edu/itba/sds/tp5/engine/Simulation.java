@@ -72,9 +72,8 @@ public final class Simulation {
         for (long step = 0; ; step++) {
             double[] r = stepper.position();
             double t = step * dt;
-            // Distancia mínima, contactos, longitud recorrida y conmutaciones de la capa no se calculan acá: son
-            // observables de análisis (analysis.ContactMonitor y analysis.MotionMonitor, con el StepObserver, en cada
-            // paso). Este lazo solo simula y guarda la salida.
+            // Este lazo solo simula y guarda la salida. Los observables (distancia mínima, contactos, longitud recorrida,
+            // conmutaciones de la capa) no se calculan acá; quien los necesite paso a paso puede pasar un StepObserver.
             for (int i = 0; i < n; i++) {
                 if (active[i] && Math.hypot(agents[i].targetX() - r[2 * i], agents[i].targetY() - r[2 * i + 1]) <= params.deltaA()) {
                     active[i] = false;

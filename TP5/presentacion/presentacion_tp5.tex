@@ -386,6 +386,7 @@
         \item $v_d$: rapidez deseada
         \item $R$: radio del peatón
         \item $\varepsilon_{ij} = |\mathbf{x}_j - \mathbf{x}_i| - 2R$: superposición si $< 0$
+        \item $\mathbf{F}_G$: fuerza de contacto
         \item $\hat{\mathbf{n}}$: versor de $j$ a $i$
         \item $\hat{\mathbf{t}}$: tangencial
         \item $k_n$, $k_t$: rigidez normal y tangencial
@@ -432,7 +433,7 @@
   \begin{itemize}\footnotesize\setlength{\itemsep}{1pt}
     \item \textbf{Esquema:} punteado, recorrido de $j$ visto desde $i$ (velocidad $\mathbf{w}$); $P$, máximo acercamiento, en $t^*$; círculo, $\rho$ alrededor de $i$
     \item $t_a$: horizonte de anticipación; $\rho$: espacio personal entre centros ($\rho = \rho_i + R$ de la teórica). Si deja de preverse el choque, vuelve a $\mathbf{x}_f$
-    \item Diferencia con la Teórica 7: la velocidad de $i$ en la predicción es $v_d\,\mathbf{e}_t$, no $\mathbf{v}_i + \mathbf{F}_g\,\Delta t$
+    \item Diferencia con la Teórica 7: la velocidad de $i$ en la predicción es $v_d\,\mathbf{e}_t$, no $\mathbf{v}_i + \mathbf{F}_G\,\Delta t$
   \end{itemize}
 \end{frame}
 
@@ -598,10 +599,10 @@
 
 % 14 -- Animaciones (punto a)
 \begin{frame}{Animaciones: sin capa, A y B}
-      \par{\footnotesize Sin capa y A(3; 0,5) [Evento 16]}\par\vspace{1mm}
-      \videooimagen{figuras/anim-sin-capa-vs-A.png}{2.35cm}{\animacionSinCapaURL}{Sin capa y A}
-      \par\vspace{3mm}{\footnotesize A y B con su mejor par de ECM 1 [Evento 16]}
-      \videooimagen{figuras/anim-A-B.png}{2.35cm}{\animacionURL}{A y B}
+      \par{\footnotesize Sin capa y A(3; 0,5) [Evento 16]}\par
+      \videooimagen{figuras/anim-sin-capa-vs-A.png}{2.5cm}{\animacionSinCapaURL}{Sin capa y A}
+      \par\vspace{1mm}{\footnotesize A y B con su mejor par de ECM 1 [Evento 16]}\par
+      \videooimagen{figuras/anim-A-B.png}{2.5cm}{\animacionURL}{A y B}
 \end{frame}
 
 % 15 -- Observable primario en el tiempo
@@ -614,8 +615,8 @@
     \small\renewcommand{\arraystretch}{1.15}
     \begin{tabular}{@{}lcc@{}}
       \hline
-      & Distancia mínima $D$ (m) & Corrimiento $c$ (s) \\ \hline
-      Real & 0,68 & --- \\
+      & $D$ (m) & Corrimiento $c$ (s) \\ \hline
+      Real ($D^{\mathrm{exp}}$) & 0,68 & --- \\
       A(3; 0,5) & 0,61 & $+0{,}26$ \\
       B(3,5; 1) & 0,56 & $+0{,}28$ \\ \hline
     \end{tabular}
@@ -718,7 +719,7 @@
     \item \textbf{Objetivo final:} ¿$\mathbf{x}_f$ y $v_d$ de la ventana común, o el final del propio tramo de cada peatón?
     \item \textbf{Retraso:} ¿es esperable que las capas lleguen tarde al mínimo?
     \item \textbf{$\rho$ y B:} B con $\rho = 0{,}9$ (cerca del máximo de las distancias mínimas reales, 0,92 m) ¿es un criterio razonable para fijar $\rho$?
-    \item \textbf{Predicción:} ¿vale usar $v_d\,\mathbf{e}_t$ como velocidad de $i$ en vez de $\mathbf{v}_i + \mathbf{F}_g\,\Delta t$ (Teórica 7)?
+    \item \textbf{Predicción:} ¿vale usar $v_d\,\mathbf{e}_t$ como velocidad de $i$ en vez de $\mathbf{v}_i + \mathbf{F}_G\,\Delta t$ (Teórica 7)?
     \item \textbf{$v_d$:} ¿constante, o seguir el perfil de rapidez real? Los peatones de la derecha van $+0{,}21$ m/s sobre $v_d$ antes del mínimo y $-0{,}18$ m/s después (medianas)
     \item \textbf{Regla de lado:} en A acierta el lado en 14 de 19 eventos, igual que ``siempre a la derecha''. ¿Es aceptable?
   \end{itemize}

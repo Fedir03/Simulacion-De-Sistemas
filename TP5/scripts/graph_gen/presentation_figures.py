@@ -655,7 +655,7 @@ def m1_best(layers="AB", fname="M1-mejores-pares.pdf"):
         ax.yaxis.set_major_formatter(COMMA)
         ax.yaxis.set_minor_formatter(matplotlib.ticker.NullFormatter())
         fig.legend(handles=[Line2D([], [], ls="none", marker="o", ms=11, color=MUTED, mec=INK, label="ECM 1"),
-                           Line2D([], [], ls="-", marker="o", ms=11, mfc="white", mec=MUTED, color=MUTED, mew=2, label="val. ECM 1 ± DE"),
+                           Line2D([], [], ls="-", marker="o", ms=11, mfc="white", mec=MUTED, color=MUTED, mew=2, label="val. ECM 1 ± desv. est."),
                            Line2D([], [], ls="none", marker="D", ms=10, color=MUTED, mec=INK, label="ECM 2")],
                   loc="outside upper center", ncol=3, frameon=False, fontsize=16, handletextpad=0.3, columnspacing=1.0)     # fuera del eje, arriba: no toca ningún punto
         save(fig, fname)

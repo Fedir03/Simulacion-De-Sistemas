@@ -23,9 +23,9 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Motor de la entrega: simula cada evento y escribe su trayectoria (evento_XX.txt). No calcula observables: ECM,
- * distancia mínima, contactos y calibración están en el paquete analysis (ar.edu.itba.sds.tp5.analysis.AnalysisMain),
- * que no va al ZIP. Las opciones y la corrida de un evento son públicas para que el análisis las use igual.
+ * Motor de la entrega: simula cada evento y escribe su trayectoria (evento_XX.txt). No calcula observables (ECM,
+ * distancia mínima, contactos, calibración): se obtienen después, a partir de la salida. Las opciones y la corrida de
+ * un evento son públicas para poder reutilizarlas.
  */
 public final class Main {
     /** Frames del ajuste de la velocidad inicial (D12). */
@@ -36,7 +36,7 @@ public final class Main {
     private static final Set<String> COMMON = Set.of("data", "dt-div", "v0-frames", "delta-a", "integrator", "rho", "frontal-deg", "f-tie", "f-horizon", "f-gate", "f-distance",
             "trim", "trim-deg", "trim-persist", "trim-half", "trim-target", "trim-shared", "trim-shared-x");
 
-    /** Opciones comunes, para el texto de ayuda del motor y del análisis. */
+    /** Opciones comunes, para el texto de ayuda. */
     public static final String OPTIONS_HELP = """
             Parámetros: A (p1 = t_a, p2 = l), B (p1 = t_a, p2 = k), F (p1 = A_p, p2 = B_p)
             Opciones: [--data data] [--dt-div 64] [--v0-frames 5] [--delta-a 0.1] [--rho 0.9] [--f-tie metric|angular] [--frontal-deg 5] [--f-horizon Infinity] [--f-gate on|off] [--f-distance centers|edges] [--integrator beeman|verlet]
