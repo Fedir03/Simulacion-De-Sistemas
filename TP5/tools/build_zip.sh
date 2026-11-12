@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
-# Arma el ZIP de código del TP5 (entregable "c"): solo pom.xml + src/main/java del motor.
-# Afuera: tests, scripts, docs, presentacion, data, outputs y README.
+# Arma el ZIP de código del TP5 (entregable "c"): pom.xml + src/main/java del motor + README.md (copia de
+# tools/README_zip.md, que es la versión que se mantiene en el repo).
+# Afuera: tests, scripts, docs, presentacion, data, outputs y el README del repo, y los paquetes analysis/ (ECM, contactos,
+# calibración, recorte exportado, series de direcciones) y diagnostics/ (trazas): son postproceso, no el motor.
 # Verifica: < 100 KB, que compila solo en una carpeta aislada y que el motor del ZIP reproduce la corrida
 # del evento 3 de outputs/baseline. Los datos no van al ZIP: la corrida de control los lee del repo.
 # Uso: bash TP5/tools/build_zip.sh    Salida: TP5/entrega/SdS_TP5_2026Q2G02CS_Codigo.zip
@@ -17,7 +19,14 @@ STAGE="$WORK/${ZIP_NAME%.zip}"
 echo "== 1. Staging =="
 mkdir -p "$STAGE/src/main"
 cp -r "$TP5/src/main/java" "$STAGE/src/main/"
+cp "$TP5/tools/README_zip.md" "$STAGE/README.md"
 rm -rf "$STAGE/src/main/java/ar/edu/itba/sds/tp5/diagnostics"   # traza de análisis: no es el motor
+rm -rf "$STAGE/src/main/java/ar/edu/itba/sds/tp5/analysis"      # observables y calibración: postproceso
+if grep -rqE '^import ar\.edu\.itba\.sds\.tp5\.(analysis|diagnostics)' "$STAGE/src"; then
+    echo "ERROR: el motor del ZIP todavía importa analysis/ o diagnostics/:" >&2
+    grep -rnE '^import ar\.edu\.itba\.sds\.tp5\.(analysis|diagnostics)' "$STAGE/src" >&2
+    exit 1
+fi
 
 # pom de entrega derivado del pom del repo: se sacan las dependencias (solo JUnit, de test) y el plugin de
 # surefire, porque los tests no se entregan. Plugins, versiones, release y mainClass quedan iguales.
@@ -51,9 +60,29 @@ echo "OK: compila solo desde el ZIP"
 
 echo "== 4. Reproducción del evento 3 de outputs/baseline =="
 if [[ ! -f "$REF" ]]; then echo "ERROR: no está $REF; correr antes scripts/sim_gen/generate_baseline.sh" >&2; exit 1; fi
-java -jar "$BUILD/target/tp5.jar" run --event 3 --data "$TP5/data" --out "$WORK/run" > /dev/null
+java -cp "$BUILD/target/tp5.jar" ar.edu.itba.sds.tp5.Main run --event 3 --data "$TP5/data" --out "$WORK/run" > /dev/null
 if cmp -s "$REF" "$WORK/run/evento_03.txt"; then
     echo "cmp: idéntico byte a byte"
 else
     echo "ERROR: difiere -> $(cmp "$REF" "$WORK/run/evento_03.txt" || true)" >&2; exit 1
 fi
+
+echo "== 5. Ejemplo del README tal cual =="
+# Se copian los datos de la cátedra a data/ junto al README (como haría quien corrige) y se extrae el comando del
+# bloque "Ejemplo" del README, sin modificarlo.
+cp -r "$TP5/data" "$BUILD/data"
+EXAMPLE=$(awk '/^Ejemplo/ { f = 1 } f && /^java / { print; exit }' "$BUILD/README.md")
+[[ -n "$EXAMPLE" ]] || { echo "ERROR: no hay comando de ejemplo en el README" >&2; exit 1; }
+echo "$EXAMPLE"
+(cd "$BUILD" && eval "$EXAMPLE" > /dev/null)
+EV=$(echo "$EXAMPLE" | sed -E 's/.*--event ([0-9]+).*/\1/'); OUTDIR=$(echo "$EXAMPLE" | sed -E 's/.*--out ([^ ]+).*/\1/')
+test -s "$BUILD/$OUTDIR/$(printf 'evento_%02d.txt' "$EV")" && echo "OK: el ejemplo escribe $OUTDIR/$(printf 'evento_%02d.txt' "$EV")"
+if [[ -f "$TP5/outputs/pilot/figs/datos/a_3_0.5/evento_03.txt" ]] && cmp -s "$TP5/outputs/pilot/figs/datos/a_3_0.5/evento_03.txt" "$BUILD/$OUTDIR/evento_03.txt"; then
+    echo "cmp: el ejemplo coincide byte a byte con outputs/pilot/figs/datos/a_3_0.5/evento_03.txt"
+fi
+
+echo "== 6. Contenido =="
+if unzip -l "$DEST/$ZIP_NAME" | grep -qE '_Codigo/(scripts|outputs|presentacion|figuras|data|docs|tools|src/test)/|/tp5/(analysis|diagnostics)/|\.(png|pdf|mp4)$'; then
+    echo "ERROR: el ZIP trae carpetas que no son del motor" >&2; exit 1
+fi
+echo "OK: sin analysis/, diagnostics/, scripts, figuras, datos, tests ni outputs"
