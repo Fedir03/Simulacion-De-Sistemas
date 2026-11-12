@@ -26,7 +26,7 @@ class RunTraceTest {
             RunTrace.Trace f = RunTrace.run(e, new RepulsiveDirectionLayer(0.5, 2, C), Double.POSITIVE_INFINITY, C, 5);
             for (RunTrace.Trace t : List.of(a, f)) {
                 int fromTrace = t.switches().size();
-                int fromSimulation = t.result().layerSwitches()[0] + t.result().layerSwitches()[1];
+                int fromSimulation = t.layerSwitches()[0] + t.layerSwitches()[1];
                 assertEquals(fromSimulation, fromTrace, "evento " + e.number());
             }
         }
@@ -36,7 +36,7 @@ class RunTraceTest {
     void contactEpisodesMatchTheContactFlag() throws IOException {
         for (PedestrianEvent e : EventParser.parse(Path.of("data"))) {
             RunTrace.Trace t = RunTrace.run(e, AvoidanceLayer.NONE, 1, C, 5);
-            assertEquals(t.result().anyContact(), !t.contacts().isEmpty(), "evento " + e.number());
+            assertEquals(t.distance().anyContact(), !t.contacts().isEmpty(), "evento " + e.number());
             for (RunTrace.Contact c : t.contacts()) {
                 assertTrue(c.end() >= c.start());
                 assertTrue(c.maxOverlap() > 0);

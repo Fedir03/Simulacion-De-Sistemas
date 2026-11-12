@@ -1,6 +1,9 @@
 package ar.edu.itba.sds.tp5.diagnostics;
 
+import ar.edu.itba.sds.tp5.analysis.ContactMonitor;
+import ar.edu.itba.sds.tp5.analysis.MotionMonitor;
 import ar.edu.itba.sds.tp5.data.EventParser;
+import ar.edu.itba.sds.tp5.data.FrontalTrim;
 import ar.edu.itba.sds.tp5.data.PedestrianEvent;
 import ar.edu.itba.sds.tp5.engine.Agent;
 import ar.edu.itba.sds.tp5.engine.Integrator;
@@ -36,7 +39,9 @@ public final class RunTrace {
     /** Un cambio del lado de esquive n (regla de A y B) con la capa prendida: {@code side} es el s_c que lo produjo. */
     public record SideFlip(double t, int agent, double side, double distance) { }
 
-    public record Trace(List<Switch> switches, List<Contact> contacts, List<SideFlip> flips, Simulation.Result result) { }
+    /** {@code distance}: distancia mínima y contacto de la corrida, medidos en cada paso (analysis.ContactMonitor). */
+    public record Trace(List<Switch> switches, List<Contact> contacts, List<SideFlip> flips, Simulation.Result result,
+                        ContactMonitor.Stats distance, int[] layerSwitches) { }
 
     public static Trace run(PedestrianEvent e, AvoidanceLayer layer, double horizon, LayerConstants constants, int v0Frames) {
         return run(e, layer, horizon, constants, v0Frames, Simulation.DEFAULT_DT_DIV);
@@ -54,7 +59,11 @@ public final class RunTrace {
         double[] open = { Double.NaN, 0 };      // inicio y mayor solapamiento del episodio en curso
         double[] lastTime = { 0 };
         Simulation sim = new Simulation(p, Integrator.DEFAULT, dtDiv, layer);
+        ContactMonitor monitor = new ContactMonitor(p.radius());
+        MotionMonitor motion = new MotionMonitor();
         Simulation.Result result = sim.run(agents, e.dtExp(), e.windowIntervals(), (step, t, r, v, active, on) -> {
+            monitor.onStep(step, t, r, v, active, on);
+            motion.onStep(step, t, r, v, active, on);
             double d = Math.hypot(r[0] - r[2], r[1] - r[3]);
             double overlap = 2 * p.radius() - d;
             boolean touching = active[0] && active[1] && overlap > 0;
@@ -93,7 +102,7 @@ public final class RunTrace {
             }
         });
         if (!Double.isNaN(open[0])) contacts.add(new Contact(open[0], lastTime[0], open[1]));
-        return new Trace(switches, contacts, flips, result);
+        return new Trace(switches, contacts, flips, result, monitor.stats(), motion.layerSwitches());
     }
 
     /** Las tres condiciones de la detección, codificadas para comparar pasos. */
@@ -122,12 +131,12 @@ public final class RunTrace {
         LayerConstants constants = LayerConstants.of(Double.parseDouble(o.getOrDefault("rho", "0.9")), LayerConstants.DEFAULT_FRONTAL_DEGREES, LayerConstants.FrontalTie.METRIC);
         int v0Frames = Integer.parseInt(o.getOrDefault("v0-frames", "5"));
         double horizon = layerName.equalsIgnoreCase("f") ? Double.POSITIVE_INFINITY : p1;
-        PedestrianEvent e = EventParser.parse(Path.of(o.getOrDefault("data", "data"))).stream().filter(x -> x.number() == event).findFirst().orElseThrow();
+        PedestrianEvent e = FrontalTrim.apply(EventParser.parse(Path.of(o.getOrDefault("data", "data"))), FrontalTrim.Options.parse(o)).stream().filter(x -> x.number() == event).findFirst().orElseThrow();
         int dtDiv = Integer.parseInt(o.getOrDefault("dt-div", String.valueOf(Simulation.DEFAULT_DT_DIV)));
         Trace trace = run(e, Layers.of(layerName, p1, p2, constants), horizon, constants, v0Frames, dtDiv);
         PrintStream out = System.out;
         out.printf(Locale.ROOT, "R id1=%d id2=%d conm1=%d conm2=%d d_min=%.4f t_d_min=%.4f%n", e.left().id(), e.right().id(),
-                trace.result().layerSwitches()[0], trace.result().layerSwitches()[1], trace.result().minDistance(), trace.result().minDistanceTime());
+                trace.layerSwitches()[0], trace.layerSwitches()[1], trace.distance().minDistance(), trace.distance().minDistanceTime());
         for (SideFlip f : trace.flips()) out.printf(Locale.ROOT, "L %.4f %d %.4f %.4f%n", f.t(), f.agent() + 1, f.side(), f.distance());
         for (Contact c : trace.contacts()) out.printf(Locale.ROOT, "C %.4f %.4f %.5f%n", c.start(), c.end(), c.maxOverlap());
         for (Switch s : trace.switches())

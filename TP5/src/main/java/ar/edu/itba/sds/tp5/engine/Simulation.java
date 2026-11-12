@@ -64,29 +64,17 @@ public final class Simulation {
         SfmField field = new SfmField(agents, params, active, layer);
         Integrator.Stepper stepper = integrator.start(field, dt, r0, v0);
         boolean[] layerOn = new boolean[n];
-        int[] layerSwitches = new int[n];
-        double[] arrival = new double[n], pathLength = new double[n], last = r0.clone();
+        double[] arrival = new double[n];
         Arrays.fill(arrival, Double.NaN);
-        double minDistance = Double.POSITIVE_INFINITY, minDistanceTime = Double.NaN;
-        boolean anyContact = false;
         List<double[]> rows = new ArrayList<>();
         int remaining = n;
 
         for (long step = 0; ; step++) {
             double[] r = stepper.position();
             double t = step * dt;
-            for (int i = 0; i < n; i++) {
-                if (!active[i]) continue;
-                pathLength[i] += Math.hypot(r[2 * i] - last[2 * i], r[2 * i + 1] - last[2 * i + 1]);
-                last[2 * i] = r[2 * i]; last[2 * i + 1] = r[2 * i + 1];
-            }
-            if (remaining == n) {
-                for (int i = 0; i < n; i++) for (int j = i + 1; j < n; j++) {
-                    double d = Math.hypot(r[2 * i] - r[2 * j], r[2 * i + 1] - r[2 * j + 1]);
-                    if (d < minDistance) { minDistance = d; minDistanceTime = t; }
-                    if (d < 2 * params.radius()) anyContact = true;
-                }
-            }
+            // Distancia mínima, contactos, longitud recorrida y conmutaciones de la capa no se calculan acá: son
+            // observables de análisis (analysis.ContactMonitor y analysis.MotionMonitor, con el StepObserver, en cada
+            // paso). Este lazo solo simula y guarda la salida.
             for (int i = 0; i < n; i++) {
                 if (active[i] && Math.hypot(agents[i].targetX() - r[2 * i], agents[i].targetY() - r[2 * i + 1]) <= params.deltaA()) {
                     active[i] = false;
@@ -94,12 +82,12 @@ public final class Simulation {
                     remaining--;
                 }
             }
+            // Estado de la capa de cada agente activo, para el observador (layerActive deja e_target en el campo, así
+            // que se evalúa en cada paso igual que antes, haya observador o no)
             if (layer != AvoidanceLayer.NONE) {
                 for (int i = 0; i < n; i++) {
                     if (!active[i]) continue;
-                    boolean on = field.layerActive(i, r, stepper.velocity());
-                    if (on != layerOn[i]) layerSwitches[i]++;
-                    layerOn[i] = on;
+                    layerOn[i] = field.layerActive(i, r, stepper.velocity());
                 }
             }
             if (observer != null) observer.onStep(step, t, r, stepper.velocity(), active, layerOn);
@@ -107,7 +95,7 @@ public final class Simulation {
             if (step == totalSteps || remaining == 0) break;
             stepper.advance();
         }
-        return new Result(rows, dtExp / ROWS_PER_INTERVAL, arrival, pathLength, minDistance, minDistanceTime, anyContact, layerSwitches);
+        return new Result(rows, dtExp / ROWS_PER_INTERVAL, arrival);
     }
 
     private static double[] row(double t, double[] r, double[] v, boolean[] active) {
@@ -126,14 +114,8 @@ public final class Simulation {
     /**
      * @param rows            filas {t, x1, y1, vx1, vy1, x2, y2, vx2, vy2}, separadas por dt2
      * @param arrival         instante de retiro de cada agente; NaN si no llegó
-     * @param pathLength      longitud recorrida por cada agente hasta su retiro
-     * @param minDistance     mínima distancia entre centros mientras estuvieron todos
-     * @param minDistanceTime instante de esa distancia mínima
-     * @param anyContact      si hubo solapamiento
-     * @param layerSwitches   veces que la capa de cada agente se prendió o se apagó
      */
-    public record Result(List<double[]> rows, double dt2, double[] arrival, double[] pathLength,
-                         double minDistance, double minDistanceTime, boolean anyContact, int[] layerSwitches) {
+    public record Result(List<double[]> rows, double dt2, double[] arrival) {
         /** Posición del agente en la fila; NaN si ya se retiró o si la corrida terminó antes. */
         public double x(int agent, int row) { return row < rows.size() ? rows.get(row)[1 + 4 * agent] : Double.NaN; }
         public double y(int agent, int row) { return row < rows.size() ? rows.get(row)[2 + 4 * agent] : Double.NaN; }

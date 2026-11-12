@@ -5,6 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import ar.edu.itba.sds.tp5.analysis.ContactMonitor;
+import ar.edu.itba.sds.tp5.analysis.MotionMonitor;
 import org.junit.jupiter.api.Test;
 
 class SimulationTest {
@@ -34,12 +36,14 @@ class SimulationTest {
 
     @Test
     void pedestriansWithoutCrossingReachTheTargetAndLeave() {
-        Simulation.Result r = SIM.run(parallelLanes(), DT_EXP, 200);
-        assertFalse(r.anyContact());
+        ContactMonitor contacts = new ContactMonitor(SfmParameters.defaults().radius());
+        MotionMonitor motion = new MotionMonitor();
+        Simulation.Result r = SIM.run(parallelLanes(), DT_EXP, 200, MotionMonitor.all(contacts, motion));
+        assertFalse(contacts.stats().anyContact());
         for (int i = 0; i < 2; i++) {
             assertTrue(r.arrival()[i] > 0);
             // Va casi recto: no da vueltas alrededor del target
-            assertTrue(r.pathLength()[i] < 5, "agente " + i + " recorrió " + r.pathLength()[i]);
+            assertTrue(motion.pathLength()[i] < 5, "agente " + i + " recorrió " + motion.pathLength()[i]);
         }
     }
 
@@ -60,9 +64,10 @@ class SimulationTest {
     @Test
     void obliqueStartStillReachesTheTargetWithoutOrbiting() {
         Agent[] agents = { new Agent(0, 0, 0, 2, 3, 0, 1), new Agent(50, 50, 0, 0, 50, 49, 1) };
-        Simulation.Result r = SIM.run(agents, DT_EXP, 300);
+        MotionMonitor motion = new MotionMonitor();
+        Simulation.Result r = SIM.run(agents, DT_EXP, 300, motion);
         assertTrue(r.arrival()[0] > 0);
-        assertTrue(r.pathLength()[0] < 5, "recorrió " + r.pathLength()[0]);
+        assertTrue(motion.pathLength()[0] < 5, "recorrió " + motion.pathLength()[0]);
     }
 
     @Test
@@ -75,9 +80,11 @@ class SimulationTest {
     @Test
     void headOnPairTouchesAndRepels() {
         Agent[] agents = { new Agent(0, 0, 1.3, 0, 8, 0.05, 1.3), new Agent(8, 0.05, -1.3, 0, 0, 0, 1.3) };
-        Simulation.Result r = SIM.run(agents, DT_EXP, 120);
-        assertTrue(r.anyContact());
-        assertTrue(r.minDistance() > 0.4 && r.minDistance() < 0.5, "d_min = " + r.minDistance());
+        ContactMonitor contacts = new ContactMonitor(SfmParameters.defaults().radius());
+        SIM.run(agents, DT_EXP, 120, contacts);
+        ContactMonitor.Stats s = contacts.stats();
+        assertTrue(s.anyContact());
+        assertTrue(s.minDistance() > 0.4 && s.minDistance() < 0.5, "d_min = " + s.minDistance());
     }
 
     @Test

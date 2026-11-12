@@ -14,7 +14,8 @@ import ar.edu.itba.sds.tp5.engine.Simulation;
 import ar.edu.itba.sds.tp5.engine.layer.AvoidanceLayer;
 import ar.edu.itba.sds.tp5.engine.layer.LayerConstants;
 import ar.edu.itba.sds.tp5.engine.layer.Layers;
-import ar.edu.itba.sds.tp5.metrics.Ecm;
+import ar.edu.itba.sds.tp5.analysis.Ecm;
+import ar.edu.itba.sds.tp5.analysis.MotionMonitor;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
@@ -25,20 +26,25 @@ class LayerChecksTest {
     private static final Object[][] PAIRS = { { "a", 2.5, 2.5 }, { "a", 4.0, 0.5 }, { "b", 2.5, 4.0 }, { "b", 4.5, 1.0 }, { "f", 0.9, 2.5 }, { "f", 0.8, 3.0 } };
 
     private static Simulation.Result run(PedestrianEvent e, AvoidanceLayer layer) {
+        return run(e, layer, null);
+    }
+
+    private static Simulation.Result run(PedestrianEvent e, AvoidanceLayer layer, Simulation.StepObserver observer) {
         Simulation sim = new Simulation(SfmParameters.defaults(), Integrator.DEFAULT, Simulation.DEFAULT_DT_DIV, layer);
-        return sim.run(new Agent[] { Agent.from(e, 0, 5), Agent.from(e, 1, 5) }, e.dtExp(), e.windowIntervals());
+        return sim.run(new Agent[] { Agent.from(e, 0, 5), Agent.from(e, 1, 5) }, e.dtExp(), e.windowIntervals(), observer);
     }
 
     @Test
     void theRecorderDoesNotChangeTheRunAndCountsTheSameSwitches() throws IOException {
         for (PedestrianEvent e : EventParser.parse(Path.of("data"))) {
-            Simulation.Result expected = run(e, Layers.of("f", 0.9, 2.5, C));
+            MotionMonitor motion = new MotionMonitor();
+            Simulation.Result expected = run(e, Layers.of("f", 0.9, 2.5, C), motion);
             LayerChecks.Run recorded = LayerChecks.run(e, "f", 0.9, 2.5, C);
             assertEquals(expected.rows().size(), recorded.result().rows().size());
             for (int k = 0; k < expected.rows().size(); k++)
                 assertArrayEquals(expected.rows().get(k), recorded.result().rows().get(k), 0.0);
             for (int i = 0; i < 2; i++)
-                assertEquals(expected.layerSwitches()[i], recorded.recorder().stats(i).switchesCheck(), "evento " + e.number() + ", agente " + i);
+                assertEquals(motion.layerSwitches()[i], recorded.recorder().stats(i).switchesCheck(), "evento " + e.number() + ", agente " + i);
         }
     }
 

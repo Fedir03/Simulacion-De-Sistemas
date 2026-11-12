@@ -1,4 +1,4 @@
-package ar.edu.itba.sds.tp5.io;
+package ar.edu.itba.sds.tp5.analysis;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;

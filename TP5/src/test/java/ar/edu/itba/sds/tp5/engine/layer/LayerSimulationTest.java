@@ -6,6 +6,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import ar.edu.itba.sds.tp5.Main;
+import ar.edu.itba.sds.tp5.analysis.ContactMonitor;
+import ar.edu.itba.sds.tp5.analysis.MotionMonitor;
 import ar.edu.itba.sds.tp5.data.EventParser;
 import ar.edu.itba.sds.tp5.data.PedestrianEvent;
 import ar.edu.itba.sds.tp5.engine.Agent;
@@ -59,9 +61,10 @@ class LayerSimulationTest {
         Agent[] crossing = { new Agent(0, 0, 1, 0, 8, 0, 1.3), new Agent(8, 3, -1, 0, 0, 3, 1.3) };
         Simulation.Result base = BASE.run(crossing, DT_EXP, 120);
         for (AvoidanceLayer layer : new AvoidanceLayer[] { LateralTargetLayer.a(5, 2.5, C), LateralTargetLayer.b(5, 4, C), new RepulsiveDirectionLayer(0.9, 3, C) }) {
-            Simulation.Result run = with(layer).run(crossing, DT_EXP, 120);
+            MotionMonitor motion = new MotionMonitor();
+            Simulation.Result run = with(layer).run(crossing, DT_EXP, 120, motion);
             assertSameRun(base, run, layer.label());
-            assertEquals(0, run.layerSwitches()[0] + run.layerSwitches()[1], layer.label());
+            assertEquals(0, motion.layerSwitches()[0] + motion.layerSwitches()[1], layer.label());
         }
     }
 
@@ -144,10 +147,14 @@ class LayerSimulationTest {
     void afterCrossingEveryoneGoesBackToTheFinalTarget() {
         Agent[] pair = { new Agent(0, 0, 1.2, 0, 10, 0, 1.3), new Agent(10, 0.3, -1.2, 0, 0, 0.3, 1.3) };
         for (AvoidanceLayer layer : new AvoidanceLayer[] { LateralTargetLayer.a(3, 1, C), LateralTargetLayer.b(3, 2, C), new RepulsiveDirectionLayer(0.6, 2, C) }) {
-            Simulation.Result r = with(layer).run(pair, DT_EXP, 400);
+            ContactMonitor withLayer = new ContactMonitor(SfmParameters.defaults().radius());
+            ContactMonitor without = new ContactMonitor(SfmParameters.defaults().radius());
+            MotionMonitor motion = new MotionMonitor();
+            Simulation.Result r = with(layer).run(pair, DT_EXP, 400, MotionMonitor.all(withLayer, motion));
+            BASE.run(pair, DT_EXP, 400, without);
             assertTrue(r.arrival()[0] > 0 && r.arrival()[1] > 0, layer.label() + " no llega al target");
-            assertTrue(r.layerSwitches()[0] >= 2, layer.label() + " tiene que prenderse y apagarse");
-            assertTrue(r.minDistance() > BASE.run(pair, DT_EXP, 400).minDistance(), layer.label() + " no aumenta la distancia");
+            assertTrue(motion.layerSwitches()[0] >= 2, layer.label() + " tiene que prenderse y apagarse");
+            assertTrue(withLayer.stats().minDistance() > without.stats().minDistance(), layer.label() + " no aumenta la distancia");
         }
     }
 
@@ -175,8 +182,9 @@ class LayerSimulationTest {
 
     @Test
     void layerNoneReportsNoSwitches() {
-        Simulation.Result r = BASE.run(new Agent[] { new Agent(0, 0, 1, 0, 5, 0, 1.3), new Agent(5, 0.2, -1, 0, 0, 0.2, 1.3) }, DT_EXP, 80);
-        assertEquals(0, r.layerSwitches()[0] + r.layerSwitches()[1]);
+        MotionMonitor motion = new MotionMonitor();
+        BASE.run(new Agent[] { new Agent(0, 0, 1, 0, 5, 0, 1.3), new Agent(5, 0.2, -1, 0, 0, 0.2, 1.3) }, DT_EXP, 80, motion);
+        assertEquals(0, motion.layerSwitches()[0] + motion.layerSwitches()[1]);
         assertFalse(AvoidanceLayer.NONE.direction(0, 0, 1, 0, -1, 0, 1, 1, 0, new double[2]));
     }
 }

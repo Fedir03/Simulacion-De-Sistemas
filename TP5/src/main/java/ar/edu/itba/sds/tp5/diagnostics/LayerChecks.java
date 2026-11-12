@@ -1,6 +1,7 @@
 package ar.edu.itba.sds.tp5.diagnostics;
 
 import ar.edu.itba.sds.tp5.data.EventParser;
+import ar.edu.itba.sds.tp5.data.FrontalTrim;
 import ar.edu.itba.sds.tp5.data.PedestrianEvent;
 import ar.edu.itba.sds.tp5.data.Trajectory;
 import ar.edu.itba.sds.tp5.engine.Agent;
@@ -11,7 +12,8 @@ import ar.edu.itba.sds.tp5.engine.layer.AvoidanceLayer;
 import ar.edu.itba.sds.tp5.engine.layer.CollisionPrediction;
 import ar.edu.itba.sds.tp5.engine.layer.LayerConstants;
 import ar.edu.itba.sds.tp5.engine.layer.Layers;
-import ar.edu.itba.sds.tp5.metrics.Ecm;
+import ar.edu.itba.sds.tp5.analysis.ContactMonitor;
+import ar.edu.itba.sds.tp5.analysis.Ecm;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
@@ -126,7 +128,8 @@ public final class LayerChecks {
 
     /** El mismo evento reflejado respecto de y = 0. */
     public static PedestrianEvent mirror(PedestrianEvent e) {
-        return new PedestrianEvent(e.number(), mirror(e.left()), mirror(e.right()), e.dtExp(), e.leemeMinDistance(), e.firstFrame(), e.lastFrame());
+        return new PedestrianEvent(e.number(), mirror(e.left()), mirror(e.right()), e.dtExp(), e.leemeMinDistance(), e.firstFrame(), e.lastFrame(),
+                e.speedFrom(), e.targetFrame());
     }
 
     private static Trajectory mirror(Trajectory t) {
@@ -224,8 +227,13 @@ public final class LayerChecks {
     }
 
     private static Simulation.Result simulate(PedestrianEvent real, AvoidanceLayer layer) {
+        return simulate(real, layer, null);
+    }
+
+    /** Igual, midiendo contactos en cada paso con {@code contacts} si no es null (analysis.ContactMonitor). */
+    private static Simulation.Result simulate(PedestrianEvent real, AvoidanceLayer layer, ContactMonitor contacts) {
         Simulation sim = new Simulation(SfmParameters.defaults(), Integrator.DEFAULT, Simulation.DEFAULT_DT_DIV, layer);
-        return sim.run(new Agent[] { Agent.from(real, 0, 5), Agent.from(real, 1, 5) }, real.dtExp(), real.windowIntervals());
+        return sim.run(new Agent[] { Agent.from(real, 0, 5), Agent.from(real, 1, 5) }, real.dtExp(), real.windowIntervals(), contacts);
     }
 
     private static double[][] pairs(String layer) {
@@ -255,11 +263,12 @@ public final class LayerChecks {
                         double ecm1 = 0, ecm2 = 0;
                         int contacts = 0;
                         for (int m = 0; m < events.size(); m++) {
-                            Simulation.Result run = simulate(events.get(m), fit);
+                            ContactMonitor monitor = new ContactMonitor(SfmParameters.defaults().radius());
+                            Simulation.Result run = simulate(events.get(m), fit, monitor);
                             Ecm.Event ecm = Ecm.of(data.get(m), run);
                             ecm1 += ecm.ecm1Excluding();
                             ecm2 += ecm.ecm2();
-                            if (run.anyContact()) contacts++;
+                            if (monitor.stats().anyContact()) contacts++;
                         }
                         lines[k] = String.format(Locale.ROOT, "%s %s %s %s %.8f %.8f %d", generator, layer, grid[k][0], grid[k][1], ecm1 / events.size(), ecm2 / events.size(), contacts);
                     });
@@ -296,7 +305,9 @@ public final class LayerChecks {
     }
 
     private static void coin(List<PedestrianEvent> events, Path file, String[] pairs) throws IOException {
-        LayerConstants c = LayerConstants.defaults();
+        // ρ por propiedad (-Drho=0.7) para la moneda con otro espacio personal; sin propiedad, el de D10
+        LayerConstants c = System.getProperty("rho") == null ? LayerConstants.defaults()
+                : LayerConstants.of(Double.parseDouble(System.getProperty("rho")), LayerConstants.DEFAULT_FRONTAL_DEGREES, LayerConstants.FrontalTie.METRIC);
         Files.createDirectories(file.toAbsolutePath().getParent());
         try (PrintWriter out = new PrintWriter(Files.newBufferedWriter(file, StandardCharsets.UTF_8))) {
             out.print("# capa p1 p2 semilla evento ecm1_excl ecm2 contacto\n");
@@ -306,17 +317,26 @@ public final class LayerChecks {
                 for (int seed = 0; seed < 20; seed++) {
                     Random random = new Random(SEED + seed);
                     for (PedestrianEvent e : events) {
-                        Simulation.Result run = simulate(e, coinSide(base, new boolean[] { random.nextBoolean(), random.nextBoolean() }));
+                        ContactMonitor monitor = new ContactMonitor(SfmParameters.defaults().radius());
+                        Simulation.Result run = simulate(e, coinSide(base, new boolean[] { random.nextBoolean(), random.nextBoolean() }), monitor);
                         Ecm.Event ecm = Ecm.of(e, run);
-                        out.print(String.format(Locale.ROOT, "%s %s %s %d %d %.6f %.6f %b", p[0], p[1], p[2], seed, e.number(), ecm.ecm1Excluding(), ecm.ecm2(), run.anyContact()) + "\n");
+                        out.print(String.format(Locale.ROOT, "%s %s %s %d %d %.6f %.6f %b", p[0], p[1], p[2], seed, e.number(), ecm.ecm1Excluding(), ecm.ecm2(), monitor.stats().anyContact()) + "\n");
                     }
                 }
             }
         }
     }
 
+    /** Mismo recorte que el motor; se cambia con propiedades del sistema (-Dtrim=off, -Dtrim-deg=30, ...). */
+    static FrontalTrim.Options trimFromProperties() {
+        java.util.Map<String, String> o = new java.util.HashMap<>();
+        for (String k : List.of("trim", "trim-deg", "trim-persist", "trim-half", "trim-target", "trim-shared", "trim-shared-x"))
+            if (System.getProperty(k) != null) o.put(k, System.getProperty(k));
+        return FrontalTrim.Options.parse(o);
+    }
+
     public static void main(String[] args) throws IOException {
-        List<PedestrianEvent> events = EventParser.parse(Path.of(args[1]));
+        List<PedestrianEvent> events = FrontalTrim.apply(EventParser.parse(Path.of(args[1])), trimFromProperties());
         switch (args[0]) {
             case "audit" -> audit(events, Path.of(args[2]), Arrays.copyOfRange(args, 3, args.length));
             case "recovery" -> recovery(events, Path.of(args[2]));

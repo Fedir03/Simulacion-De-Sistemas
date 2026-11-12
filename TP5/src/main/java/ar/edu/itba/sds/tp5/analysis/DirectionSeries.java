@@ -1,4 +1,4 @@
-package ar.edu.itba.sds.tp5.io;
+package ar.edu.itba.sds.tp5.analysis;
 
 import ar.edu.itba.sds.tp5.data.PedestrianEvent;
 import ar.edu.itba.sds.tp5.engine.Agent;

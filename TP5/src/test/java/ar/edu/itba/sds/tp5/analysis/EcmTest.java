@@ -1,4 +1,4 @@
-package ar.edu.itba.sds.tp5.metrics;
+package ar.edu.itba.sds.tp5.analysis;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -31,7 +31,7 @@ class EcmTest {
             boolean in = r < leaveRow;
             list.add(new double[] { r * DT_EXP / 4, in ? x.applyAsDouble(r) : Double.NaN, in ? y0 : Double.NaN, 0, 0, 0, 50, 0, 0 });
         }
-        return new Simulation.Result(list, DT_EXP / 4, new double[2], new double[2], 1, 0, false, new int[2]);
+        return new Simulation.Result(list, DT_EXP / 4, new double[2]);
     }
 
     @Test

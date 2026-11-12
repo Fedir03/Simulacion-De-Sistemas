@@ -1,5 +1,6 @@
-package ar.edu.itba.sds.tp5.calibration;
+package ar.edu.itba.sds.tp5.analysis;
 
+import ar.edu.itba.sds.tp5.data.FrontalTrim;
 import ar.edu.itba.sds.tp5.data.PedestrianEvent;
 import ar.edu.itba.sds.tp5.engine.Agent;
 import ar.edu.itba.sds.tp5.engine.Integrator;
@@ -7,7 +8,6 @@ import ar.edu.itba.sds.tp5.engine.SfmParameters;
 import ar.edu.itba.sds.tp5.engine.Simulation;
 import ar.edu.itba.sds.tp5.engine.layer.LayerConstants;
 import ar.edu.itba.sds.tp5.engine.layer.Layers;
-import ar.edu.itba.sds.tp5.metrics.Ecm;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
@@ -26,13 +26,14 @@ public final class GridSearch {
     private GridSearch() { }
 
     /** Una fila del archivo: resultado de un par en un evento. */
-    public record Row(double p1, double p2, int event, Ecm.Event ecm, Simulation.Result sim) {
+    public record Row(double p1, double p2, int event, Ecm.Event ecm, Simulation.Result sim, ContactMonitor.Stats contacts,
+                      int[] layerSwitches) {
         String line() {
             Ecm.Pedestrian a = ecm.pedestrians()[0], b = ecm.pedestrians()[1];
             return String.format(Locale.ROOT, "%s %s %d %.6f %.6f %.6f %d %d %d %d %b %.4f %.4f %.4f %.4f %d %d", p1, p2, event,
-                    ecm.ecm1Excluding(), ecm.ecm1Filled(), ecm.ecm2(), a.n1(), b.n1(), a.n2(), b.n2(), sim.anyContact(),
-                    sim.minDistance(), sim.minDistanceTime(), sim.arrival()[0], sim.arrival()[1],
-                    sim.layerSwitches()[0], sim.layerSwitches()[1]);
+                    ecm.ecm1Excluding(), ecm.ecm1Filled(), ecm.ecm2(), a.n1(), b.n1(), a.n2(), b.n2(), contacts.anyContact(),
+                    contacts.minDistance(), contacts.minDistanceTime(), sim.arrival()[0], sim.arrival()[1],
+                    layerSwitches[0], layerSwitches[1]);
         }
     }
 
@@ -46,17 +47,19 @@ public final class GridSearch {
             List<Row> rows = new ArrayList<>(events.size());
             for (PedestrianEvent e : events) {
                 Agent[] agents = { Agent.from(e, 0, v0Frames), Agent.from(e, 1, v0Frames) };
-                Simulation.Result result = sim.run(agents, e.dtExp(), e.windowIntervals());
-                rows.add(new Row(p1, p2, e.number(), Ecm.of(e, result), result));
+                ContactMonitor contacts = new ContactMonitor(params.radius());
+                MotionMonitor motion = new MotionMonitor();
+                Simulation.Result result = sim.run(agents, e.dtExp(), e.windowIntervals(), MotionMonitor.all(contacts, motion));
+                rows.add(new Row(p1, p2, e.number(), Ecm.of(e, result), result, contacts.stats(), motion.layerSwitches()));
             }
             return rows.stream();
         }).toList();
     }
 
-    public static void write(Path file, String layer, List<Row> rows) throws IOException {
+    public static void write(Path file, String layer, FrontalTrim.Options trim, List<Row> rows) throws IOException {
         Files.createDirectories(file.toAbsolutePath().getParent());
         try (PrintWriter out = new PrintWriter(Files.newBufferedWriter(file, StandardCharsets.UTF_8))) {
-            out.print("# capa=" + layer + "\n");
+            out.print("# capa=" + layer + (trim.enabled() ? " " + trim.label() : "") + "\n");
             out.print("# p1 p2 evento ecm1_excl ecm1_relleno ecm2 N1_1 N1_2 N2_1 N2_2 contacto d_min t_d_min t_llegada1 t_llegada2 conmutaciones1 conmutaciones2\n");
             for (Row row : rows) out.print(row.line() + "\n");
         }

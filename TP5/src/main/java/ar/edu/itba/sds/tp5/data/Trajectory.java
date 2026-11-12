@@ -27,9 +27,16 @@ public record Trajectory(int id, int[] frames, double[] x, double[] y) {
 
     /** v_d: longitud recorrida sobre duración. Un hueco cuenta como la cuerda entre sus extremos. */
     public double meanSpeed(double dtExp) {
+        return meanSpeed(firstFrame(), lastFrame(), dtExp);
+    }
+
+    /** v_d entre dos frames presentes de la trayectoria. */
+    public double meanSpeed(int fromFrame, int toFrame, double dtExp) {
+        int a = indexOf(fromFrame), b = indexOf(toFrame);
+        if (a < 0 || b <= a) throw new IllegalArgumentException("Tramo inválido del ID " + id + ": " + fromFrame + "-" + toFrame);
         double length = 0;
-        for (int k = 1; k < size(); k++) length += Math.hypot(x[k] - x[k - 1], y[k] - y[k - 1]);
-        return length / ((lastFrame() - firstFrame()) * dtExp);
+        for (int k = a + 1; k <= b; k++) length += Math.hypot(x[k] - x[k - 1], y[k] - y[k - 1]);
+        return length / ((toFrame - fromFrame) * dtExp);
     }
 
     /**

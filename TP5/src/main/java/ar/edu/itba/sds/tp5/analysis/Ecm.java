@@ -1,4 +1,4 @@
-package ar.edu.itba.sds.tp5.metrics;
+package ar.edu.itba.sds.tp5.analysis;
 
 import ar.edu.itba.sds.tp5.data.PedestrianEvent;
 import ar.edu.itba.sds.tp5.data.Trajectory;
@@ -48,7 +48,7 @@ public final class Ecm {
             double sx = sim.x(agent, (frame - event.firstFrame()) * Simulation.ROWS_PER_INTERVAL);
             double sy = sim.y(agent, (frame - event.firstFrame()) * Simulation.ROWS_PER_INTERVAL);
             if (Double.isNaN(sx)) {
-                sumFilled += squared(ex - exp.targetX(), ey - exp.targetY());
+                sumFilled += squared(ex - event.targetX(agent), ey - event.targetY(agent));
             } else {
                 double d = squared(ex - sx, ey - sy);
                 sum1 += d;
