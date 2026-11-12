@@ -6,6 +6,6 @@ set -euo pipefail
 OUT=outputs/validate_dt
 INTEGRATOR="${INTEGRATOR:-beeman}"
 for div in 32 64 128; do
-    java -jar target/tp5.jar baseline --dt-div "$div" --integrator "$INTEGRATOR" --out "$OUT/div$div"
+    java -cp target/tp5.jar ar.edu.itba.sds.tp5.analysis.AnalysisMain baseline --dt-div "$div" --integrator "$INTEGRATOR" --out "$OUT/div$div"
 done
 python scripts/graph_gen/compare_runs.py "div32=$OUT/div32" "div64=$OUT/div64" "div128=$OUT/div128" | tee "$OUT/comparacion.txt"

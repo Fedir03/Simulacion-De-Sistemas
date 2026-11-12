@@ -6,11 +6,11 @@ set -euo pipefail
 OUT=outputs/pilot/sensitivity_v0
 cat outputs/pilot/mejores.txt outputs/pilot/mejores_exploratoria.txt | tr -d '\r' | awk '{print $1, $3, $4}' | sort -u | while read -r layer p1 p2; do
     for frames in 3 5 7; do
-        java -jar target/tp5.jar baseline --layer "$layer" --p1 "$p1" --p2 "$p2" --v0-frames "$frames" \
+        java -cp target/tp5.jar ar.edu.itba.sds.tp5.analysis.AnalysisMain baseline --layer "$layer" --p1 "$p1" --p2 "$p2" --v0-frames "$frames" \
             --out "$OUT/${layer}_${p1}_${p2}/v0_$frames" > /dev/null
     done
 done
 for frames in 3 5 7; do
-    java -jar target/tp5.jar baseline --v0-frames "$frames" --out "$OUT/base/v0_$frames" > /dev/null
+    java -cp target/tp5.jar ar.edu.itba.sds.tp5.analysis.AnalysisMain baseline --v0-frames "$frames" --out "$OUT/base/v0_$frames" > /dev/null
 done
 python scripts/graph_gen/pilot_sensitivity.py | tee outputs/pilot/sensibilidad_v0.txt

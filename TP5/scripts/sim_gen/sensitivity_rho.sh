@@ -6,7 +6,7 @@ set -euo pipefail
 OUT=outputs/pilot/sensitivity_rho
 cat outputs/pilot/mejores.txt outputs/pilot/mejores_exploratoria.txt | tr -d '\r' | awk '{print $1, $3, $4}' | sort -u | while read -r layer p1 p2; do
     for rho in 0.7 0.9 1.1; do
-        java -jar target/tp5.jar baseline --layer "$layer" --p1 "$p1" --p2 "$p2" --rho "$rho" \
+        java -cp target/tp5.jar ar.edu.itba.sds.tp5.analysis.AnalysisMain baseline --layer "$layer" --p1 "$p1" --p2 "$p2" --rho "$rho" \
             --out "$OUT/${layer}_${p1}_${p2}/rho_$rho" > /dev/null
     done
 done

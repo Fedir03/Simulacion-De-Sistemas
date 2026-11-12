@@ -4,7 +4,7 @@
 set -euo pipefail
 OUT=outputs/sensitivity_v0
 for frames in 3 5 7; do
-    java -jar target/tp5.jar baseline --v0-frames "$frames" --out "$OUT/v0_$frames"
+    java -cp target/tp5.jar ar.edu.itba.sds.tp5.analysis.AnalysisMain baseline --v0-frames "$frames" --out "$OUT/v0_$frames"
 done
 {
     python scripts/graph_gen/compare_runs.py "v0_3=$OUT/v0_3" "v0_5=$OUT/v0_5"

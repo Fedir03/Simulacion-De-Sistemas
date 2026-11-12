@@ -5,7 +5,7 @@ set -euo pipefail
 export PYTHONIOENCODING=utf-8
 P=outputs/pilot
 rm -rf "$P/sensitivity_v0" "$P/sensitivity_rho"
-java -jar target/tp5.jar baseline --out outputs/baseline > /dev/null
+java -cp target/tp5.jar ar.edu.itba.sds.tp5.analysis.AnalysisMain baseline --out outputs/baseline > /dev/null
 bash scripts/sim_gen/pilot.sh > /dev/null
 python scripts/graph_gen/pilot_analysis.py > "$P/analisis.txt"
 python scripts/graph_gen/pilot_compare.py > "$P/comparacion_f.txt"

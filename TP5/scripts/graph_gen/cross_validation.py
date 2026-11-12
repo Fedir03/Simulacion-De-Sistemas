@@ -12,7 +12,7 @@ from pathlib import Path
 import numpy as np
 
 SEED = 20261116
-N_PARTITIONS = 1000
+N_PARTITIONS = 5000  # 11/11: 1000 no pasaba el control de convergencia con el recorte
 N_EVENTS = 19
 N_TRAIN = 14
 METRICS = {"ecm1_excl": 3, "ecm1_relleno": 4, "ecm2": 5}
@@ -74,13 +74,15 @@ def report(name, rows, parts, results):
         tops = ", ".join(f"({pairs[k][0]:g}; {pairs[k][1]:g}) {n}" for k, n in common)
         print(f"{name} | {metric} | par 19 eventos ({pairs[full][0]:g}; {pairs[full][1]:g}) E={matrix[full].mean():.4f} | "
               f"entren. {train.mean():.4f} | valid. {val.mean():.4f} +- {val.std(ddof=1):.4f} | coincide {same}/{len(parts)} | mas elegidos: {tops}")
-        # Controles de la sección 7
-        conv = {n: val[:n].mean() for n in (100, 500, 1000) if n <= len(val)}
-        change = abs(conv[500] - conv[1000]) / conv[1000] * 100 if 500 in conv and 1000 in conv else float("nan")
-        change100 = abs(conv[100] - conv[1000]) / conv[1000] * 100 if 100 in conv and 1000 in conv else float("nan")
-        print(f"    controles: media valid. 100/500/1000 = {conv.get(100, float('nan')):.4f} {conv.get(500, float('nan')):.4f} {conv.get(1000, float('nan')):.4f} "
-              f"(cambio contra 1000: {change100:.2f}%, {change:.2f}%) | entren.<=valid.: {train.mean() <= val.mean()} | "
-              f"entren.=valid. da E(19): {abs(on_all - expected) < 1e-12}")
+        # Controles de la sección 7: la media de validación con N/5 y N/2 particiones cambia menos de 1% contra N
+        n = len(val)
+        marks = (n // 5, n // 2, n)
+        conv = {m: val[:m].mean() for m in marks}
+        changes = [abs(conv[m] - conv[n]) / conv[n] * 100 for m in marks[:2]]
+        first_1000 = int((chosen[:1000] == full).sum()) if n >= 1000 else same
+        print(f"    controles: media valid. {marks[0]}/{marks[1]}/{marks[2]} = {conv[marks[0]]:.4f} {conv[marks[1]]:.4f} {conv[marks[2]]:.4f} "
+              f"(cambio contra {n}: {changes[0]:.2f}%, {changes[1]:.2f}%; pasa <1%: {max(changes) < 1}) | coincide en las primeras 1000: {first_1000}/1000 | "
+              f"entren.<=valid.: {train.mean() <= val.mean()} | entren.=valid. da E(19): {abs(on_all - expected) < 1e-12}")
         results[(name, metric)] = val
 
 
