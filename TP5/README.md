@@ -17,7 +17,13 @@ Genera `target/tp5.jar` y corre los tests, que usan los datos de `data/`.
 java -jar target/tp5.jar baseline --data data --out outputs/baseline
 java -jar target/tp5.jar run --event 3 --data data --out outputs/run
 ```
-Cada corrida escribe `evento_XX.txt` (`t x1 y1 vx1 vy1 x2 y2 vx2 vy2`, cada Δt_exp/4; `NaN` si el peatón ya se retiró) y `ecm.txt` (ECM 1 en sus dos variantes, ECM 2, N_m, llegadas y poblacional). Con `--layer a|b|f --p1 X --p2 Y` corre con capa de elusión. `java -jar target/tp5.jar --help` lista comandos y opciones.
+El motor (lo que va al ZIP) escribe `evento_XX.txt` (`t x1 y1 vx1 vy1 x2 y2 vx2 vy2`, cada Δt_exp/4; `NaN` si el peatón ya se retiró). Con `--layer a|b|f --p1 X --p2 Y` corre con capa de elusión. `java -jar target/tp5.jar --help` lista comandos y opciones.
+
+El análisis (fuera del ZIP) corre el mismo motor y además escribe `ecm.txt` (ECM 1 en sus dos variantes, ECM 2, N_m, llegadas, distancia mínima, contacto y poblacional), las grillas y el recorte exportado:
+```bash
+java -cp target/tp5.jar ar.edu.itba.sds.tp5.analysis.AnalysisMain baseline --data data --out outputs/baseline
+java -cp target/tp5.jar ar.edu.itba.sds.tp5.analysis.AnalysisMain grid --layer a --p1-values 3 --p2-values 0.5 --out outputs/grid_A.txt
+```
 
 ## Scripts (desde `TP5/`)
 - `scripts/sim_gen/generate_baseline.sh`: compila, prueba y genera la línea base.

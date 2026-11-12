@@ -1,6 +1,6 @@
 # ESTADO — TP5 Dinámica Peatonal
 
-Última actualización: 3/11/2026. Solo lo edita el rol E (Presentación y visual) para no pisar versiones.
+Última actualización: 12/11/2026 (bitácora; el resto del archivo es del 3/11). Solo lo edita el rol E (Presentación y visual) para no pisar versiones.
 Entrega: lun 16/11. Objetivo: cerrar el lun 9/11.
 
 ## Dónde estamos
@@ -20,3 +20,4 @@ Repo armado y roles asignados.
 
 ## Bitácora
 - 2/11: se eligió SFM; finalistas F, B y A; D3 a D11 definidos en DEFINICIONES.md.
+- 12/11: motor y análisis separados para que el ZIP tenga solo el motor (DEFINICIONES.md, sección 6). ECM, contactos, distancia mínima, longitud recorrida, conmutaciones de la capa, grilla, recorte exportado y series de direcciones pasan a `analysis/` (`AnalysisMain`), fuera del ZIP; los scripts de `scripts/` usan `AnalysisMain` para `grid`, `baseline` y `trim-export`. Verificado: 101 tests, 258 archivos de `outputs/` idénticos byte a byte, ZIP de 35 KB y 32 entradas que compila aislado y reproduce `evento_03.txt`.

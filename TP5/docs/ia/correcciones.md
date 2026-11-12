@@ -117,3 +117,99 @@ Estructura de cada entrada: fecha, qué se hizo, cómo se detectó (lo corrigió
 - **Cómo se detectó:** lo detectó un test, y la IA lo confirmó al ver `dt_div=32` en el encabezado de la línea base.
 - **Qué se corrigió:** se borraron esas copias, se ajustó el test y se repitió todo con el jar nuevo. Desde este paso, los comandos cortan si falla la compilación.
 - **Efecto:** ninguno en resultados; nada de eso llegó a usarse.
+
+## 2026-11-11 · Referencia del desvío lateral contaminada por el tramo vertical
+- **De quién era:** de la IA. El plan de la Fase 1 del recorte medía el desvío lateral máximo contra la recta entre los extremos de |x − x_c| ≤ 4 m, y el pico de rumbo en esa misma zona.
+- **Qué se hizo:** en esa zona entra la subida vertical inicial de varios peatones. Para los izquierdos de los eventos 6, 7, 8, 9, 11, 13, 14 y 19 dio "desvíos" de 1,3 a 1,8 m unos 3 s antes del mínimo, y el pico de rumbo quedaba "fuera del tramo" en casi todos los eventos con A(45°).
+- **Cómo se detectó:** lo detectó la IA, al ver que la marca saltaba en eventos sin esquive visible y listar dónde caía el desvío máximo respecto del mínimo.
+- **Qué se corrigió:** la referencia pasó a la zona de interacción (frames alrededor del mínimo con distancia ≤ 5 m, donde el rumbo máximo es ≤ 31° en los 38 peatones). Se agregó el inicio del esquive. Quedó anotado en `DEFINICIONES.md`, sección 8b.
+- **Efecto:** ninguno en resultados del piloto. En la tabla de exploración, "esquive cortado" pasa de 5 peatones a 0 con A(45°), y de 7 a 2 con A(30°) (los dos del evento 14). La versión anterior no se informó.
+
+## 2026-11-11 · Recorte no idempotente en la primera implementación
+- **De quién era:** de la IA.
+- **Qué se hizo:** la primera versión de `FrontalTrim` cortaba las trayectorias a la ventana recortada. Al recortar otra vez, el rumbo de los frames del borde se calculaba con una diferencia hacia un solo lado.
+- **Cómo se detectó:** lo detectó un test (`trimmingIsIdempotent`): el evento 1 pasaba de empezar en el frame 20074 a empezar en el 20075.
+- **Qué se corrigió:** el evento conserva las trayectorias completas y guarda la ventana, el frame del target y el frame inicial de v_d por peatón (`PedestrianEvent`). Sin recorte se usan el primer y el último frame de cada trayectoria, como en D3.
+- **Efecto:** ninguno en resultados; ninguna corrida usó la primera versión. Con `--trim off`, la línea base y F(0,9; 2,5) coinciden byte a byte con el piloto anterior.
+
+## 2026-11-11 · Caso sintético mal armado en un test del recorte
+- **De quién era:** de la IA.
+- **Qué se hizo:** el evento sintético con tramo vertical inicial le daba al peatón derecho una curva senoidal en y. Su pendiente al inicio del tramo es de 6%, y el test exigía menos de 5% de componente vertical en v_0.
+- **Cómo se detectó:** lo detectó el mismo test, al fallar. La IA vio que la causa era el caso sintético y no el recorte.
+- **Qué se corrigió:** el peatón derecho cruza en línea recta sobre y = 2,6.
+- **Efecto:** ninguno en resultados.
+
+## 2026-11-11 · Rumbo máximo del perfil de giro contaminado por la salida
+- **De quién era:** de la IA. Es el mismo tipo de error que la entrada de la referencia lateral de esta misma fecha.
+- **Qué se hizo:** `trim_phase4.py` buscaba el rumbo máximo de cada peatón real en toda la ventana recortada. Dio una mediana de 46° y un máximo de 148°, que corresponden al giro de salida que la persistencia deja dentro del tramo, no al esquive.
+- **Cómo se detectó:** lo detectó la IA al ver valores imposibles para un esquive (148°, es decir, hacia atrás).
+- **Qué se corrigió:** el rumbo máximo se busca solo con distancia al otro ≤ 5 m, como en la exploración. Con eso, la mediana es 17,6° y el rango va de 3,0 a 31,4°.
+- **Efecto:** ninguno en el piloto; la versión anterior no se informó.
+
+## 2026-11-11 · D(45°) deja una cola fuera de la zona compartida en los eventos 3 y 6
+- **De quién era:** de la IA. D(45°) fue su recomendación al cerrar la Fase 1 de la exploración.
+- **Qué se hizo:** en los eventos 3 y 6, el tramo del peatón izquierdo sigue 2,62 y 2,43 m más allá de la x donde empieza el tramo del derecho (hasta x ≈ 10,65 y 10,35 contra ≈ 8), con una subida final de pendiente menor que 45° que el criterio no corta. La exploración había informado el ángulo de e_target de 9,1° del evento 3 como "residual", sin ver que la causa era esa cola.
+- **Cómo se detectó:** por la verificación visual de Fede (`outputs/recorte/verificacion/`). Los otros 17 eventos los aprobó.
+- **Qué se corrigió:** todavía nada en el motor. Se midieron discriminadores sin simular (`outputs/recorte/discriminadores.md`) y se armó el ajuste manual de los dos eventos (`outputs/recorte/ajuste_manual/`). Decide el grupo.
+- **Efecto:** el piloto con D(45°) incluye esas dos colas. Con el ajuste manual, el evento 3 pierde 46 frames y el 6 pierde 31.
+
+## 2026-11-11 · Variante "tramo espacial compartido": se previsualizó antes de implementarla
+- **De quién era:** de la especificación del chat. La variante pedía cortar el tramo de cada peatón en la x donde empieza el del otro, manteniendo la ventana común.
+- **Qué se hizo:** antes de tocar código, la IA la previsualizó sobre los CSV del recorte vigente. Habría cambiado 8 eventos en lugar de 2: el 2, 3, 4, 5, 6, 10, 14 y 15 pierden más de 0,5 m (el 15, 1,90 m). En la mayoría el corte lo dispara el peatón derecho, que termina en x ≈ 0,1 a 0,2 m, antes de la x inicial del izquierdo (≈ 0,6 a 0,8 m). Cortando solo del lado del izquierdo, igual cambian 6 eventos.
+- **Cómo se detectó:** lo detectó la IA con la previsualización y lo informó antes de implementar.
+- **Qué se corrigió:** no se implementó. El usuario pidió buscar primero un discriminador que separe el 3 y el 6.
+- **Efecto:** ninguno en resultados ni en código.
+
+## 2026-11-11 · Umbral X de la compuerta de tramo compartido elegido post-hoc
+- **De quién era:** de la definición del grupo, a partir del análisis de discriminadores de la IA. No es un error de implementación: se anota porque condiciona cómo se reporta.
+- **Qué se hizo:** la compuerta corta la ventana cuando un peatón pasa la x inicial del otro en más de X = 1,5 m. X se eligió después de ver el discriminador (a) en los 19 eventos: 2,62 y 2,43 m en el 3 y el 6, contra 0,95 m como máximo del resto.
+- **Cómo se detectó:** lo declaró el usuario al aprobar el corte.
+- **Qué se corrigió:** queda documentado en D3 y en la sección 8c de `DEFINICIONES.md`. Los resultados con la compuerta se reportan como post-hoc. Con `--trim-shared off` se reproduce D(45°) byte a byte.
+- **Efecto:** cambian solo los eventos 3 y 6 (46 y 31 frames menos). El conjunto es el mismo con X = 1,0 y X = 2,0. Lo verifican `gateChangesOnlyEventsThreeAndSixForXBetweenOneAndTwo` y `theOtherSeventeenEventsSimulateIdenticallyWithTheGate`.
+
+## 2026-11-11 · Errores en los scripts de la tabla de tres columnas y de las figuras de la presentación
+- **De quién era:** de la IA.
+- **Qué se hizo:**
+  - `trim_compare3.py` leía las grillas de ρ con `np.genfromtxt`, que convierte la columna de contacto (`true`/`false`) en NaN, y se cortó con un error.
+  - En la primera versión de R3 (`presentation_figures.py`), el formato con coma decimal pisaba las etiquetas del eje x: mostraba 0, 1 y 2 en lugar de A, B y F.
+  - En R1, la leyenda tapaba la trayectoria real del peatón derecho, y en R6 el eje de contactos tenía marcas decimales.
+- **Cómo se detectó:** lo detectó la IA, por el error del script y al revisar las figuras rasterizadas antes de entregarlas.
+- **Qué se corrigió:** el lector pasó a `load_grid`, se aplicó el formato antes de las etiquetas, se movió la leyenda de R1 y el eje de contactos de R6 quedó en enteros.
+- **Efecto:** ninguno en resultados; las versiones con errores no se entregaron.
+
+## 2026-11-11 · Errores del borrador de la presentación
+- **De quién era:** de la IA que armó el borrador de `presentacion/presentacion_tp5.tex`.
+- **Qué se hizo:** 1000 particiones en lugar de 5000; ECM 2 escrita al revés (mínimo sobre la trayectoria real en vez de la simulada, contra `Ecm.java` y la sección 2 de `DEFINICIONES.md`); fuerza de contacto `k_n ε n̂` sin decir el sentido de n̂ (con n̂ de j a i, como en `SfmField.java`, sería atractiva); desempate de F con solo el paso de respaldo (faltaba la rotación de e_ij); "más de 30 correcciones" sin contar; contacto "en algún cuadro" cuando el motor lo controla en cada paso; ρ = 0,9 m presentado como "el máximo" de las distancias mínimas reales (es 0,92 m); en el anexo, "atribuyó" en la fila del evento 2, que había sido una hipótesis declarada.
+- **Cómo se detectó:** en la revisión de la presentación que pidió el usuario, comparando cada número y ecuación con `outputs/pilot/`, `DEFINICIONES.md`, el código y la página de Notion "Correcciones a la IA".
+- **Qué se corrigió:** el texto de esas diapositivas. El detalle (antes, después y motivo) está en `presentacion/REVISION.md`. La cuenta del registro da 36 entradas distintas (23 previas del repo, esta y 12 que solo están en Notion).
+- **Efecto:** ninguno en resultados; solo cambia el texto de la presentación.
+
+## 2026-11-11 · Medición de "hasta cuándo influye v_0" mal planteada en la primera versión del diagnóstico de A
+- **De quién era:** de la IA, en el prototipo de `scripts/graph_gen/diag_a.py`.
+- **Qué se hizo:** para medir hasta qué instante influye la velocidad inicial se tomó el último instante en que la rapidez de A(3; 0,5) con el ajuste de D12 y con v_0 = v_d·e_target difiere en más de 5% de v_d. Esa diferencia dura hasta el final de la ventana, porque la capa se activa en instantes distintos en las dos corridas, y el script devolvía 0 s cuando el último instante era la última fila.
+- **Cómo se detectó:** lo detectó la IA, al ver una mediana de 0,00 s contra 1,25 s esperados para el peatón libre.
+- **Qué se corrigió:** se mide el primer instante en que la diferencia vectorial de velocidad baja de 5% de v_d (mediana 1,43 s; peatón libre, τ·ln(|v_d e_t − v_0|/(0,05 v_d)), 1,26 s), y aparte el avance que queda en la posición en t_min real (mediana 0,36 m).
+- **Efecto:** ninguno en resultados; la versión con el error no se entregó.
+
+## 2026-11-11 · Controles mal armados al regenerar las figuras y probar el script de build
+- **De quién era:** de la IA.
+- **Qué se hizo:**
+  - El control del signo menos en R4b y R4c leyó el PDF con `pdftotext` sin `-enc UTF-8` y contó 9 y 5 "guiones", que eran el signo menos real (U+2212) convertido por la codificación por defecto.
+  - La prueba de `Overfull \vbox` de `build_presentacion.sh` armó el `.tex` de prueba con `printf`, que interpretó `\rule` y `\b` como caracteres de control. El script falló por un error de compilación y no por el `Overfull \vbox` que se quería probar.
+- **Cómo se detectó:** lo detectó la IA. En el primer caso, al mirar los bytes de la salida (`342 210 222`); en el segundo, al leer el mensaje de error ("Unicode character U+0008").
+- **Qué se corrigió:** se repitió la lectura con `-enc UTF-8` y se armó el `.tex` de prueba con un heredoc. Con eso, el script falla por el `Overfull \vbox`, como se esperaba.
+- **Efecto:** ninguno en resultados ni en archivos entregados; los dos controles se repitieron antes de informar.
+
+## 2026-11-12 · Rótulo "Postproceso (fuera del motor)" con el ECM todavía en el motor
+- **De quién era:** de la IA.
+- **Qué se hizo:** en la lámina 7 (Motor: paso temporal) la IA rotuló la caja punteada como "Postproceso (fuera del motor)", cuando el ECM, los contactos y la grilla de calibración todavía se calculaban dentro del motor (`metrics/Ecm.java`, `calibration/GridSearch.java` y el control de contacto en `engine/Simulation.java`) y entraban en el ZIP.
+- **Cómo se detectó:** al pedir el grupo, en el mismo pedido, dónde estaba el código del ECM, los contactos y la calibración y qué entraba en el ZIP.
+- **Qué se corrigió:** primero se volvió al rótulo "Después de la corrida: ECM, contactos, calibración". Después de la refactorización que separó `analysis/` del motor (fuera del ZIP), el rótulo "Postproceso (fuera del motor)" pasó a ser cierto y se volvió a poner.
+- **Efecto:** ninguno en resultados; la lámina dijo algo falso solo entre dos compilaciones intermedias.
+
+## 2026-11-12 · ECM y contactos dentro del motor de la entrega
+- **De quién era:** de la IA.
+- **Qué se hizo:** la IA propuso calcular y mostrar el ECM y los contactos dentro del motor de la entrega.
+- **Cómo se detectó:** lo marcó el grupo: en TP4 se penalizaron los observables calculados en el motor.
+- **Qué se corrigió:** se separaron del motor. ECM, contactos, distancia mínima, longitud recorrida, conmutaciones, grilla, recorte exportado y series de direcciones pasaron a `analysis/` (`AnalysisMain`), fuera del ZIP. El contacto y la distancia mínima se siguen midiendo en cada paso con el `StepObserver` del motor.
+- **Efecto:** ninguno en resultados. Los 258 archivos de salida de `outputs/` (línea base, grillas de A, B y F, y corridas de `figs/datos`) salen idénticos byte a byte antes y después; pasan los 101 tests, y el motor del ZIP compila sin `analysis/` y reproduce `evento_03.txt`.
