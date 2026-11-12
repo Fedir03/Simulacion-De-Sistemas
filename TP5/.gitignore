@@ -38,3 +38,16 @@ outputs/
 
 # ZIP de entrega (tools/build_zip.sh)
 entrega/
+
+# Bibliografía y material de la cátedra (cada uno ya lo tiene)
+docs/Biblio*/
+docs/Teorica_*.pdf
+
+# Presentacion
+presentacion/animaciones/*
+!presentacion/animaciones/README.md
+*.mp4
+*.pptx
+*.vrb
+presentacion/REVISION.md
+docs/TP5_Enunciado.pdf
