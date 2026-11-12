@@ -64,7 +64,7 @@ plt.rcParams.update({"font.size": 22, "axes.labelsize": 24, "legend.fontsize": 2
 # Rótulo de cada corrida en la leyenda (con el par: la diapositiva no lo repite)
 LABELS = {"sin capa": "sin capa", "A": "A(3; 0,5)", "B": "B(3,5; 1)"}
 FRAME_SIZE = (6.6, 3.4)     # pulgadas: a ~5,7 cm de ancho en la diapositiva, 20–24 pt quedan en ~7–9 pt
-FRAME_SIZE_COMPACT = (6.6, 2.75)     # lámina 13: rango de y ajustado y leyenda abajo; el lienzo del MP4 sigue al PNG
+FRAME_SIZE_COMPACT = (8.4, 2.05)     # lámina 13: rango de y ajustado y leyenda a la derecha; el lienzo del MP4 sigue al PNG
 
 
 def style(ax):
@@ -94,7 +94,7 @@ class Overlay:
     """Real (negro, círculo gris relleno) y una o más corridas simuladas (color, círculo hueco)."""
 
     def __init__(self, exp, runs, figsize=FRAME_SIZE, compact=False):
-        """compact (lámina 13, dos animaciones apiladas): rango de y ajustado a las trayectorias, leyenda debajo del eje
+        """compact (lámina 13, dos animaciones apiladas): rango de y ajustado a las trayectorias, leyenda a la derecha del eje
         (fuera del área del gráfico, como en el recorte) y reloj arriba a la derecha, también afuera. Así la figura queda
         más apaisada y las trayectorias se ven más grandes con la misma altura en la diapositiva."""
         self.exp, self.runs, self.compact = exp, runs, compact
@@ -120,11 +120,10 @@ class Overlay:
         handles += [Line2D([], [], color=COLORS[n], lw=3, label=LABELS[n]) for n in runs]
         handles += [Line2D([], [], ls="none", marker="o", ms=17, color=COLORS["real"], alpha=0.35, label="posición real")]
         if compact:
-            # Debajo del rótulo x, 2 columnas × 2 filas, letra 19 pt (≤ ticks, 21 pt), como la del recorte. Anclada al
-            # borde inferior del eje con una separación fija (borderaxespad, en unidades de la letra: ticks + rótulo x),
-            # porque el eje es bajo y una fracción de su alto no alcanza para pasar el rótulo
-            ax.legend(handles=handles, loc="upper center", bbox_to_anchor=(0.5, 0), borderaxespad=2.6, ncol=2, frameon=False,
-                      fontsize=19, handlelength=1.5, columnspacing=0.9, borderpad=0.3)
+            # A la derecha del eje, fuera del área del gráfico, una entrada por fila, letra 19 pt (≤ ticks, 21 pt). Así el
+            # área del gráfico usa toda la altura de la figura (la leyenda ya no ocupa una franja debajo)
+            ax.legend(handles=handles, loc="center left", bbox_to_anchor=(1.02, 0.5), borderaxespad=0, ncol=1, frameon=False,
+                      fontsize=19, handlelength=1.5, borderpad=0.3, labelspacing=0.35)
             self.clock = ax.text(1.0, 1.03, "", transform=ax.transAxes, ha="right", va="bottom", fontsize=19, color=INK)
         else:
             ax.legend(handles=handles, loc="upper right", ncol=2, frameon=True, framealpha=0.95, fontsize=20,

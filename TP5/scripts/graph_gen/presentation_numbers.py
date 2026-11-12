@@ -109,6 +109,19 @@ def main():
         print(f"| {lbl(layer, PAIRS[layer])} | {c(float(np.median(lag)), 2)} | {int((lag > 0).sum())}/19 | {c(float(np.abs(lag).mean()), 2)} | "
               f"{c(float(np.median(dd)), 2)} | {int((dd < 0).sum())}/19 | {int(r[:, COL['contact']].sum())}/19 |")
 
+    # Evento representativo de las láminas 13 y 14 (el mismo punto que en los gráficos de la lámina 32): mínimo de la
+    # distancia entre centros medido en cada paso (grilla) y real de la línea base; c = t(D^sim) − t(D^exp)
+    rep = 16
+    print(f"\n## Evento representativo {rep} (láminas 14 y 32): distancia mínima y corrimiento")
+    print("| | D (m) | t del mínimo (s) | c (s) |")
+    print("|---|---|---|---|")
+    print(f"| real | {c(real_d[rep - 1], 4)} | {c(real_t[rep - 1], 4)} | — |")
+    for layer in "AB":
+        row = rows_of(P / f"grid_{layer}.txt", PAIRS[layer])[rep - 1]
+        assert int(row[2]) == rep
+        print(f"| {lbl(layer, PAIRS[layer])} | {c(row[COL['dmin']], 4)} | {c(row[COL['tdmin']], 4)} | "
+              f"{c(row[COL['tdmin']] - real_t[rep - 1], 4)} |")
+
     print("\n## Sobre-esquive de B(3,5; 1): distancia mínima simulada por evento (m) según ρ, contra la real")
     print("| evento | real | ρ = 0,7 | ρ = 0,8 | ρ = 0,9 |")
     print("|---|---|---|---|---|")
