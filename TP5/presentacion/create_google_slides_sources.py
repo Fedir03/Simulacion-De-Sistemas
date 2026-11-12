@@ -186,7 +186,7 @@ def autoplay_timing(items):
 
     items: [(spid, dur_ms)]. Es el patrón que escribe PowerPoint con "Inicio: automáticamente": el primero
     después de la entrada de la diapositiva (afterEffect) y el resto a la vez (withEffect), más un cMediaNode
-    por video. Sin este bloque el video queda quieto en el póster hasta que se hace clic.
+    por video. Sin este bloque el video queda quieto en el póster hasta que se hace clic. Cada video se repite en loop.
     """
     n = [2]
 
@@ -212,8 +212,10 @@ def autoplay_timing(items):
            '</p:childTnLst></p:cTn></p:par></p:childTnLst></p:cTn></p:par></p:childTnLst></p:cTn>'
            '<p:prevCondLst><p:cond evt="onPrev" delay="0"><p:tgtEl><p:sldTgt/></p:tgtEl></p:cond></p:prevCondLst>'
            '<p:nextCondLst><p:cond evt="onNext" delay="0"><p:tgtEl><p:sldTgt/></p:tgtEl></p:cond></p:nextCondLst></p:seq>')
+    # repeatCount="indefinite": "Repetir hasta que se detenga" de PowerPoint; el video vuelve a empezar al terminar y
+    # sigue en loop hasta que se cambia de diapositiva
     media = "".join(
-        f'<p:video><p:cMediaNode vol="80000"><p:cTn id="{nid()}" fill="hold" display="0"><p:stCondLst>'
+        f'<p:video><p:cMediaNode vol="80000"><p:cTn id="{nid()}" repeatCount="indefinite" fill="hold" display="0"><p:stCondLst>'
         f'<p:cond delay="indefinite"/></p:stCondLst></p:cTn><p:tgtEl><p:spTgt spid="{spid}"/></p:tgtEl>'
         f'</p:cMediaNode></p:video>' for spid, _ in items)
     return ('<p:timing><p:tnLst><p:par><p:cTn id="1" dur="indefinite" restart="never" nodeType="tmRoot"><p:childTnLst>'
