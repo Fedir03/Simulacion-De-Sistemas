@@ -213,3 +213,16 @@ Estructura de cada entrada: fecha, qué se hizo, cómo se detectó (lo corrigió
 - **Cómo se detectó:** lo marcó el grupo: en TP4 se penalizaron los observables calculados en el motor.
 - **Qué se corrigió:** se separaron del motor. ECM, contactos, distancia mínima, longitud recorrida, conmutaciones, grilla, recorte exportado y series de direcciones pasaron a `analysis/` (`AnalysisMain`), fuera del ZIP. El contacto y la distancia mínima se siguen midiendo en cada paso con el `StepObserver` del motor.
 - **Efecto:** ninguno en resultados. Los 258 archivos de salida de `outputs/` (línea base, grillas de A, B y F, y corridas de `figs/datos`) salen idénticos byte a byte antes y después; pasan los 101 tests, y el motor del ZIP compila sin `analysis/` y reproduce `evento_03.txt`.
+
+## 2026-11-13 · Capa E (huevo): anticipación con horizonte que no se pidió
+- **De quién era:** de la IA.
+- **Qué se pidió:** un sistema de prevención de colisiones en el que cada partícula tiene un área alrededor con forma de huevo, con la punta hacia la velocidad. Los peatones se apartan para que las áreas no se solapen, como si fueran bordes sólidos. Si por el Δt las áreas llegan a solaparse, giran en sentido contrario al solape (cambian la dirección de la velocidad). El objetivo se mantiene: una vez que se cruzaron, vuelven a su ruta.
+- **Qué se hizo:** además de lo pedido, y sin que se pidiera, la IA agregó una predicción con horizonte T = 2 s (opción `--egg-horizon`). En cada paso, cada peatón probaba direcciones candidatas desde e_t, en pasos de 1° y hasta 90°: suponía que caminaba a v_d en esa dirección, con su huevo girado hacia ella, y que el otro seguía a velocidad constante. Elegía el menor giro con el que los huevos no se tocaban dentro de T (recorte del segmento relativo contra la diferencia de Minkowski de los huevos, tipo velocity obstacle). Venía con una regla de lado tomada de la predicción de choque de A y B. Así, la capa giraba cuando los centros estaban a unos 6,1 m (mediana; de 5,6 a 6,8 m), mucho antes de que los huevos se tocaran: con punta a = 1 m, las puntas recién se tocan a 2 m.
+- **Cómo se detectó:** lo corrigió el usuario: "why do the particles change direction before touching their areas? The concept is leaving the model as basic as it is and adding a prediction layer. With what I asked of you, they shouldn't change direction until their eggs collide."
+- **Qué se corrigió:** se sacaron la predicción, `--egg-horizon` y la regla de lado. La capa reacciona solo al contacto entre huevos:
+  - separados: e_target = e_t;
+  - en contacto: se quita la componente de e_t que entra en el otro huevo, así que el peatón se desliza por la tangente (choque frontal exacto: a la derecha);
+  - solapados: además, una componente normal hacia afuera proporcional a la profundidad.
+  
+  La anticipación queda solo en la forma del huevo (la punta hacia la velocidad).
+- **Efecto (a = 1 m, b = 0,35 m, 19 eventos):** el primer giro pasa a darse con los centros a unos 1,96 m (contacto de las puntas) y la capa queda prendida 0,9 s (antes 2,9 s). ECM 1 poblacional de 0,420 a 0,589 m²; solape máximo de huevos 1,4 cm; ningún contacto de cuerpos. Después el usuario pidió huevos más largos: con a = 3 m, ECM 1 = 0,448 m² y solape máximo de 2 mm. Detalle y análisis posterior en `docs/EGG_THOUGHTS.md`.
