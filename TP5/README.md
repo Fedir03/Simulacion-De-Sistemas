@@ -45,5 +45,5 @@ java -cp target/tp5.jar ar.edu.itba.sds.tp5.analysis.AnalysisMain grid --layer a
 - `scripts/sim_gen/variants.sh` y `scripts/graph_gen/f_variants.py`: variantes declaradas F1, F2 y F3.
 - `scripts/graph_gen/layer_checks.py`: recuperación de parámetros, lado por moneda y piso de error (las dos primeras con `diagnostics/LayerChecks`, que no va al ZIP).
 - `scripts/sim_gen/figures.sh`, `scripts/graph_gen/f_figures.py` y `f_animation.py`: figuras y animación comparativas. Necesitan matplotlib (por defecto usan `../TP4/.venv`; cambiar con `PYTHON=...`).
-- `scripts/sim_gen/egg.sh`, `scripts/animation/egg_geometry.py` y `egg_animation.py`: capa E (huevo, `--layer e --p1 a --p2 b`; actúa solo con los huevos en contacto): corridas, diagnóstico de solapes y animación de tres simulaciones.
+- `scripts/sim_gen/egg.sh`, `scripts/animation/egg_geometry.py` y `egg_animation.py`: capa E (huevo, `--layer e --p1 a --p2 b`; actúa solo con los huevos en contacto): corridas, diagnóstico de solapes y tres animaciones de tres simulaciones cada una: la original (a = 3, b = 0,35), huevo corto (a = 1, b = 0,35) y el óptimo poblacional (a = 3, b = 0,25). `egg_animation.py --a --b --panels sub:evento,... --out` arma otras.
 - `tools/build_zip.sh`: arma y verifica el ZIP de entrega.
