@@ -73,7 +73,7 @@ public final class SfmField implements Integrator.Field {
         direction[1] = ey;
         int j = other(i);
         if (j < 0 || d == 0) return false;
-        return layers[i].direction(r[ix], r[iy], r[2 * j], r[2 * j + 1], v[2 * j], v[2 * j + 1], agent.desiredSpeed(), ex, ey, direction);
+        return layers[i].directionWithVelocity(r[ix], r[iy], v[ix], v[iy], r[2 * j], r[2 * j + 1], v[2 * j], v[2 * j + 1], agent.desiredSpeed(), ex, ey, direction);
     }
 
     private int other(int i) {

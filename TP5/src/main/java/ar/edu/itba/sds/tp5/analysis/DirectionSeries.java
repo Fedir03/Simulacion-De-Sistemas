@@ -39,7 +39,7 @@ public final class DirectionSeries {
                 out[0] = ex;
                 out[1] = ey;
                 boolean layerOn = active[j] && d > 0
-                        && layers[i].direction(r[2 * i], r[2 * i + 1], r[2 * j], r[2 * j + 1], v[2 * j], v[2 * j + 1], agents[i].desiredSpeed(), ex, ey, out);
+                        && layers[i].directionWithVelocity(r[2 * i], r[2 * i + 1], v[2 * i], v[2 * i + 1], r[2 * j], r[2 * j + 1], v[2 * j], v[2 * j + 1], agents[i].desiredSpeed(), ex, ey, out);
                 text.append(String.format(Locale.ROOT, " %d %.6f %.6f %.6f %.6f", layerOn ? 1 : 0, ex, ey, out[0], out[1]));
             }
             text.append('\n');

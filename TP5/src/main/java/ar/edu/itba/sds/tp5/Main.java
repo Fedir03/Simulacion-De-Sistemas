@@ -33,12 +33,12 @@ public final class Main {
     /** Tope de la corrida extendida, en intervalos experimentales (unos 60 s). */
     public static final int EXTENDED_INTERVALS = 900;
 
-    private static final Set<String> COMMON = Set.of("data", "dt-div", "v0-frames", "delta-a", "integrator", "rho", "frontal-deg", "f-tie", "f-horizon", "f-gate", "f-distance",
+    private static final Set<String> COMMON = Set.of("data", "dt-div", "v0-frames", "delta-a", "integrator", "rho", "frontal-deg", "f-tie", "f-horizon", "f-gate", "f-distance", "p1-ped2", "p2-ped2",
             "trim", "trim-deg", "trim-persist", "trim-half", "trim-target", "trim-shared", "trim-shared-x");
 
     /** Opciones comunes, para el texto de ayuda. */
     public static final String OPTIONS_HELP = """
-            Parámetros: A (p1 = t_a, p2 = l), B (p1 = t_a, p2 = k), F (p1 = A_p, p2 = B_p)
+            Parámetros (con --p1-ped2 y --p2-ped2, el peatón 2 usa los suyos): A (p1 = t_a, p2 = l), B (p1 = t_a, p2 = k), F (p1 = A_p, p2 = B_p), E (p1 = a punta, p2 = b semiancho)
             Opciones: [--data data] [--dt-div 64] [--v0-frames 5] [--delta-a 0.1] [--rho 0.9] [--f-tie metric|angular] [--frontal-deg 5] [--f-horizon Infinity] [--f-gate on|off] [--f-distance centers|edges] [--integrator beeman|verlet]
             Recorte al tramo frontal (D3): [--trim on|off] [--trim-deg 45] [--trim-persist 5] [--trim-half 2] [--trim-target common|own] [--trim-shared on|off] [--trim-shared-x 1.5]
             """;
@@ -56,9 +56,9 @@ public final class Main {
     public static void execute(String[] args) throws IOException {
         if (args.length == 0 || args[0].equals("--help")) {
             System.out.println("""
-                    baseline [opciones] [--layer none|a|b|f --p1 X --p2 Y] [--out outputs/baseline]
+                    baseline [opciones] [--layer none|a|b|f|e --p1 X --p2 Y] [--out outputs/baseline]
                                  todos los eventos: evento_XX.txt
-                    run --event N [opciones] [--layer none|a|b|f --p1 X --p2 Y] [--out outputs/run]
+                    run --event N [opciones] [--layer none|a|b|f|e --p1 X --p2 Y] [--out outputs/run]
                                  un solo evento: evento_XX.txt
                     integrator-check
                                  errores de Verlet y Beeman contra el peatón libre analítico
@@ -151,6 +151,12 @@ public final class Main {
             return AvoidanceLayer.NONE;
         }
         if (!o.containsKey("p1") || !o.containsKey("p2")) throw new IllegalArgumentException("La capa necesita --p1 y --p2");
+        // Calibración individual opcional: el peatón 2 con sus propios parámetros
+        if (o.containsKey("p1-ped2") || o.containsKey("p2-ped2")) {
+            if (!o.containsKey("p1-ped2") || !o.containsKey("p2-ped2")) throw new IllegalArgumentException("Parámetros por peatón: hacen falta --p1-ped2 y --p2-ped2");
+            return Layers.perPedestrian(name, Double.parseDouble(o.get("p1")), Double.parseDouble(o.get("p2")),
+                    Double.parseDouble(o.get("p1-ped2")), Double.parseDouble(o.get("p2-ped2")), constants(o));
+        }
         return Layers.of(name, Double.parseDouble(o.get("p1")), Double.parseDouble(o.get("p2")), constants(o));
     }
 

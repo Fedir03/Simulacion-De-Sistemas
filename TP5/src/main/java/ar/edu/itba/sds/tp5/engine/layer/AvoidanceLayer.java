@@ -28,6 +28,15 @@ public interface AvoidanceLayer {
     boolean direction(double xi, double yi, double xj, double yj, double vxj, double vyj,
                       double vd, double ex, double ey, double[] out);
 
+    /**
+     * Igual que {@link #direction}, con la velocidad propia de i. Por defecto la ignora; la usa la capa E, cuyo
+     * espacio personal apunta según la velocidad.
+     */
+    default boolean directionWithVelocity(double xi, double yi, double vxi, double vyi, double xj, double yj, double vxj, double vyj,
+                                          double vd, double ex, double ey, double[] out) {
+        return direction(xi, yi, xj, yj, vxj, vyj, vd, ex, ey, out);
+    }
+
     /** La capa que usa el agente {@code agent}. Por defecto es la misma para todos. */
     default AvoidanceLayer forAgent(int agent) { return this; }
 
