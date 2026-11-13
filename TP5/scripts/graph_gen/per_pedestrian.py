@@ -267,6 +267,53 @@ def fig_summary(grids, results, out):
     plt.close(fig)
 
 
+TWO_FOUR = {"2p": ("2 parámetros (un par para los dos peatones)", "#7B3294"),
+            "4p": ("4 parámetros (un par por peatón)", "#009E73")}
+SCOPES = {"pob": ("Calibración poblacional (global)", "mismos parámetros en los 19 eventos"),
+          "ind": ("Calibración individual", "parámetros óptimos de cada evento; promedio de los 19 errores")}
+
+
+def fig_two_vs_four(grids, results, scope, metric, out):
+    """Una métrica y un alcance (pob. o ind.): 2 contra 4 parámetros, en A y B. Barras = promedio sobre los 19 eventos."""
+    mname = METRICS[metric][0]
+    fig, ax = plt.subplots(figsize=(8.6, 6.4), constrained_layout=True)
+    x = np.arange(len(grids))
+    width = 0.36
+    top = 0
+    bars = {}
+    for s, (key, (label, color)) in enumerate(TWO_FOUR.items()):
+        err = [results[layer][metric][1][f"{scope}{key[0]}"] for layer in grids]
+        means = np.array([e.mean() for e in err])
+        sem = np.array([e.std(ddof=1) / np.sqrt(len(e)) for e in err])
+        pos = x + (s - 0.5) * width
+        ax.bar(pos, means, width * 0.94, color=color, label=label, zorder=2)
+        ax.errorbar(pos, means, sem, fmt="none", ecolor=INK, elinewidth=1.3, capsize=5, zorder=3)
+        bars[key] = (pos, means, sem)
+        top = max(top, (means + sem).max())
+    pad = 0.025 * top
+    for key, (pos, means, sem) in bars.items():
+        for k, (p, v, s_) in enumerate(zip(pos, means, sem)):
+            text = num(v)
+            if key == "4p":
+                text += f"\n({num(100 * (v / bars['2p'][1][k] - 1), '{:+.0f}')}%)"
+            ax.text(p, v + s_ + pad, text, ha="center", va="bottom", fontsize=13, color=INK, linespacing=1.15)
+    ax.set_ylim(0, top * 1.3)
+    ax.set_xticks(x, [f"capa {layer}" for layer in grids])
+    ax.xaxis.set_major_formatter(matplotlib.ticker.FixedFormatter([f"capa {layer}" for layer in grids]))
+    ax.yaxis.set_major_formatter(COMMA)
+    ax.grid(axis="y", color=GRID, lw=0.8)
+    ax.set_axisbelow(True)
+    ax.set_ylabel(f"⟨{mname}⟩ (m²)")
+    title, subtitle = SCOPES[scope]
+    ax.set_title(f"{title}: {mname}\n", fontsize=17, loc="left", color=INK)
+    ax.text(0, 1.02, subtitle, transform=ax.transAxes, fontsize=12.5, color=MUTED)
+    ax.legend(frameon=False, loc="upper right", fontsize=12.5)
+    fig.text(0.5, -0.03, "Barras de error: error estándar entre eventos (desv. est. / √19). Entre paréntesis, cambio de 4 contra 2 parámetros.",
+             ha="center", fontsize=11, color=MUTED)
+    fig.savefig(out, dpi=150, bbox_inches="tight")
+    plt.close(fig)
+
+
 def fig_distribution(grids, results, out):
     """Error por evento con cada calibración: cajas y una línea gris por evento (comparación pareada)."""
     fig, axes = plt.subplots(2, 2, figsize=(14, 10), constrained_layout=True, sharex=True)
@@ -404,6 +451,9 @@ def main():
     md = tables(grids, results, baseline(folder))
     (folder / "resumen.md").write_text("\n".join(md) + "\n", encoding="utf-8")
     fig_summary(grids, results, figs / "ped_resumen.png")
+    for scope, name in (("pob", "global"), ("ind", "individual")):
+        for metric in METRICS:
+            fig_two_vs_four(grids, results, scope, metric, figs / f"ped_{name}_{metric}.png")
     fig_distribution(grids, results, figs / "ped_distribucion_errores.png")
     for layer, grid in grids.items():
         fig_parameters(grid, results, layer, figs / f"ped_parametros_{layer}.png")
