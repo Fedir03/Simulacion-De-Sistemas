@@ -34,12 +34,14 @@ public final class AnalysisMain {
     public static void execute(String[] args) throws IOException {
         if (args.length == 0 || args[0].equals("--help")) {
             System.out.println("""
-                    baseline [opciones] [--layer none|a|b|f --p1 X --p2 Y] [--out outputs/baseline] [--direction-series true]
+                    baseline [opciones] [--layer none|a|b|f|e --p1 X --p2 Y] [--out outputs/baseline] [--direction-series true]
                                  todos los eventos: evento_XX.txt y ecm.txt
-                    run --event N [opciones] [--layer none|a|b|f --p1 X --p2 Y] [--out outputs/run] [--direction-series true]
+                    run --event N [opciones] [--layer none|a|b|f|e --p1 X --p2 Y] [--out outputs/run] [--direction-series true]
                                  un solo evento; con --direction-series, también direccion_XX.txt (e_t y e_target)
-                    grid --layer a|b|f --p1-values X,Y,... --p2-values X,Y,... --out archivo [opciones]
+                    grid --layer a|b|f|e --p1-values X,Y,... --p2-values X,Y,... --out archivo [opciones]
                                  una fila por par y evento, sin archivos de trayectoria
+                    grid-ped --layer a|b|f|e --p1-values ... --p2-values ... --out archivo
+                                 calibración individual opcional: un par (p1, p2) por peatón, 4 parámetros por evento
                     trim-export [--out outputs/recorte] [opciones]
                                  trayectorias_recortadas.csv y recorte_eventos.csv: el recorte que usa el motor
                     """ + Main.OPTIONS_HELP);
@@ -53,6 +55,7 @@ public final class AnalysisMain {
                 simulate(o, Integer.parseInt(o.get("event")));
             }
             case "grid" -> grid(Main.options(args, Main.with("layer", "p1-values", "p2-values", "out")));
+            case "grid-ped" -> pedestrianGrid(Main.options(args, Main.with("layer", "p1-values", "p2-values", "out")));
             case "trim-export" -> {
                 Map<String, String> o = Main.options(args, Main.with("out"));
                 FrontalTrim.Options trim = FrontalTrim.Options.parse(o);
@@ -94,6 +97,20 @@ public final class AnalysisMain {
         if (Double.isNaN(extended[0]) || Double.isNaN(extended[1]))
             extended = sim.run(agents, e.dtExp(), Main.EXTENDED_INTERVALS).arrival();
         return new EcmReport.EventReport(e, result, Ecm.of(e, result), contacts.stats(), extended);
+    }
+
+    /** Calibración individual opcional: 4 parámetros por evento (un par por peatón). */
+    private static void pedestrianGrid(Map<String, String> o) throws IOException {
+        for (String key : List.of("layer", "p1-values", "p2-values", "out"))
+            if (!o.containsKey(key)) throw new IllegalArgumentException("grid-ped necesita --" + key);
+        double[] p1 = Main.values(o.get("p1-values")), p2 = Main.values(o.get("p2-values"));
+        String layer = o.get("layer");
+        FrontalTrim.Options trim = FrontalTrim.Options.parse(o);
+        List<String> lines = PedestrianGridSearch.run(layer, p1, p2, Main.events(o, trim),
+                SfmParameters.withDeltaA(Main.deltaA(o)), Main.constants(o), Main.integrator(o), Main.dtDiv(o), Main.v0Frames(o));
+        PedestrianGridSearch.write(Path.of(o.get("out")), layer, trim, lines);
+        int pairs = p1.length * p2.length;
+        System.out.println("Grilla por peatón: " + o.get("out") + " | capa=" + layer + " | combinaciones por evento=" + pairs * pairs);
     }
 
     private static void grid(Map<String, String> o) throws IOException {
