@@ -93,7 +93,7 @@ def main():
              "capa (el mismo código). Solo cambia el modelo base:",
              "- **SFM** sin fuerza social: r = 0,25 m, Beeman con Δt = Δt_exp/64 (D1, D4, D5).",
              "- **CPM** (Baglietto y Parisi, 2011): r_min = 0,10 m y r_max = 0,25 m (enunciado), β = 0,9 y τ = 0,5 s (paper), "
-             "v_e = v_d, Δt = r_min/(2 v_max) ≈ Δt_exp/2,1 a Δt_exp/1,6 según el evento. La capa solo actúa sin contacto "
+             "v_e = v_d,max = v_d, Δt = r_min/(2 v_d,max) con la mayor v_d del evento (Ec. 2). La capa solo actúa sin contacto "
              "(Teórica 7, diapo 29); en contacto manda el escape.", "",
              "Error poblacional ⟨E⟩ = promedio sobre los 19 eventos (m²), ± error estándar entre eventos. "
              "Δ pareada = promedio de E_m(CPM) − E_m(SFM) con el mismo par, ± su error estándar. "

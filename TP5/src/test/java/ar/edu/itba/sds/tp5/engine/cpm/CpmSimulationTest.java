@@ -30,6 +30,49 @@ class CpmSimulationTest {
         assertEquals(0.1 / (2 * 1.3), new CpmSimulation(P, AvoidanceLayer.NONE).dt(headOn(0)), 1e-15);
     }
 
+    /** Ec. 2: Δt = r_min/(2 v_d,max) es una regla del modelo; no depende de la velocidad inicial. */
+    @Test void dtDependsOnlyOnTheDesiredSpeed() {
+        Agent fast = new Agent(0, 0, 3, 0, 10, 0, 1.2);
+        assertEquals(0.1 / (2 * 1.2), new CpmSimulation(P, AvoidanceLayer.NONE).dt(new Agent[] { fast }), 1e-15);
+    }
+
+    /** Desde el primer paso valen las reglas: v_0 entra como r_0 = v_d⁻¹(|v_0|), que crece Δr y fija |v| = v_d(r_0 + Δr) hacia el target. */
+    @Test void firstStepFollowsTheRadiusRule() {
+        Agent a = new Agent(0, 0, 0.3, 0.4, 10, 0, 1.0);    // |v_0| = 0,5, apuntando fuera del target
+        CpmSimulation sim = new CpmSimulation(P, AvoidanceLayer.NONE);
+        double dt = sim.dt(new Agent[] { a });
+        double r1 = P.radiusFor(0.5, 1.0) + P.rMax() * dt / P.tau();
+        double[] row = sim.run(new Agent[] { a }, DT_EXP, 1).rows().get(0);
+        assertEquals(P.speed(r1, 1.0), row[3], 1e-12);
+        assertEquals(0, row[4], 1e-12);
+        assertEquals(r1, row[5], 1e-12);
+    }
+
+    /** Ec. 6 y 7: el escape suma solo los e_ij de los j en contacto; un tercero cerca pero sin tocar no cuenta. */
+    @Test void escapeSumsOnlyTheParticlesInContact() {
+        Agent i = new Agent(0, 0, 0, 0, 0, 10, 1.0);
+        Agent touching = new Agent(0.15, 0, 0, 0, 0.15, 10, 1.0);       // r_ij = 0,15 < 2 r_min = 0,2
+        Agent near = new Agent(0, -0.25, 0, 0, 0, -10, 1.0);            // r_ij = 0,25 > 0,2: no toca
+        Simulation.Result r = new CpmSimulation(P, AvoidanceLayer.NONE).run(new Agent[] { i, touching, near }, DT_EXP, 1);
+        double[] row = r.rows().get(0);
+        assertEquals(-1.0, row[3], 1e-12);    // v_e = v_d hacia −x, sin componente en y
+        assertEquals(0.0, row[4], 1e-12);
+        assertEquals(P.rMin(), row[1 + 4 * 3], 1e-12);
+        assertEquals(1, r.contactSteps()[0]);
+        assertEquals(0, r.contactSteps()[2]);
+    }
+
+    /** Ec. 7 con pared: e_iw apunta desde el punto más cercano de la pared hacia el centro de la partícula. */
+    @Test void wallContactEscapesAwayFromTheNearestPoint() {
+        CpmSimulation.Wall floor = (x, y, out) -> { out[0] = x; out[1] = 0; };
+        Agent a = new Agent(0, 0.05, 0, 0, 10, -5, 1.0);     // a r_min/2 del piso
+        Simulation.Result r = new CpmSimulation(P, AvoidanceLayer.NONE, floor).run(new Agent[] { a }, DT_EXP, 1);
+        double[] row = r.rows().get(0);
+        assertEquals(0, row[3], 1e-12);
+        assertEquals(1.0, row[4], 1e-12);
+        assertEquals(P.rMin(), row[5], 1e-12);
+    }
+
     @Test void rowsFallOnTheExperimentalGridAndEndAtTheLastInstant() {
         Simulation.Result r = run(AvoidanceLayer.NONE, 30, new Agent(0, 0, 1, 0, 100, 0, 1));
         assertEquals(30 * Simulation.ROWS_PER_INTERVAL + 1, r.rows().size());
