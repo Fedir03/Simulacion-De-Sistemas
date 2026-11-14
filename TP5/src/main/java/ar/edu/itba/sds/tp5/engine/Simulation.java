@@ -10,7 +10,7 @@ import java.util.List;
  * t_k cae exacto en un paso. Guarda una fila cada dtDiv/4 pasos, de modo que los t_k son las filas múltiplos de 4.
  * Un agente se retira al llegar a δ_a de su target (D13); desde esa fila sus columnas valen NaN.
  */
-public final class Simulation {
+public final class Simulation implements Simulator {
     public static final int DEFAULT_DT_DIV = 64;
     public static final int ROWS_PER_INTERVAL = 4;
 
@@ -32,14 +32,14 @@ public final class Simulation {
         this.layer = layer;
     }
 
-    public int outputEvery() { return dtDiv / ROWS_PER_INTERVAL; }
+    @Override public int outputEvery() { return dtDiv / ROWS_PER_INTERVAL; }
 
     /**
      * Simula hasta {@code intervals} intervalos experimentales, o hasta que se retiren todos.
      *
      * @return trayectoria, con una fila por dt2 desde t = 0
      */
-    public Result run(Agent[] agents, double dtExp, int intervals) {
+    @Override public Result run(Agent[] agents, double dtExp, int intervals) {
         return run(agents, dtExp, intervals, null);
     }
 
@@ -50,7 +50,7 @@ public final class Simulation {
     }
 
     /** Igual que {@link #run(Agent[], double, int)}, avisando cada paso a {@code observer} si no es null. No cambia la corrida. */
-    public Result run(Agent[] agents, double dtExp, int intervals, StepObserver observer) {
+    @Override public Result run(Agent[] agents, double dtExp, int intervals, StepObserver observer) {
         int n = agents.length, every = outputEvery();
         long totalSteps = (long) intervals * dtDiv;
         double dt = dtExp / dtDiv;
@@ -111,10 +111,14 @@ public final class Simulation {
     }
 
     /**
-     * @param rows            filas {t, x1, y1, vx1, vy1, x2, y2, vx2, vy2}, separadas por dt2
+     * @param rows            filas {t, x1, y1, vx1, vy1, x2, y2, vx2, vy2}, separadas por dt2; el CPM agrega al final
+     *                        el radio de cada agente {r1, r2}
      * @param arrival         instante de retiro de cada agente; NaN si no llegó
+     * @param contactSteps    CPM: pasos en contacto (r_ij < r_i + r_j, con velocidad de escape) de cada agente; null en el SFM
      */
-    public record Result(List<double[]> rows, double dt2, double[] arrival) {
+    public record Result(List<double[]> rows, double dt2, double[] arrival, int[] contactSteps) {
+        public Result(List<double[]> rows, double dt2, double[] arrival) { this(rows, dt2, arrival, null); }
+
         /** Posición del agente en la fila; NaN si ya se retiró o si la corrida terminó antes. */
         public double x(int agent, int row) { return row < rows.size() ? rows.get(row)[1 + 4 * agent] : Double.NaN; }
         public double y(int agent, int row) { return row < rows.size() ? rows.get(row)[2 + 4 * agent] : Double.NaN; }
