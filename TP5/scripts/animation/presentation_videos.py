@@ -39,17 +39,19 @@ OUT = Path("outputs/pilot/animaciones_presentacion")
 DEST = Path("presentacion/figuras")
 RUN_A = Path("outputs/pilot/figs/datos/a_3_0.5")
 RUN_B = Path("outputs/pilot/figs/datos/b_3.5_1")
+RUN_E = Path("outputs/pilot/figs/datos/e_3_0.25")
 BASELINE = Path("outputs/baseline")
 ANIM = Path("presentacion/animaciones")
 EVENT = 16
 # Mismos colores que presentation_figures.py (Okabe-Ito); "sin capa" en púrpura para no confundirlo con el gris real
-COLORS = {"real": "#000000", "A": "#0072B2", "B": "#E69F00", "sin capa": "#CC79A7", "izq": "#0072B2", "der": "#E69F00"}
+COLORS = {"real": "#000000", "A": "#0072B2", "B": "#E69F00", "E": "#D55E00", "sin capa": "#CC79A7", "izq": "#0072B2", "der": "#E69F00"}
 # MP4 que usa la presentación -> copia en presentacion/animaciones/ con el nombre de su diapositiva
 COPIES = {
     "anim-recorte.mp4": "01_recorte_evento11.mp4",
     "anim-sin-capa-vs-A.mp4": "02_sin_capa_vs_A_evento16.mp4",
     "anim-A-B.mp4": "03_A_y_B_evento16.mp4",
     "anim-lado-evento12.mp4": "04_lado_contrario_evento12.mp4",
+    "anim-E.mp4": "05_E_evento16.mp4",
 }
 INK, MUTED, GRID = "#0b0b0b", "#52514e", "#e6e5e0"
 MINUS = "−"
@@ -62,7 +64,7 @@ plt.rcParams.update({"font.size": 22, "axes.labelsize": 24, "legend.fontsize": 2
 
 
 # Rótulo de cada corrida en la leyenda (con el par: la diapositiva no lo repite)
-LABELS = {"sin capa": "sin capa", "A": "A(3; 0,5)", "B": "B(3,5; 1)"}
+LABELS = {"sin capa": "sin capa", "A": "A(3; 0,5)", "B": "B(3,5; 1)", "E": "E(3; 0,25)"}
 FRAME_SIZE = (6.6, 3.4)     # pulgadas: a ~5,7 cm de ancho en la diapositiva, 20–24 pt quedan en ~7–9 pt
 FRAME_SIZE_COMPACT = (9.1, 2.08)     # lámina 13: rango de y ajustado y leyenda a la derecha; el lienzo del MP4 sigue al PNG
 
@@ -204,6 +206,16 @@ def a_y_b(event=EVENT):
     return out, t_frame, t_end
 
 
+def capa_e(event=EVENT):
+    header, run_e = read_run(RUN_E / f"evento_{event:02d}.txt")
+    exp = experimental(DATA, header)
+    dt_exp = float(header["dt_exp"])
+    t_frame = real_minimum(exp)
+    t_end = min(e[-1, 0] for e in exp)
+    out = overlay_video("anim-E", exp, {"E": run_e}, dt_exp, t_end, t_frame, compact=True)
+    return out, t_frame, t_end
+
+
 def lado_evento12():
     header, run_a = read_run(RUN_A / "evento_12.txt")
     exp = experimental(DATA, header)
@@ -332,12 +344,12 @@ def recorte(event=RECORTE_EVENT):
 
 
 def main():
-    """Uso: presentation_videos.py [clave ...] con claves recorte, sincapa, ab, lado; sin claves, todas."""
+    """Uso: presentation_videos.py [clave ...] con claves recorte, sincapa, ab, lado, e; sin claves, todas."""
     sys.stdout.reconfigure(encoding="utf-8")
     OUT.mkdir(parents=True, exist_ok=True)
     DEST.mkdir(parents=True, exist_ok=True)
     ANIM.mkdir(parents=True, exist_ok=True)
-    only = set(sys.argv[1:]) or {"recorte", "sincapa", "ab", "lado"}
+    only = set(sys.argv[1:]) or {"recorte", "sincapa", "ab", "lado", "e"}
     if "sincapa" in only:
         out, tf, te, why = sin_capa_vs_a()
         print(f"{out}: fotograma en t = {tf:.2f} s ({why}), duración {te:.2f} s")
@@ -346,6 +358,9 @@ def main():
         print(f"{out}: duración {te:.2f} s")
     if "ab" in only:
         out, tf, te = a_y_b()
+        print(f"{out}: fotograma en t = {tf:.2f} s (mínimo real), duración {te:.2f} s")
+    if "e" in only:
+        out, tf, te = capa_e()
         print(f"{out}: fotograma en t = {tf:.2f} s (mínimo real), duración {te:.2f} s")
     if "lado" in only:
         out, tf, te = lado_evento12()

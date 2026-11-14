@@ -31,6 +31,7 @@ VIDEOS = {
     "https://youtu.be/PENDIENTE-sincapa": "presentacion/animaciones/02_sin_capa_vs_A_evento16.mp4",
     "https://youtu.be/PENDIENTE-ab": "presentacion/animaciones/03_A_y_B_evento16.mp4",
     "https://youtu.be/PENDIENTE-lado": "presentacion/animaciones/04_lado_contrario_evento12.mp4",
+    "https://youtu.be/PENDIENTE-e": "presentacion/animaciones/05_E_evento16.mp4",
 }
 
 BASE = Path(__file__).resolve().parent          # TP5/presentacion

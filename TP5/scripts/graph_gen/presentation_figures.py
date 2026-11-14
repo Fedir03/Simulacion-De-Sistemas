@@ -30,9 +30,9 @@ P = Path("outputs/pilot")
 FIGS = P / "figs"
 DEST = Path("presentacion/figuras")
 DATA = Path("data")
-PAIRS = {"A": (3.0, 0.5), "B": (3.5, 1.0), "F": (0.9, 3.0)}     # mejores de ECM 1 excl. con la compuerta
-COLORS = {"A": "#0072B2", "B": "#E69F00", "F": "#009E73", "exp": "#000000", "base": "#CC79A7"}   # Okabe-Ito; sin capa en púrpura, como en las animaciones
-MARKERS = {"A": "o", "B": "s", "F": "^"}
+PAIRS = {"A": (3.0, 0.5), "B": (3.5, 1.0), "F": (0.9, 3.0), "E": (3.0, 0.25)}     # mejores de ECM 1 excl. con la compuerta
+COLORS = {"A": "#0072B2", "B": "#E69F00", "F": "#009E73", "E": "#D55E00", "exp": "#000000", "base": "#CC79A7"}   # Okabe-Ito; sin capa en púrpura, como en las animaciones; E en bermellón (el verde es de F en el anexo)
+MARKERS = {"A": "o", "B": "s", "F": "^", "E": "D"}
 RHO = 0.9
 INK, MUTED, GRID = "#0b0b0b", "#52514e", "#e6e5e0"
 MINUS = "−"     # signo menos tipográfico (U+2212): con el formateador propio matplotlib no lo pone solo
@@ -288,10 +288,11 @@ MAP_SIZE = (4.6, 4.1)
 HALF_FONT = {"font.size": 19, "axes.labelsize": 21, "legend.fontsize": 18, "xtick.labelsize": 18, "ytick.labelsize": 18}
 HALF_SIZE = (4.8, 4.0)
 MAIN_LAYERS = "AB"      # F salió del análisis principal (decisión del grupo, 11/11): queda solo en M1, R3 y el anexo
-PAIRS_ECM2 = {"A": (2.0, 0.5), "B": (3.5, 1.0), "F": (0.8, 3.0)}     # mejores de ECM 1 excl. y de ECM 2, verificados abajo
+RESULT_LAYERS = "ABE"   # capas con diapositivas de resultados (E se agregó el 14/11; sus mapas van en su propia diapositiva)
+PAIRS_ECM2 = {"A": (2.0, 0.5), "B": (3.5, 1.0), "F": (0.8, 3.0), "E": (3.0, 0.25)}     # mejores de ECM 1 excl. y de ECM 2, verificados abajo
 METRIC_COL = {"ecm1": 3, "ecm2": 5}
 METRIC_LABEL = {"ecm1": "ECM 1", "ecm2": "ECM 2"}
-AXES = {"A": (r"$t_a$ [s]", r"$\ell$ [m]"), "B": (r"$t_a$ [s]", r"$k$"), "F": (r"$A_p$", r"$B_p$ [m]")}
+AXES = {"A": (r"$t_a$ [s]", r"$\ell$ [m]"), "B": (r"$t_a$ [s]", r"$k$"), "F": (r"$A_p$", r"$B_p$ [m]"), "E": (r"$a$ [m]", r"$b$ [m]")}
 NUMBERS = []      # líneas para numeros_figuras_nuevas.md
 
 
@@ -318,7 +319,7 @@ def cell(p1, p2, value1, value2):
 
 
 def grid_ticks(ax, p1, p2):
-    if len(p1) == 10:       # t_a de 0,5 a 5 s: marcas cada 1 s (1, 2, 3, 4, 5)
+    if len(p1) in (10, 12):     # t_a de 0,5 a 5 s o a de 0,5 a 6 m: marcas cada 1 (1, 2, 3, ...)
         ax.set_xticks(range(1, len(p1), 2), [num(f"{v:g}") for v in p1][1::2])
     else:                   # A_p (9 valores): 0,1 0,5 0,9
         ax.set_xticks(range(len(p1))[::4], [num(f"{v:g}") for v in p1][::4])
@@ -344,13 +345,13 @@ def r2_maps():
     other = {"ecm1": "ecm2", "ecm2": "ecm1"}
     note("## Óptimos poblacionales (grilla oficial)")
     for metric in ("ecm1", "ecm2"):
-        data = {layer: grid_matrix(layer, metric) for layer in "ABF"}
+        data = {layer: grid_matrix(layer, metric) for layer in "ABFE"}
         means = {layer: d[1].mean(axis=1) for layer, d in data.items()}
         # Escala de color compartida solo entre A y B (las dos que van juntas en la diapositiva). Los mapas de F del
         # anexo no se regeneran acá: conservan su escala compartida A/B/F de la tanda anterior.
         ab_range = (min(means[l].min() for l in MAIN_LAYERS), max(means[l].max() for l in MAIN_LAYERS))
-        for layer in "ABF":
-            # A y B comparten escala (van juntas); F (anexo) usa la suya
+        for layer in "ABFE":
+            # A y B comparten escala (van juntas); F (anexo) y E (su propia diapositiva) usan la suya
             vmin, vmax = ab_range if layer in MAIN_LAYERS else (means[layer].min(), means[layer].max())
             pairs, _, p1, p2 = data[layer]
             z = np.full((len(p2), len(p1)), np.nan)
@@ -482,7 +483,7 @@ def c1_counts():
     from matplotlib.colors import BoundaryNorm, ListedColormap
     from matplotlib.lines import Line2D
     for metric in ("ecm1", "ecm2"):
-        for layer in MAIN_LAYERS:
+        for layer in RESULT_LAYERS:
             pairs, matrix, p1, p2 = grid_matrix(layer, metric)
             counts = np.zeros((len(p2), len(p1)), dtype=int)
             for k in np.argmin(matrix, axis=0):
@@ -490,7 +491,7 @@ def c1_counts():
                 counts[j, i] += 1
             best, _ = population_optimum(layer, metric)
             top = max(4, int(counts.max()))
-            cmap = ListedColormap(["white"] + [matplotlib.colormaps["Blues" if layer == "A" else "Oranges"](0.25 + 0.6 * q / top)
+            cmap = ListedColormap(["white"] + [matplotlib.colormaps[{"A": "Blues", "B": "Oranges", "E": "Reds"}[layer]](0.25 + 0.6 * q / top)
                                                for q in range(1, top + 1)])
             with plt.rc_context(MAP_FONT):
                 fig, ax = plt.subplots(figsize=(4.6, 4.9), constrained_layout=True)
@@ -503,7 +504,8 @@ def c1_counts():
                 for j in range(len(p2)):
                     for i in range(len(p1)):
                         if counts[j, i]:
-                            ax.text(i, j, str(counts[j, i]), ha="center", va="center", fontsize=25, fontweight="bold", color=INK, zorder=4)
+                            ax.text(i, j, str(counts[j, i]), ha="center", va="center", fontsize=25 if len(p1) <= 10 else 17,
+                                    fontweight="bold", color=INK, zorder=4)
                 bi, bj = cell(p1, p2, *best)
                 # Recuadro (no estrella): la estrella tapaba el número de la celda
                 ax.add_patch(plt.Rectangle((bi - 0.5, bj - 0.5), 1, 1, fill=False, ec=INK, lw=3.2, zorder=5, clip_on=False))
@@ -527,12 +529,15 @@ def c2_boxes():
         with plt.rc_context(HALF_FONT):
             fig, ax = plt.subplots(figsize=HALF_SIZE, constrained_layout=True)
             ticks, labels, tops = [], [], []
-            for g, layer in enumerate(MAIN_LAYERS):
+            for g, layer in enumerate(RESULT_LAYERS):
                 pairs, matrix, _, _ = grid_matrix(layer, metric)
                 best, _ = population_optimum(layer, metric)
                 pop = matrix[pairs.index(best)]
                 ind = matrix.min(axis=0)
                 gain = 100 * (1 - ind.mean() / pop.mean())
+                note(f"- C2 {layer}, {METRIC_LABEL[metric]}: media poblacional {num(f'{pop.mean():.4f}')}, individual "
+                     f"{num(f'{ind.mean():.4f}')}, cambio {num(f'{-gain:+.1f}')} %; óptimo individual = poblacional en "
+                     f"{int((np.argmin(matrix, axis=0) == pairs.index(best)).sum())} de 19")
                 x0, x1 = 3.4 * g, 3.4 * g + 1.4
                 # Una línea por evento: une su E_m con el par poblacional y con su mejor par
                 for a, b in zip(pop, ind):
@@ -546,10 +551,11 @@ def c2_boxes():
                     ax.scatter(np.full(len(v), x), v, s=30, zorder=3,
                                color=COLORS[layer] if filled else "white", edgecolors=COLORS[layer], linewidths=1.3)
                 tops.append(max(pop.max(), ind.max()))
-                ax.text((x0 + x1) / 2, tops[-1] * (1.35 if metric == "ecm2" else 1.06), f"media {num(f'{-gain:+.1f}')} %",
+                # Sin la palabra "media": la diapositiva dice que arriba va el cambio de la media (con tres capas no entraba)
+                ax.text((x0 + x1) / 2, tops[-1] * (1.35 if metric == "ecm2" else 1.06), f"{num(f'{-gain:+.1f}')} %",
                         ha="center", va="bottom", fontsize=15, color=INK)
                 ticks += [x0, x1]
-                labels += [f"{layer}\npobl.", f"{layer}\nindiv."]
+                labels += [f"{layer}\npob.", f"{layer}\nind."]
             if metric == "ecm2":
                 ax.set_yscale("log")
                 ax.set_ylim(top=max(tops) * 3)
@@ -557,7 +563,7 @@ def c2_boxes():
             else:
                 ax.set_ylim(0, max(tops) * 1.22)
             ax.set_xticks(ticks, labels)
-            ax.set_xlim(-0.9, 5.7)
+            ax.set_xlim(-0.9, 3.4 * (len(RESULT_LAYERS) - 1) + 2.3)
             ax.set_ylabel(f"$E_m$, {METRIC_LABEL[metric]} [m²]")
             ax.grid(axis="y", which="major", color=GRID, lw=0.8)
             ax.set_axisbelow(True)
@@ -575,7 +581,7 @@ def t1_distance(event):
         t, a, b = common_times(*exp)
         ax.plot(t, np.hypot(*(a - b).T), color=COLORS["exp"], lw=2.6, label="real", zorder=4)
         d_real = np.hypot(*(a - b).T)
-        runs = [("sin capa", COLORS["base"], base_run)] + [(l, COLORS[l], read_run(run_dir(l) / f"evento_{event:02d}.txt")[1]) for l in MAIN_LAYERS]
+        runs = [("sin capa", COLORS["base"], base_run)] + [(l, COLORS[l], read_run(run_dir(l) / f"evento_{event:02d}.txt")[1]) for l in RESULT_LAYERS]
         note()
         note(f"## Evento representativo {event} (T1)")
         note(f"- D^exp = {num(f'{d_real.min():.3f}')} m en t = {num(f'{t[np.argmin(d_real)]:.2f}')} s")
@@ -585,7 +591,7 @@ def t1_distance(event):
                     label=name, zorder=3)
             k = int(np.nanargmin(d))
             note(f"- {name}: D^sim = {num(f'{d[k]:.3f}')} m en t = {num(f'{run[k, 0]:.2f}')} s")
-        for layer in MAIN_LAYERS:
+        for layer in RESULT_LAYERS:
             e = pair_rows(layer)
             row = e[e[:, 2] == event][0]
             note(f"- {layer}({num(f'{PAIRS[layer][0]:g}')}; {num(f'{PAIRS[layer][1]:g}')}): ECM 1 del evento {num(f'{row[3]:.4f}')} m², "
@@ -858,7 +864,7 @@ def main():
     if "C2" in only: c2_errors()
     if "T1" in only: t1_distance(event)
     if "M1" in only:
-        m1_best("AB", "M1-mejores-pares.pdf")
+        m1_best(RESULT_LAYERS, "M1-mejores-pares.pdf")
         m1_best("ABF", "M1-mejores-pares-con-F.pdf")
     if "C1b" in only: c1_counts()
     if "C2b" in only: c2_boxes()
