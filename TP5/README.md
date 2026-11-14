@@ -17,7 +17,7 @@ Genera `target/tp5.jar` y corre los tests, que usan los datos de `data/`.
 java -jar target/tp5.jar baseline --data data --out outputs/baseline
 java -jar target/tp5.jar run --event 3 --data data --out outputs/run
 ```
-El motor (lo que va al ZIP) escribe `evento_XX.txt` (`t x1 y1 vx1 vy1 x2 y2 vx2 vy2`, cada Δt_exp/4; `NaN` si el peatón ya se retiró). Con `--layer a|b|f --p1 X --p2 Y` corre con capa de elusión. `java -jar target/tp5.jar --help` lista comandos y opciones.
+El motor (lo que va al ZIP) escribe `evento_XX.txt` (`t x1 y1 vx1 vy1 x2 y2 vx2 vy2`, cada Δt_exp/4; `NaN` si el peatón ya se retiró). Con `--layer a|b|f|e --p1 X --p2 Y` corre con capa de elusión. Con `--model cpm` corre el CPM en lugar del SFM (r_min = 0,10 m, r_max = 0,25 m, β = 0,9, τ = 0,5 s, Δt = r_min/(2 v_max)), con las mismas capas; la salida agrega `r1 r2`. `java -jar target/tp5.jar --help` lista comandos y opciones.
 
 El análisis (fuera del ZIP) corre el mismo motor y además escribe `ecm.txt` (ECM 1 en sus dos variantes, ECM 2, N_m, llegadas, distancia mínima, contacto y poblacional), las grillas y el recorte exportado:
 ```bash
@@ -46,4 +46,5 @@ java -cp target/tp5.jar ar.edu.itba.sds.tp5.analysis.AnalysisMain grid --layer a
 - `scripts/graph_gen/layer_checks.py`: recuperación de parámetros, lado por moneda y piso de error (las dos primeras con `diagnostics/LayerChecks`, que no va al ZIP).
 - `scripts/sim_gen/figures.sh`, `scripts/graph_gen/f_figures.py` y `f_animation.py`: figuras y animación comparativas. Necesitan matplotlib (por defecto usan `../TP4/.venv`; cambiar con `PYTHON=...`).
 - `scripts/sim_gen/egg.sh`, `scripts/animation/egg_geometry.py` y `egg_animation.py`: capa E (huevo, `--layer e --p1 a --p2 b`; actúa solo con los huevos en contacto): corridas, diagnóstico de solapes y tres animaciones de tres simulaciones cada una: la original (a = 3, b = 0,35), huevo corto (a = 1, b = 0,35) y el óptimo poblacional (a = 3, b = 0,25). `egg_animation.py --a --b --panels sub:evento,... --out` arma otras.
+- `scripts/sim_gen/cpm.sh` y `scripts/graph_gen/cpm_compare.py`: capas A, B y E sobre el CPM (`--model cpm`, en el motor y en `AnalysisMain`) con las mismas grillas que en el SFM, y comparación de errores con los mismos parámetros (`outputs/cpm/comparacion.md` y `outputs/cpm/figs/`). Tarda menos de un minuto.
 - `tools/build_zip.sh`: arma y verifica el ZIP de entrega.

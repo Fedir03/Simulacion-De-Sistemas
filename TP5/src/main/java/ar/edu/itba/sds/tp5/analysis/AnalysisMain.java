@@ -7,6 +7,7 @@ import ar.edu.itba.sds.tp5.data.PedestrianEvent;
 import ar.edu.itba.sds.tp5.engine.Agent;
 import ar.edu.itba.sds.tp5.engine.SfmParameters;
 import ar.edu.itba.sds.tp5.engine.Simulation;
+import ar.edu.itba.sds.tp5.engine.Simulator;
 import ar.edu.itba.sds.tp5.engine.layer.AvoidanceLayer;
 import ar.edu.itba.sds.tp5.io.OutputFiles;
 import java.io.IOException;
@@ -34,6 +35,7 @@ public final class AnalysisMain {
     public static void execute(String[] args) throws IOException {
         if (args.length == 0 || args[0].equals("--help")) {
             System.out.println("""
+                    Con --model cpm, todos los comandos corren el CPM en lugar del SFM, con las mismas capas.
                     baseline [opciones] [--layer none|a|b|f|e --p1 X --p2 Y] [--out outputs/baseline] [--direction-series true]
                                  todos los eventos: evento_XX.txt y ecm.txt
                     run --event N [opciones] [--layer none|a|b|f|e --p1 X --p2 Y] [--out outputs/run] [--direction-series true]
@@ -68,12 +70,12 @@ public final class AnalysisMain {
     }
 
     private static void simulate(Map<String, String> o, Integer onlyEvent) throws IOException {
-        Simulation sim = Main.simulation(o);
+        Simulator sim = Main.simulation(o);
         AvoidanceLayer layer = Main.layer(o);
         OutputFiles.RunInfo info = Main.runInfo(o);
         Path out = Main.out(o, onlyEvent);
         int v0Frames = Main.v0Frames(o);
-        double radius = SfmParameters.withDeltaA(Main.deltaA(o)).radius();
+        double radius = Main.contactRadius(o);
         List<EcmReport.EventReport> reports = new ArrayList<>();
         for (PedestrianEvent e : Main.events(o, FrontalTrim.Options.parse(o))) {
             if (onlyEvent != null && e.number() != onlyEvent) continue;
@@ -85,11 +87,11 @@ public final class AnalysisMain {
         }
         if (reports.isEmpty()) throw new IllegalArgumentException("No existe el evento " + onlyEvent);
         EcmReport.write(out.resolve("ecm.txt"), reports, info);
-        System.out.println("Salida: " + out + " | eventos=" + reports.size() + " | " + Main.integrator(o) + " dt_exp/" + Main.dtDiv(o) + " | " + layer.label());
+        System.out.println("Salida: " + out + " | eventos=" + reports.size() + " | " + Main.modelLabel(o) + " | " + layer.label());
     }
 
     /** Corre el evento en su ventana, midiendo contactos en cada paso y, si alguien no llegó, hasta el tope para saber cuándo llegaría. */
-    public static EcmReport.EventReport run(Simulation sim, PedestrianEvent e, int v0Frames, double radius) {
+    public static EcmReport.EventReport run(Simulator sim, PedestrianEvent e, int v0Frames, double radius) {
         Agent[] agents = Main.agents(e, v0Frames);
         ContactMonitor contacts = new ContactMonitor(radius);
         Simulation.Result result = sim.run(agents, e.dtExp(), e.windowIntervals(), contacts);
@@ -107,8 +109,8 @@ public final class AnalysisMain {
         String layer = o.get("layer");
         FrontalTrim.Options trim = FrontalTrim.Options.parse(o);
         List<String> lines = PedestrianGridSearch.run(layer, p1, p2, Main.events(o, trim),
-                SfmParameters.withDeltaA(Main.deltaA(o)), Main.constants(o), Main.integrator(o), Main.dtDiv(o), Main.v0Frames(o));
-        PedestrianGridSearch.write(Path.of(o.get("out")), layer, trim, lines);
+                l -> Main.simulator(o, l), Main.contactRadius(o), Main.constants(o), Main.v0Frames(o));
+        PedestrianGridSearch.write(Path.of(o.get("out")), layer + (Main.cpm(o) ? " modelo=CPM" : ""), trim, lines);
         int pairs = p1.length * p2.length;
         System.out.println("Grilla por peatón: " + o.get("out") + " | capa=" + layer + " | combinaciones por evento=" + pairs * pairs);
     }
@@ -120,7 +122,7 @@ public final class AnalysisMain {
         String layer = o.get("layer");
         FrontalTrim.Options trim = FrontalTrim.Options.parse(o);
         List<GridSearch.Row> rows = GridSearch.run(layer, p1, p2, Main.events(o, trim),
-                SfmParameters.withDeltaA(Main.deltaA(o)), Main.constants(o), Main.integrator(o), Main.dtDiv(o), Main.v0Frames(o));
+                l -> Main.simulator(o, l), Main.contactRadius(o), Main.constants(o), Main.v0Frames(o));
         GridSearch.write(Path.of(o.get("out")), layer, trim, rows);
         System.out.println("Grilla: " + o.get("out") + " | capa=" + layer + " | pares=" + p1.length * p2.length);
     }

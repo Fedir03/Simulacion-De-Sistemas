@@ -2,7 +2,7 @@ package ar.edu.itba.sds.tp5.analysis;
 
 import ar.edu.itba.sds.tp5.data.PedestrianEvent;
 import ar.edu.itba.sds.tp5.engine.Agent;
-import ar.edu.itba.sds.tp5.engine.Simulation;
+import ar.edu.itba.sds.tp5.engine.Simulator;
 import ar.edu.itba.sds.tp5.engine.layer.AvoidanceLayer;
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -18,7 +18,7 @@ import java.util.Locale;
 public final class DirectionSeries {
     private DirectionSeries() { }
 
-    public static void write(Path file, PedestrianEvent e, Simulation sim, AvoidanceLayer layer, int v0Frames) throws IOException {
+    public static void write(Path file, PedestrianEvent e, Simulator sim, AvoidanceLayer layer, int v0Frames) throws IOException {
         Files.createDirectories(file.toAbsolutePath().getParent());
         Agent[] agents = { Agent.from(e, 0, v0Frames), Agent.from(e, 1, v0Frames) };
         AvoidanceLayer[] layers = { layer.forAgent(0), layer.forAgent(1) };
@@ -26,7 +26,7 @@ public final class DirectionSeries {
         StringBuilder text = new StringBuilder("# t on1 ex1 ey1 tx1 ty1 on2 ex2 ey2 tx2 ty2\n");
         double[] out = new double[2];
         sim.run(agents, e.dtExp(), e.windowIntervals(), (step, t, r, v, active, on) -> {
-            if (step % every != 0) return;
+            if (step % every != 0) return;     // CPM: todos los pasos (su Δt no está alineado con la salida)
             text.append(String.format(Locale.ROOT, "%.6f", t));
             for (int i = 0; i < 2; i++) {
                 if (!active[i]) {

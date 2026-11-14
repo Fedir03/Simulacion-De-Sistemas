@@ -8,6 +8,9 @@ import ar.edu.itba.sds.tp5.engine.FreePedestrianCheck;
 import ar.edu.itba.sds.tp5.engine.Integrator;
 import ar.edu.itba.sds.tp5.engine.SfmParameters;
 import ar.edu.itba.sds.tp5.engine.Simulation;
+import ar.edu.itba.sds.tp5.engine.Simulator;
+import ar.edu.itba.sds.tp5.engine.cpm.CpmParameters;
+import ar.edu.itba.sds.tp5.engine.cpm.CpmSimulation;
 import ar.edu.itba.sds.tp5.engine.layer.AvoidanceLayer;
 import ar.edu.itba.sds.tp5.engine.layer.LayerConstants;
 import ar.edu.itba.sds.tp5.engine.layer.Layers;
@@ -33,12 +36,13 @@ public final class Main {
     /** Tope de la corrida extendida, en intervalos experimentales (unos 60 s). */
     public static final int EXTENDED_INTERVALS = 900;
 
-    private static final Set<String> COMMON = Set.of("data", "dt-div", "v0-frames", "delta-a", "integrator", "rho", "frontal-deg", "f-tie", "f-horizon", "f-gate", "f-distance", "p1-ped2", "p2-ped2",
+    private static final Set<String> COMMON = Set.of("model", "data", "dt-div", "v0-frames", "delta-a", "integrator", "rho", "frontal-deg", "f-tie", "f-horizon", "f-gate", "f-distance", "p1-ped2", "p2-ped2",
             "trim", "trim-deg", "trim-persist", "trim-half", "trim-target", "trim-shared", "trim-shared-x");
 
     /** Opciones comunes, para el texto de ayuda. */
     public static final String OPTIONS_HELP = """
             Parámetros (con --p1-ped2 y --p2-ped2, el peatón 2 usa los suyos): A (p1 = t_a, p2 = l), B (p1 = t_a, p2 = k), F (p1 = A_p, p2 = B_p), E (p1 = a punta, p2 = b semiancho)
+            Modelo: [--model sfm|cpm] (CPM: r_min = 0,10 m, r_max = 0,25 m, β = 0,9, τ = 0,5 s, Δt = r_min/(2 v_max); ignora --dt-div e --integrator)
             Opciones: [--data data] [--dt-div 64] [--v0-frames 5] [--delta-a 0.1] [--rho 0.9] [--f-tie metric|angular] [--frontal-deg 5] [--f-horizon Infinity] [--f-gate on|off] [--f-distance centers|edges] [--integrator beeman|verlet]
             Recorte al tramo frontal (D3): [--trim on|off] [--trim-deg 45] [--trim-persist 5] [--trim-half 2] [--trim-target common|own] [--trim-shared on|off] [--trim-shared-x 1.5]
             """;
@@ -115,14 +119,40 @@ public final class Main {
     }
     public static Integrator integrator(Map<String, String> o) { return o.containsKey("integrator") ? Integrator.parse(o.get("integrator")) : Integrator.DEFAULT; }
 
-    /** Corrida configurada según las opciones: capa, integrador, Δt y δ_a. */
-    public static Simulation simulation(Map<String, String> o) {
-        return new Simulation(SfmParameters.withDeltaA(deltaA(o)), integrator(o), dtDiv(o), layer(o));
+    /** Si el modelo elegido es el CPM ({@code --model cpm}); por defecto, SFM. */
+    public static boolean cpm(Map<String, String> o) {
+        return switch (o.getOrDefault("model", "sfm").strip().toLowerCase(Locale.ROOT)) {
+            case "sfm" -> false;
+            case "cpm" -> true;
+            default -> throw new IllegalArgumentException("--model debe ser sfm o cpm: " + o.get("model"));
+        };
+    }
+
+    /** Corrida configurada según las opciones: modelo, capa, integrador, Δt y δ_a. */
+    public static Simulator simulation(Map<String, String> o) {
+        return simulator(o, layer(o));
+    }
+
+    /** Corrida con el modelo y las opciones de {@code o}, pero con la capa dada (para las grillas). */
+    public static Simulator simulator(Map<String, String> o, AvoidanceLayer layer) {
+        if (cpm(o)) return new CpmSimulation(CpmParameters.withDeltaA(deltaA(o)), layer);
+        return new Simulation(SfmParameters.withDeltaA(deltaA(o)), integrator(o), dtDiv(o), layer);
+    }
+
+    /** Radio con el que se miden los contactos: r del SFM o r_max del CPM (hay contacto si r_ij &lt; 2 radio). */
+    public static double contactRadius(Map<String, String> o) {
+        return cpm(o) ? CpmParameters.withDeltaA(deltaA(o)).rMax() : SfmParameters.withDeltaA(deltaA(o)).radius();
     }
 
     /** Encabezado de los archivos de salida de la corrida. */
     public static OutputFiles.RunInfo runInfo(Map<String, String> o) {
+        if (cpm(o)) return OutputFiles.RunInfo.cpm(CpmParameters.withDeltaA(deltaA(o)).label(), v0Frames(o), deltaA(o), layer(o).label(), FrontalTrim.Options.parse(o).label());
         return new OutputFiles.RunInfo(integrator(o).name(), dtDiv(o), v0Frames(o), deltaA(o), layer(o).label(), FrontalTrim.Options.parse(o).label());
+    }
+
+    /** Modelo y paso, para los mensajes de la consola. */
+    public static String modelLabel(Map<String, String> o) {
+        return cpm(o) ? CpmParameters.withDeltaA(deltaA(o)).label() : integrator(o) + " dt_exp/" + dtDiv(o);
     }
 
     public static Path out(Map<String, String> o, Integer onlyEvent) {
@@ -130,7 +160,7 @@ public final class Main {
     }
 
     private static void simulate(Map<String, String> o, Integer onlyEvent) throws IOException {
-        Simulation sim = simulation(o);
+        Simulator sim = simulation(o);
         OutputFiles.RunInfo info = runInfo(o);
         Path out = out(o, onlyEvent);
         int v0Frames = v0Frames(o), count = 0;
@@ -141,7 +171,7 @@ public final class Main {
             count++;
         }
         if (count == 0) throw new IllegalArgumentException("No existe el evento " + onlyEvent);
-        System.out.println("Salida: " + out + " | eventos=" + count + " | " + integrator(o) + " dt_exp/" + dtDiv(o) + " | " + layer(o).label());
+        System.out.println("Salida: " + out + " | eventos=" + count + " | " + modelLabel(o) + " | " + layer(o).label());
     }
 
     public static AvoidanceLayer layer(Map<String, String> o) {
