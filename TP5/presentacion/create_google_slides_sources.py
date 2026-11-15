@@ -27,6 +27,8 @@ from pathlib import Path
 # URL (o fragmento de la URL) visible en la página -> MP4 (relativo a TP5/). Cuando se suban los videos a YouTube
 # y el .tex tenga las URL reales, reemplazar cada clave por la URL nueva (o por un fragmento único de ella).
 VIDEOS = {
+    "Reproducir evento 3": "presentacion/animaciones/ecm2_evento03.mp4",
+    "Reproducir evento 6": "presentacion/animaciones/ecm2_evento06.mp4",
     "https://youtu.be/PENDIENTE-recorte": "presentacion/animaciones/01_recorte_evento11.mp4",
     "https://youtu.be/PENDIENTE-sincapa": "presentacion/animaciones/02_sin_capa_vs_A_evento16.mp4",
     "https://youtu.be/PENDIENTE-ab": "presentacion/animaciones/03_A_y_B_evento16.mp4",

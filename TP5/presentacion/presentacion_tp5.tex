@@ -119,8 +119,8 @@
 % ---------- Barra superior por sección ----------
 % Rangos de diapositivas:
 % Introducción 2--7 (incluye Modelo: SFM, CPM, A y B, E) | Implementación 8--9
-% Simulaciones 10--13 | Resultados 14--25 | Conclusiones 26--28
-% Anexo 30--41. El cierre (29) queda fuera de la barra.
+% Simulaciones 10--13 | Resultados 14--29 | Conclusiones 30--32
+% Anexo 34--45. El cierre (33) queda fuera de la barra.
 % Cada rango incluye su \sectiondivider como primera diapositiva del
 % bloque. Si se agregan o quitan diapositivas hay que renumerar estos
 % rangos a mano.
@@ -172,9 +172,9 @@
     \navblock{0.14}{Introducción}{2}{7}%
     \navblock{0.15}{Implementación}{8}{9}%
     \navblock{0.135}{Simulaciones}{10}{13}%
-    \navblock{0.195}{Resultados}{14}{25}%
-    \navblock{0.135}{Conclusiones}{26}{28}%
-    \navblock{0.245}{Anexo}{30}{41}%
+    \navblock{0.195}{Resultados}{14}{29}%
+    \navblock{0.135}{Conclusiones}{30}{32}%
+    \navblock{0.245}{Anexo}{34}{45}%
   }%
 }
 
@@ -764,6 +764,40 @@
   }
 \end{frame}
 
+% Comparación por evento y animaciones de los casos con diferencias en ECM 2.
+\begin{frame}[c]{Errores por evento: ECM 1}
+  \centering
+  \includegraphics[width=\textwidth,height=5.3cm,keepaspectratio]{figuras/errores-por-evento-ABE-ecm1.pdf}
+  \par\vspace{2mm}
+  {\footnotesize Mejor par poblacional de ECM 1: A(3; 0,5), B(3,5; 1) y E(3; 0,25). Un par compartido por ambos peatones y mantenido en los 19 eventos.}
+\end{frame}
+
+\begin{frame}[c]{Errores por evento: ECM 2}
+  \centering
+  \includegraphics[width=\textwidth,height=5.3cm,keepaspectratio]{figuras/errores-por-evento-ABE-ecm2.pdf}
+  \par\vspace{2mm}
+  {\footnotesize Mejor par poblacional de ECM 2: A(2; 0,5), B(3,5; 1) y E(3; 0,25). Un par compartido por ambos peatones y mantenido en los 19 eventos.}
+\end{frame}
+
+\newcommand{\animacioneventoecm}[2]{%
+  \centering
+  \href{run:../animaciones/ecm2_evento#1.mp4}{%
+    \includegraphics[width=\textwidth,height=5.8cm,keepaspectratio]{figuras/anim-evento-#1-ecm2.png}}%
+  \par\vspace{1mm}
+  \ifdefined\versionvivo
+    \phantom{{\small Reproducir evento #2 (0,5$\times$)}}%
+  \else
+    \href{run:../animaciones/ecm2_evento#1.mp4}{{\small\color{TPBlue}Reproducir evento #2 (0,5$\times$)}}%
+  \fi
+}
+\begin{frame}[c]{Evento 3: real frente a A, B y E (ECM 2)}
+  \animacioneventoecm{03}{3}
+\end{frame}
+
+\begin{frame}[c]{Evento 6: real frente a A, B y E (ECM 2)}
+  \animacioneventoecm{06}{6}
+\end{frame}
+
 % 19 -- Calibración individual (punto c): ganancia
 \begin{frame}[c]{Calibración individual: cuánto se gana en ECM 1}
   \centering
@@ -795,7 +829,7 @@
     \end{column}
   \end{columns}
   \par\vspace{1mm}
-  {\footnotesize Mejor par de ECM 1 de cada capa: A(3; 0,5) y B(3,5; 1). Izquierda: debajo de la identidad, el simulado pasa más cerca que el real. Derecha: $c > 0$, llega tarde}
+  {\footnotesize Mejor par de ECM 1 de cada capa: A(3; 0,5), B(3,5; 1) y E(3; 0,25). Izquierda: debajo de la identidad, el simulado pasa más cerca que el real. Derecha: $c > 0$, llega tarde}
 \end{frame}
 
 % ---------------- CONCLUSIONES ----------------

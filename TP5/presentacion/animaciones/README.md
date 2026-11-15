@@ -12,6 +12,14 @@ Copias de los MP4 que usa la presentación, con el nombre de la diapositiva dond
 | `02_sin_capa_vs_A_evento16.mp4` | Animaciones (Resultados), izquierda: sin capa y A | `\animacionSinCapaURL` | `https://youtu.be/PENDIENTE-sincapa` | | 7,3 s |
 | `03_A_y_B_evento16.mp4` | Animaciones (Resultados), derecha: A y B | `\animacionURL` | `https://youtu.be/PENDIENTE-ab` | | 7,3 s |
 | `04_lado_contrario_evento12.mp4` | Anexo: A elige el lado de cruce contrario al real (evento 12) | `\animacionLadoURL` | `https://youtu.be/PENDIENTE-lado` | | 7,2 s |
+| `ecm2_evento03.mp4` | Resultados: evento 3, real frente a A, B y E (ECM 2) | `\animacioneventoecm{03}{3}` | Enlace local: Reproducir evento 3 | | 12,0 s |
+| `ecm2_evento06.mp4` | Resultados: evento 6, real frente a A, B y E (ECM 2) | `\animacioneventoecm{06}{6}` | Enlace local: Reproducir evento 6 | | 11,1 s |
+
+Los videos de ECM2 de los eventos 3 y 6 se generan con `scripts/animation/events_3_6_ecm2.py` y se copian desde
+`outputs/animaciones_eventos_3_6_ecm2/`. Comparan real, A(2; 0,5), B(3,5; 1) y E(3; 0,25), con SFM y ajuste inicial de
+5 cuadros. Se reproducen a media velocidad. En el PDF, el fotograma y el texto «Reproducir evento» abren el MP4 de
+esta carpeta; conservar la estructura `presentacion/generated/` y `presentacion/animaciones/` al mover los archivos.
+El exportador a PPTX reconoce esos textos para insertar los dos videos.
 
 **Cuando se suban a YouTube:**
 1. Completar la columna "URL de YouTube" de esta tabla.

@@ -740,10 +740,9 @@ def r5():
         ax.axhline(RHO, color=MUTED, ls="-.", lw=1.4, zorder=1)
         ax.text(hi, 2 * R, r" $2R$", va="center", ha="left", color=INK, fontsize=19)
         ax.text(hi, RHO, r" $\rho$", va="center", ha="left", color=INK, fontsize=21)
-        for layer in "ABF":
+        for layer in RESULT_LAYERS:
             r = pair_rows(layer)
-            if layer in MAIN_LAYERS:
-                ax.plot(real_d, r[:, 11], MARKERS[layer], color=COLORS[layer], ms=10, mec="white", mew=0.8, ls="none", label=layer, zorder=3)
+            ax.plot(real_d, r[:, 11], MARKERS[layer], color=COLORS[layer], ms=10, mec="white", mew=0.8, ls="none", label=layer, zorder=3)
             dd, lag = r[:, 11] - real_d, r[:, 12] - real_t
             note(f"- {layer}: mediana D^sim − D^exp {num(f'{np.median(dd):.2f}')} m; eventos con D^sim < D^exp {int((dd < 0).sum())}/19; "
                  f"mediana de c {num(f'{np.median(lag):.2f}')} s; eventos tarde (c > 0) {int((lag > 0).sum())}/19")
@@ -760,7 +759,7 @@ def r5():
     with plt.rc_context(COL_FONT):
         fig, ax = plt.subplots(figsize=COL_SIZE, constrained_layout=True)
         rng = np.random.default_rng(1)
-        for g, layer in enumerate(MAIN_LAYERS):
+        for g, layer in enumerate(RESULT_LAYERS):
             lag = pair_rows(layer)[:, 12] - real_t
             x = g + rng.uniform(-0.18, 0.18, size=lag.size)      # dispersión horizontal solo para que no se tapen
             ax.plot(x, lag, MARKERS[layer], color=COLORS[layer], ms=10, mec="white", mew=0.8, ls="none", zorder=3)
@@ -768,8 +767,8 @@ def r5():
         ax.axhline(0, color=MUTED, lw=1.4, zorder=1)
         lo, hi = ax.get_ylim()
         ax.set_ylim(lo, hi + 0.25 * (hi - lo))      # franja libre arriba para la leyenda, sin tocar puntos
-        ax.set_xticks(range(len(MAIN_LAYERS)), list(MAIN_LAYERS))
-        ax.set_xlim(-0.6, len(MAIN_LAYERS) - 0.4)
+        ax.set_xticks(range(len(RESULT_LAYERS)), list(RESULT_LAYERS))
+        ax.set_xlim(-0.6, len(RESULT_LAYERS) - 0.4)
         ax.set_ylabel("corrimiento $c$ [s]")
         ax.grid(axis="y", color=GRID, lw=0.8)
         ax.set_axisbelow(True)
