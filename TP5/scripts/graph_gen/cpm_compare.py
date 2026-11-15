@@ -217,7 +217,7 @@ def figures(sfm, cpm, optimum):
                         fontsize=10.5, color=MUTED)
                 top = max(top, mean + se)
         ax.set_xticks(range(len(SFM)))
-        ax.set_xticklabels([f"Capa {l}\n({PARAMS[l][0]}; {PARAMS[l][1]})" for l in SFM], fontsize=14)
+        ax.set_xticklabels([f"Capa {l}" for l in SFM], fontsize=14)
         ax.tick_params(axis="x", length=0, pad=26)
         ax.set_ylim(0, top * 1.18)
         ax.set_ylabel(f"⟨{label}⟩ poblacional (m²)")
