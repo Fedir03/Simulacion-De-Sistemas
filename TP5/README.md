@@ -33,7 +33,7 @@ java -cp target/tp5.jar ar.edu.itba.sds.tp5.analysis.AnalysisMain grid --layer a
 - `scripts/graph_gen/compare_runs.py`: compara corridas.
 - `scripts/sim_gen/pilot.sh`: piloto de capas (grillas de la especificación y diagnóstico fuera de ellas).
 - `scripts/graph_gen/pilot_analysis.py`: mejores pares, superficies y comparación pareada del piloto.
-- `scripts/sim_gen/sensitivity_v0_layers.sh`: sensibilidad de D12 sobre los mejores pares.
+- `scripts/sim_gen/sensitivity_v0_layers.sh`: sensibilidad de D12 sobre los mejores pares: 3, 5 y 7 cuadros y módulo inicial igual a la rapidez deseada (`v_d = longitud experimental / duración`), conservando la dirección del ajuste de 5 cuadros. Usa `.venv/bin/python` (configurable con `PYTHON`). Después, `.venv/bin/python scripts/graph_gen/presentation_figures.py 11 V0` actualiza `presentacion/figuras/V0-sensibilidad.pdf` con las cuatro variantes. La configuración habitual del motor sigue siendo el ajuste de 5 cuadros.
 - `scripts/sim_gen/sensitivity_rho.sh`: sensibilidad a ρ sobre los mejores pares.
 - `scripts/graph_gen/pilot_compare.py`: F por criterio de desempate y con B_p fijo.
 - `scripts/graph_gen/per_event.py`: comparación de capas evento por evento.

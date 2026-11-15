@@ -119,8 +119,8 @@
 % ---------- Barra superior por sección ----------
 % Rangos de diapositivas:
 % Introducción 2--7 (incluye Modelo: SFM, CPM, A y B, E) | Implementación 8--9
-% Simulaciones 10--13 | Resultados 14--24 | Conclusiones 25--27
-% Anexo 29--42. El cierre (28) queda fuera de la barra.
+% Simulaciones 10--13 | Resultados 14--25 | Conclusiones 26--28
+% Anexo 30--41. El cierre (29) queda fuera de la barra.
 % Cada rango incluye su \sectiondivider como primera diapositiva del
 % bloque. Si se agregan o quitan diapositivas hay que renumerar estos
 % rangos a mano.
@@ -172,9 +172,9 @@
     \navblock{0.14}{Introducción}{2}{7}%
     \navblock{0.15}{Implementación}{8}{9}%
     \navblock{0.135}{Simulaciones}{10}{13}%
-    \navblock{0.195}{Resultados}{14}{24}%
-    \navblock{0.135}{Conclusiones}{25}{27}%
-    \navblock{0.245}{Anexo}{29}{42}%
+    \navblock{0.195}{Resultados}{14}{25}%
+    \navblock{0.135}{Conclusiones}{26}{28}%
+    \navblock{0.245}{Anexo}{30}{41}%
   }%
 }
 
@@ -720,77 +720,82 @@
   \end{center}
 \end{frame}
 
-% 16 -- Calibración poblacional (punto b): mapas de las dos métricas
-\newcommand{\mapados}[3]{%
-  {\footnotesize Cada celda: error poblacional $\langle E\rangle$ (#2, promedio de los 19 eventos) con ese par. Más claro = menos error. Fila $\ell = 0$ o $k = 0$: la capa no desvía y el error es el de sin capa}
+% 16 -- Calibración poblacional: un mapa por diapositiva; color = ECM 1.
+\newcommand{\mapaecmuno}[2]{%
+  \centering
+  \includegraphics[width=0.93\textwidth,height=5.3cm,keepaspectratio]{figuras/R2-#1-ecm1.pdf}
   \par\vspace{1mm}
-  \begin{columns}[T,onlytextwidth]
-    \begin{column}{0.49\textwidth}\centering\maybeimage{figuras/R2-A-#1.pdf}{4.1cm}{A, #2}\par{\small A: $(t_a,\ \ell)$}\end{column}
-    \begin{column}{0.49\textwidth}\centering\maybeimage{figuras/R2-B-#1.pdf}{4.1cm}{B, #2}\par{\small B: $(t_a,\ k)$}\end{column}
-  \end{columns}
-  \par\vspace{1mm}
-  {\footnotesize Color: $\langle E\rangle$ (#2) de cada par de la grilla. Estrella: óptimo de #2; círculo vacío: óptimo de #3}%
+  {\footnotesize #2\par
+   Color: ECM 1 promedio de los 19 eventos; más claro = menos error.\par
+   Estrella: óptimo de ECM 1; círculo vacío: óptimo de ECM 2.}%
 }
-\begin{frame}{Calibración poblacional: ECM 1 en la grilla}
-  \mapados{ecm1}{ECM 1}{ECM 2}
+\begin{frame}[c]{Calibración poblacional: capa A, ECM 1}
+  \mapaecmuno{A}{Parámetros: $(t_a,\ \ell)$. Con $\ell = 0$, la capa no desvía.}
 \end{frame}
 
-\begin{frame}{Calibración poblacional: ECM 2 en la grilla}
-  \mapados{ecm2}{ECM 2}{ECM 1}
+\begin{frame}[c]{Calibración poblacional: capa B, ECM 1}
+  \mapaecmuno{B}{Parámetros: $(t_a,\ k)$. Con $k = 0$, la capa no desvía.}
 \end{frame}
 
-\begin{frame}{Calibración poblacional: capa E en la grilla}
-  {\footnotesize Cada celda: error poblacional $\langle E\rangle$ con ese par. Más claro = menos error. Escala propia de cada mapa}
-  \par\vspace{1mm}
-  \begin{columns}[T,onlytextwidth]
-    \begin{column}{0.49\textwidth}\centering\maybeimage{figuras/R2-E-ecm1.pdf}{4.1cm}{E, ECM 1}\par{\small ECM 1}\end{column}
-    \begin{column}{0.49\textwidth}\centering\maybeimage{figuras/R2-E-ecm2.pdf}{4.1cm}{E, ECM 2}\par{\small ECM 2}\end{column}
-  \end{columns}
-  \par\vspace{1mm}
-  {\footnotesize Estrella: óptimo de la métrica del mapa; círculo vacío: óptimo de la otra. Las dos coinciden en (3; 0,25), en el borde $b = 0{,}25$ m de la grilla}
+\begin{frame}[c]{Calibración poblacional: capa E, ECM 1}
+  \mapaecmuno{E}{Parámetros: $(a,\ b)$. Los dos óptimos coinciden en $(3;\ 0{,}25)$, en el borde de la grilla.}
 \end{frame}
 
 % 17 -- Mejores pares y validación cruzada (puntos b y d)
-\begin{frame}[c]{Mejor par de cada capa y validación cruzada}
-  \resultadofigura{figuras/M1-mejores-pares.pdf}{6.0cm}{ECM 1 y ECM 2 del mejor par, y ECM 1 de validación}
-    {\item 5000 particiones: 14 eventos para calibrar y 5 para validar
-     \item Semilla 20261116
-     \item Sin capa no tiene parámetros: no hay validación}{}{}
-\end{frame}
-
-% 18 -- Calibración individual (punto c): óptimos
-\begin{frame}{Calibración individual: dónde cae el óptimo de cada evento}
-  \noindent{\footnotesize Para cada evento, el par de la grilla que minimiza su $E_m$ (ECM 1). Número en la celda: cuántos eventos tienen ahí su óptimo. Recuadro negro: óptimo poblacional. ECM 2, en el anexo}
-  \par\vspace{1mm}
-  \begin{columns}[T,onlytextwidth]
-    \begin{column}{0.49\textwidth}\centering\maybeimage{figuras/C1-conteo-A-ecm1.pdf}{4.9cm}{Óptimos individuales, A, ECM 1}\par{\small A: $(t_a,\ \ell)$}\end{column}
-    \begin{column}{0.49\textwidth}\centering\maybeimage{figuras/C1-conteo-B-ecm1.pdf}{4.9cm}{Óptimos individuales, B, ECM 1}\par{\small B: $(t_a,\ k)$}\end{column}
-  \end{columns}
-\end{frame}
-
-\begin{frame}{Calibración individual: capa E}
-  \noindent{\footnotesize Igual que para A y B, con las dos métricas: número en la celda, cuántos eventos tienen ahí su óptimo; recuadro negro, óptimo poblacional}
-  \par\vspace{1mm}
-  \begin{columns}[T,onlytextwidth]
-    \begin{column}{0.49\textwidth}\centering\maybeimage{figuras/C1-conteo-E-ecm1.pdf}{4.9cm}{Óptimos individuales, E, ECM 1}\par{\small ECM 1}\end{column}
-    \begin{column}{0.49\textwidth}\centering\maybeimage{figuras/C1-conteo-E-ecm2.pdf}{4.9cm}{Óptimos individuales, E, ECM 2}\par{\small ECM 2}\end{column}
-  \end{columns}
+\begin{frame}[c]{ECM 1 de validación y ECM 2 por capa}
+  \begin{center}
+    \renewcommand{\arraystretch}{1.7}
+    \begin{tabular}{@{}lcc@{}}
+      \hline
+      \noalign{\vskip 2mm}
+      \textbf{Capa} & \shortstack{\textbf{ECM 1 de validación}\\media $\pm$ desv. est. (m$^2$)} & \shortstack{\textbf{ECM 2 de calibración}\\(m$^2$)} \\ \hline
+      A & $0{,}4510 \pm 0{,}1028$ & $0{,}0455$ \\
+      B & $0{,}4217 \pm 0{,}1017$ & $0{,}0408$ \\
+      E & $0{,}4318 \pm 0{,}1014$ & $0{,}0408$ \\ \hline
+    \end{tabular}
+  \end{center}
+  \vspace{3mm}
+  {\small
+    \begin{itemize}
+      \item ECM 1: 5000 particiones, con 14 eventos para calibrar y 5 para validar. Desviación estándar entre particiones.
+      \item ECM 2: mínimo promedio de los 19 eventos, optimizado por separado.
+      \item Un par compartido por ambos peatones. Semilla: 20261116.
+    \end{itemize}
+  }
 \end{frame}
 
 % 19 -- Calibración individual (punto c): ganancia
-\begin{frame}{Calibración individual: cuánto se gana}
-  \noindent{\footnotesize Distribución de $E_m$ en los 19 eventos: con el par poblacional (lleno) y con el mejor par de cada evento (vacío). Arriba: cambio de la media}
-  \par\vspace{1mm}
+\begin{frame}[c]{Calibración individual: cuánto se gana en ECM 1}
+  \centering
+  \includegraphics[width=\textwidth,height=5.3cm,keepaspectratio]{figuras/C2-ecm1.pdf}
+  \par\vspace{2mm}
+  {\footnotesize Distribución de $E_m$ en los 19 eventos: con el par poblacional (lleno) y con el mejor par de cada evento (vacío). Arriba: cambio de la media.}
+\end{frame}
+
+\begin{frame}[c]{Calibración individual: cuánto se gana en ECM 2}
+  \centering
+  \includegraphics[width=\textwidth,height=5.3cm,keepaspectratio]{figuras/C2-ecm2.pdf}
+  \par\vspace{2mm}
+  {\footnotesize Distribución de $E_m$ en los 19 eventos: con el par poblacional (lleno) y con el mejor par de cada evento (vacío). Arriba: cambio de la media.}
+\end{frame}
+
+\begin{frame}[c]{Sensibilidad a la velocidad inicial}
+  \resultadofigura{figuras/V0-sensibilidad.pdf}{5.5cm}{ECM 1 con ajuste inicial de 3, 5 y 7 cuadros y con rapidez deseada}
+    {\item Variante $v_d$: módulo deseado y dirección del ajuste de 5 cuadros
+     \item $\rho = 0{,}9$ m}{}{}
+\end{frame}
+
+\begin{frame}{Distancia mínima y corrimiento}
   \begin{columns}[T,onlytextwidth]
     \begin{column}{0.49\textwidth}
-      \centering\maybeimage{figuras/C2-ecm1.pdf}{4.9cm}{$E_m$ poblacional vs individual, ECM 1}
-      \par{\small ECM 1}
+      \centering\maybeimage{figuras/R5-distancia-minima.pdf}{5.0cm}{$D^{\mathrm{sim}}$ vs $D^{\mathrm{exp}}$}
     \end{column}
     \begin{column}{0.49\textwidth}
-      \centering\maybeimage{figuras/C2-ecm2.pdf}{4.9cm}{$E_m$ poblacional vs individual, ECM 2}
-      \par{\small ECM 2}
+      \centering\maybeimage{figuras/R5b-corrimiento.pdf}{5.0cm}{Corrimiento $c$ por evento}
     \end{column}
   \end{columns}
+  \par\vspace{1mm}
+  {\footnotesize Mejor par de ECM 1 de cada capa: A(3; 0,5) y B(3,5; 1). Izquierda: debajo de la identidad, el simulado pasa más cerca que el real. Derecha: $c > 0$, llega tarde}
 \end{frame}
 
 % ---------------- CONCLUSIONES ----------------
@@ -861,13 +866,8 @@
   \end{itemize}
 \end{frame}
 
-\begin{frame}{Anexo: capa F, ECM en la grilla}
-  \begin{columns}[T,onlytextwidth]
-    \begin{column}{0.49\textwidth}\centering\maybeimage{figuras/R2-F-ecm1.pdf}{4.6cm}{F, ECM 1}\par{\small ECM 1}\end{column}
-    \begin{column}{0.49\textwidth}\centering\maybeimage{figuras/R2-F-ecm2.pdf}{4.6cm}{F, ECM 2}\par{\small ECM 2}\end{column}
-  \end{columns}
-  \par\vspace{1mm}
-  {\footnotesize Color: $\langle E\rangle$ de cada par $(A_p, B_p)$. Estrella: óptimo de la métrica del mapa; círculo vacío: óptimo de la otra. Mejor par: (0,9; 3) en ECM 1 y (0,8; 3) en ECM 2, en el borde de la grilla}
+\begin{frame}[c]{Anexo: capa F, ECM 1 en la grilla}
+  \mapaecmuno{F}{Parámetros: $(A_p,\ B_p)$. Mejor par de ECM 1: $(0{,}9;\ 3)$, en el borde de la grilla.}
 \end{frame}
 
 % 31
@@ -900,13 +900,9 @@
   {\footnotesize En el evento 12 los peatones reales se cruzan dejando al otro a su derecha (pasan por su izquierda); con A, la regla de lado los desvía a su derecha y se cruzan del otro lado. Pasa en 5 de 19 eventos (6, 8, 10, 12 y 17)}
 \end{frame}
 
-\begin{frame}{Anexo: calibración individual en ECM 2}
-  \noindent{\footnotesize Igual que en Resultados, con ECM 2: número en la celda, cuántos eventos tienen ahí su óptimo; recuadro negro, óptimo poblacional de ECM 2}
-  \par\vspace{1mm}
-  \begin{columns}[T,onlytextwidth]
-    \begin{column}{0.49\textwidth}\centering\maybeimage{figuras/C1-conteo-A-ecm2.pdf}{4.9cm}{Óptimos individuales, A, ECM 2}\par{\small A: $(t_a,\ \ell)$}\end{column}
-    \begin{column}{0.49\textwidth}\centering\maybeimage{figuras/C1-conteo-B-ecm2.pdf}{4.9cm}{Óptimos individuales, B, ECM 2}\par{\small B: $(t_a,\ k)$}\end{column}
-  \end{columns}
+\begin{frame}[c]{Anexo: parámetros compartidos y por peatón (A, B y E)}
+  \centering
+  \includegraphics[width=\textwidth,height=6.3cm,keepaspectratio]{figuras/parametros-por-peaton-ABE.pdf}
 \end{frame}
 
 % 27
@@ -920,18 +916,7 @@
 \end{frame}
 
 % 28
-\begin{frame}{Anexo: distancia mínima y corrimiento}
-  \begin{columns}[T,onlytextwidth]
-    \begin{column}{0.49\textwidth}
-      \centering\maybeimage{figuras/R5-distancia-minima.pdf}{5.0cm}{$D^{\mathrm{sim}}$ vs $D^{\mathrm{exp}}$}
-    \end{column}
-    \begin{column}{0.49\textwidth}
-      \centering\maybeimage{figuras/R5b-corrimiento.pdf}{5.0cm}{Corrimiento $c$ por evento}
-    \end{column}
-  \end{columns}
-  \par\vspace{1mm}
-  {\footnotesize Mejor par de ECM 1 de cada capa: A(3; 0,5) y B(3,5; 1). Izquierda: debajo de la identidad, el simulado pasa más cerca que el real. Derecha: $c > 0$, llega tarde}
-\end{frame}
+
 
 % 29
 \begin{frame}[c]{Anexo: robustez frente a $\rho$}
@@ -948,11 +933,7 @@
 \end{frame}
 
 % 32
-\begin{frame}[c]{Anexo: sensibilidad a la velocidad inicial}
-  \resultadofigura{figuras/V0-sensibilidad.pdf}{5.5cm}{ECM 1 con $v_0$ de 3, 5 y 7 cuadros}
-    {\item $v_0$: ajuste lineal de los primeros cuadros del tramo
-     \item $\rho = 0{,}9$ m}{}{}
-\end{frame}
+
 
 % 33--35: tabla de correcciones (Notion "Correcciones a la IA" + docs/ia/correcciones.md)
 \newcommand{\corrhead}{\hline \textbf{Fecha} & \textbf{Qué hizo la IA} & \textbf{Corrección} \\ \hline}

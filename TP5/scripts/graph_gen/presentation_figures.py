@@ -785,31 +785,35 @@ def v0_sensitivity():
         return float(np.mean(e))
 
     note()
-    note("## Sensibilidad a v_0 (ECM 1 excl. poblacional; control contra 0,4515/0,4282/0,3960 y 0,4333/0,4128/0,3861)")
+    note("## Sensibilidad a v_0 (ECM 1 excl. poblacional; v_d conserva la dirección del ajuste de 5 cuadros)")
     with plt.rc_context(COL_FONT):
         fig, ax = plt.subplots(figsize=COL_SIZE, constrained_layout=True)
-        w = 0.26
-        shades = {3: "#cfcfcf", 5: "#6e6e6e", 7: "#ffffff"}
-        hatches = {3: None, 5: None, 7: "///"}
+        variants = (3, 5, 7, "desired")
+        w = 0.21
+        shades = {3: "#cfcfcf", 5: "#6e6e6e", 7: "#ffffff", "desired": "#ffffff"}
+        hatches = {3: None, 5: None, 7: "///", "desired": "..."}
+        labels = {3: "3 cuadros", 5: "5 cuadros (base)", 7: "7 cuadros", "desired": r"Rapidez deseada $v_d$"}
+        largest = 0
         for g, layer in enumerate("AB"):
             pair = PAIRS[layer]
             folder = P / "sensitivity_v0" / f"{layer}_{pair[0]:g}_{pair[1]:g}"
-            vals = {n: mean_ecm1(folder / f"v0_{n}") for n in (3, 5, 7)}
-            note(f"- {layer}({num(f'{pair[0]:g}')}; {num(f'{pair[1]:g}')}): " + " / ".join(num(f"{vals[n]:.4f}") for n in (3, 5, 7)))
-            for k, n in enumerate((3, 5, 7)):
-                x = g + (k - 1) * w
+            vals = {n: mean_ecm1(folder / f"v0_{n}") for n in variants}
+            largest = max(largest, max(vals.values()))
+            note(f"- {layer}({num(f'{pair[0]:g}')}; {num(f'{pair[1]:g}')}), 3 / 5 / 7 / v_d: " + " / ".join(num(f"{vals[n]:.4f}") for n in variants))
+            for k, n in enumerate(variants):
+                x = g + (k - 1.5) * w
                 ax.bar(x, vals[n], w, color=shades[n], edgecolor=INK, lw=1.0, hatch=hatches[n],
-                       label=(f"{n} cuadros" + (" (base)" if n == 5 else "")) if g == 0 else None, zorder=2)
+                       label=labels[n] if g == 0 else None, zorder=2)
                 ax.text(x, vals[n] + 0.008, num(f"{vals[n]:.3f}"), ha="center", va="bottom", fontsize=12, color=INK)
         ax.set_xticks(range(2), [f"A({num(f'{PAIRS[l][0]:g}')}; {num(f'{PAIRS[l][1]:g}')})" if l == "A"
                                   else f"B({num(f'{PAIRS[l][0]:g}')}; {num(f'{PAIRS[l][1]:g}')})" for l in "AB"])
         ax.set_xlim(-0.6, 1.6)
-        ax.set_ylim(0, 0.62)
+        ax.set_ylim(0, max(0.68, largest * 1.5))
         ax.set_ylabel("ECM 1 [m²]")
         ax.grid(axis="y", color=GRID, lw=0.8)       # sin style(): su formateador numérico pisaría los nombres de los pares
         ax.set_axisbelow(True)
         ax.yaxis.set_major_formatter(COMMA)
-        ax.legend(loc="upper center", ncol=3, frameon=True, framealpha=0.95, fontsize=13, columnspacing=0.8)
+        ax.legend(loc="upper center", ncol=2, frameon=True, framealpha=0.95, fontsize=13, columnspacing=0.8)
         save(fig, "V0-sensibilidad.pdf")
 
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Compara el ECM de cada mejor par del piloto al ajustar v0 con 3, 5 y 7 frames, contra el mismo cambio sin capa.
+"""Compara v0 con 3, 5 y 7 frames y con módulo v_d, conservando la dirección del ajuste de 5 frames.
 
 Uso: python scripts/graph_gen/pilot_sensitivity.py [carpeta del piloto]
 """
@@ -23,22 +23,26 @@ def read(folder):
 
 def row(label, folder, metric):
     m = METRICS.index(metric)
-    runs = {n: read(Path(folder) / f"v0_{n}") for n in (3, 5, 7)}
+    variants = (3, 5, 7, "desired")
+    runs = {n: read(Path(folder) / f"v0_{n}") for n in variants}
+    if any(set(run) != set(runs[5]) for run in runs.values()):
+        raise ValueError(f"Las variantes no contienen los mismos eventos: {folder}")
     pop = {n: np.mean([v[m] for v in runs[n].values()]) for n in runs}
-    out = [f"{label:16s} {metric:13s} {pop[3]:.4f} {pop[5]:.4f} {pop[7]:.4f}"]
-    for n in (3, 7):
+    out = [f"{label:16s} {metric:13s} " + " ".join(f"{pop[n]:.4f}" for n in variants)]
+    for n in (3, 7, "desired"):
         change = abs(pop[n] - pop[5]) / pop[5] * 100
         per_event = {e: abs(runs[n][e][m] - runs[5][e][m]) / runs[5][e][m] * 100 for e in runs[5]}
         worst = max(per_event, key=per_event.get)
         out.append(f"{change:6.2f}% {per_event[worst]:6.1f}% (ev {worst:2d})")
-    contacts = "/".join(str(sum(v[3] for v in runs[n].values())) for n in (3, 5, 7))
+    contacts = "/".join(str(sum(v[3] for v in runs[n].values())) for n in variants)
     return " | ".join(out) + f" | contactos {contacts}"
 
 
 def main():
     pilot = Path(sys.argv[1] if len(sys.argv) > 1 else "outputs/pilot")
     base = pilot / "sensitivity_v0"
-    print("par              metrica       E(3) E(5) E(7) | 3vs5 pob, max evento | 7vs5 pob, max evento | contactos 3/5/7")
+    print("v_d = longitud experimental / duración del tramo; dirección inicial = ajuste de 5 cuadros; parámetros fijos.")
+    print("par              metrica       E(3) E(5) E(7) E(v_d) | 3vs5 pob, max evento | 7vs5 pob, max evento | vdvs5 pob, max evento | contactos 3/5/7/vd")
     for metric in METRICS:
         print(row("sin capa", base / "base", metric))
     for line in (pilot / "mejores.txt").read_text(encoding="utf-8").splitlines():
