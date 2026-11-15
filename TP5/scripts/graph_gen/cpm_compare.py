@@ -221,7 +221,6 @@ def figures(sfm, cpm, optimum):
         ax.tick_params(axis="x", length=0, pad=26)
         ax.set_ylim(0, top * 1.18)
         ax.set_ylabel(f"⟨{label}⟩ poblacional (m²)")
-        ax.set_title(f"{label}: menor es mejor. Barras: error estándar entre los 19 eventos", loc="left")
         ax.grid(axis="y", color=GRID, lw=0.8)
         ax.set_axisbelow(True)
         ax.yaxis.set_major_formatter(COMMA)
