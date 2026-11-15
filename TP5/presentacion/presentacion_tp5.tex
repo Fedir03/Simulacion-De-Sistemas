@@ -118,9 +118,9 @@
 
 % ---------- Barra superior por sección ----------
 % Rangos de diapositivas:
-% Introducción 2--7 (incluye Modelo: SFM, CPM, A y B, E) | Implementación 8--9
-% Simulaciones 10--13 | Resultados 14--29 | Conclusiones 30--32
-% Anexo 34--45. El cierre (33) queda fuera de la barra.
+% Introducción 2--6 (incluye Modelo: SFM, A y B, E) | Implementación 7--8
+% Simulaciones 9--12 | Resultados 13--28 | Conclusiones 29--31
+% Anexo 33--44. El cierre (32) queda fuera de la barra.
 % Cada rango incluye su \sectiondivider como primera diapositiva del
 % bloque. Si se agregan o quitan diapositivas hay que renumerar estos
 % rangos a mano.
@@ -169,12 +169,12 @@
 % entre las dos ramas de \TPheadline (con y sin franja de relleno).
 \newcommand{\TPnavrow}{%
   \makebox[\paperwidth][l]{%
-    \navblock{0.14}{Introducción}{2}{7}%
-    \navblock{0.15}{Implementación}{8}{9}%
-    \navblock{0.135}{Simulaciones}{10}{13}%
-    \navblock{0.195}{Resultados}{14}{29}%
-    \navblock{0.135}{Conclusiones}{30}{32}%
-    \navblock{0.245}{Anexo}{34}{45}%
+    \navblock{0.14}{Introducción}{2}{6}%
+    \navblock{0.15}{Implementación}{7}{8}%
+    \navblock{0.135}{Simulaciones}{9}{12}%
+    \navblock{0.195}{Resultados}{13}{28}%
+    \navblock{0.135}{Conclusiones}{29}{31}%
+    \navblock{0.245}{Anexo}{33}{44}%
   }%
 }
 
@@ -398,40 +398,6 @@
   \end{columns}
 \end{frame}
 
-% 4 -- CPM (Baglietto y Parisi 2011, Ec. 1 a 9; Teórica 7, diapo 29)
-\begin{frame}{Dinámica peatonal: CPM}
-  \setlength{\abovedisplayskip}{1pt}\setlength{\belowdisplayskip}{1pt}
-  \begin{columns}[T,onlytextwidth]
-    \begin{column}{0.62\textwidth}
-      {\small\textbf{Contacto:} $i$ toca a $j$ si $|\mathbf{x}_i - \mathbf{x}_j| < r_i + r_j$}
-      \par\vspace{1mm}
-      {\small\textbf{Radio}}
-      \[ r_i \leftarrow \begin{cases} r_{\min} & \text{en contacto} \\ \min\!\big(r_{\max},\ r_i + r_{\max}\,\Delta t/\tau\big) & \text{libre} \end{cases} \]
-      {\small\textbf{Velocidad}}
-      \[ \mathbf{v}_i = \begin{cases} v_e\,\mathcal{N}\big(\textstyle\sum_j \mathbf{e}_{ij}\big) & \text{en contacto} \\[1mm] v_d \left(\dfrac{r_i - r_{\min}}{r_{\max} - r_{\min}}\right)^{\!\beta} \mathbf{e}_i & \text{libre} \end{cases} \]
-      {\small\textbf{Avance}}
-      \[ \mathbf{x}_i(t + \Delta t) = \mathbf{x}_i(t) + \mathbf{v}_i\,\Delta t \]
-      {\small\textbf{Paso:} $\Delta t = r_{\min}/\big(2\max(v_d,\ v_e)\big)$}
-    \end{column}
-    \begin{column}{0.35\textwidth}
-      \begin{itemize}\footnotesize\setlength{\itemsep}{0pt}
-        \item $r_i$: radio de $i$, entre $r_{\min}$ y $r_{\max}$
-        \item $\tau$: el radio crece $r_{\max}$ en un tiempo $\tau$
-        \item $\beta$: forma de la rapidez según el radio
-        \item $v_e$: rapidez de escape
-        \item $\mathbf{e}_{ij}$: versor de $j$ a $i$, con $j$ en contacto
-        \item $\mathcal{N}(\mathbf{u}) = \mathbf{u}/|\mathbf{u}|$
-        \item $\mathbf{e}_i$: como en el SFM
-        \item $\Delta t$: paso fijo, parte de las reglas
-      \end{itemize}
-    \end{column}
-  \end{columns}
-  \begin{itemize}\footnotesize\setlength{\itemsep}{0pt}
-    \item Sin inercia: $\mathbf{v}_i$ se recalcula en cada paso. La capa solo actúa sin contacto (Teórica 7)
-    \item \textbf{Adaptaciones:} $v_d$ propia de cada peatón ($\Delta t$ con la mayor); $\mathbf{v}_i(0)$ entra como $r_i(0)$, el radio con rapidez $|\mathbf{v}_i(0)|$
-  \end{itemize}
-\end{frame}
-
 % 5 -- Capa: detección (común a A y B). Teórica 7, diapo 9 (Predictive Collision Avoidance)
 \begin{frame}{Capas A y B: detección}
   \setlength{\abovedisplayskip}{2pt}\setlength{\belowdisplayskip}{2pt}
@@ -597,7 +563,6 @@
     \draw[flechagris] (out) -- (me);
   \end{tikzpicture}
   \par\vspace{2mm}
-  {\footnotesize $\Delta t_{\mathrm{exp}}$: tiempo entre cuadros de los datos. \textbf{SFM:} Beeman de TP4. $\Delta t_{\mathrm{exp}}/32$ contra $/64$, con A(3;~0,5) y B(3,5;~1): el ECM 1 de cada evento cambia a lo sumo 0,18\,\%. Antes del recorte, con A(2,5;~2,5), el ECM 1 poblacional cambiaba 2,12\,\%: por eso se usa $/64$. \textbf{CPM:} $\Delta t$ es regla del modelo; cada fila sale de la recta del paso en que cae}
 \end{frame}
 
 % ---------------- SIMULACIONES ----------------
@@ -628,29 +593,18 @@
 \begin{frame}{Sistema: parámetros}
   \footnotesize
   \textbf{Fijos}
-  \begin{columns}[T,onlytextwidth]
-    \begin{column}{0.48\textwidth}
-      \begin{itemize}[itemsep=1pt,topsep=2pt]
-        \item \textbf{SFM:} $m = 80$~kg; $\tau = 0{,}5$~s; $R = 0{,}25$~m
-        \item $k_n = 1{,}2\cdot 10^5$ N/m; $k_t = 2{,}4\cdot 10^5$ kg/(m s)
-        \item $\Delta t = \Delta t_{\mathrm{exp}}/64$
-      \end{itemize}
-    \end{column}
-    \begin{column}{0.48\textwidth}
-      \begin{itemize}[itemsep=1pt,topsep=2pt]
-        \item \textbf{CPM:} $r_{\min} = 0{,}10$~m; $r_{\max} = 0{,}25$~m
-        \item $\beta = 0{,}9$; $\tau = 0{,}5$~s; $v_e = v_d$
-        \item $\Delta t$: de 0,036 a 0,050~s según el evento
-      \end{itemize}
-    \end{column}
-  \end{columns}
+  \begin{itemize}[itemsep=1pt,topsep=2pt]
+    \item \textbf{SFM:} $m = 80$~kg; $\tau = 0{,}5$~s; $R = 0{,}25$~m
+    \item $k_n = 1{,}2\cdot 10^5$ N/m; $k_t = 2{,}4\cdot 10^5$ kg/(m s)
+    \item $\Delta t = \Delta t_{\mathrm{exp}}/64$
+  \end{itemize}
   \begin{itemize}[itemsep=1pt,topsep=2pt]
     \item \textbf{Capas:} $\rho = 0{,}9$ m; $\delta_s = 0{,}05$ m; E: $q = 0{,}75$, $s = 0{,}05$~m
     \item $\Delta t_{\mathrm{exp}} = 1/15{,}0192$ s; llegada: $\delta_a = 0{,}1$ m del objetivo
     \item $\mathbf{x}_i(0)$, $\mathbf{v}_i(0)$: de los datos ($\mathbf{v}_i(0)$: ajuste lineal de 5 cuadros)
   \end{itemize}
   \par\vspace{0.5mm}
-  \textbf{Variables} (grilla, igual en los dos modelos)
+  \textbf{Variables} (grilla)
   \begin{itemize}[itemsep=1pt,topsep=2pt]
     \item A: $t_a \in [0{,}5;\,5]$ s, paso 0,5; $\ell \in [0;\,2{,}5]$ m, paso 0,25 (110 pares)
     \item B: mismo $t_a$; $k \in [0;\,4]$, paso 0,5 (90 pares)
@@ -658,7 +612,6 @@
     \item Mejor par: mínimo de $\langle E\rangle$ en la grilla, por métrica
   \end{itemize}
   \par\vspace{0.5mm}
-  {\footnotesize SFM: Teórica 6 y Helbing (2000). CPM: $\beta$ y $\tau$ de Baglietto y Parisi (2011). $R$, $r_{\min}$ y $r_{\max}$: enunciado.}
 \end{frame}
 
 % 12 -- Observables
@@ -689,16 +642,21 @@
 
 % 14 -- Animaciones (punto a)
 \begin{frame}{Animaciones: sin capa, A y B}
-      \par{\footnotesize Sin capa y A(3; 0,5) [Evento 16]}\par
-      \videooimagen{figuras/anim-sin-capa-vs-A.png}{2.5cm}{\animacionSinCapaURL}{Sin capa y A}
-      \par\vspace{1mm}{\footnotesize A y B con su mejor par de ECM 1 [Evento 16]}\par
-      \videooimagen{figuras/anim-A-B.png}{2.5cm}{\animacionURL}{A y B}
+  \videooimagen{figuras/anim-sin-capa-vs-A.png}{2.25cm}{\animacionSinCapaURL}{Sin capa y A}
+  \par\vspace{1mm}
+  \videooimagen{figuras/anim-A-B.png}{2.25cm}{\animacionURL}{A y B}
+  \vfill
+  \begin{beamercolorbox}[wd=\linewidth,sep=2mm,center]{databox body}
+    \small\textcolor{TPBlue}{$\bullet$}\ Ambas animaciones: evento 16.
+  \end{beamercolorbox}
 \end{frame}
 
-% 16 -- Animación de E (punto a)
 \begin{frame}{Animación: capa E}
-      \par{\footnotesize E(3; 0,25), su mejor par en ECM 1 y en ECM 2 [Evento 16]}\par
-      \videooimagen{figuras/anim-E.png}{2.5cm}{\animacionEURL}{E}
+  \videooimagen{figuras/anim-E.png}{2.5cm}{\animacionEURL}{E}
+  \vfill
+  \begin{beamercolorbox}[wd=\linewidth,sep=2mm,center]{databox body}
+    \small\textcolor{TPBlue}{$\bullet$}\ Evento 16.
+  \end{beamercolorbox}
 \end{frame}
 
 % 15 -- Observable primario en el tiempo
@@ -729,16 +687,23 @@
    Color: ECM 1 promedio de los 19 eventos; más claro = menos error.\par
    Estrella: óptimo de ECM 1; círculo vacío: óptimo de ECM 2.}%
 }
+% Mapas principales: datos fijos y referencias fuera del área graficada.
+\newcommand{\mapaecmunodatos}[1]{%
+  \resultadofigura{figuras/R2-#1-ecm1.pdf}{5.3cm}{Mapa de ECM 1 de la capa #1}
+    {\item 19 eventos
+     \item $\star$: óptimo de ECM 1
+     \item $\circ$: óptimo de ECM 2}{}{}
+}
 \begin{frame}[c]{Calibración poblacional: capa A, ECM 1}
-  \mapaecmuno{A}{Parámetros: $(t_a,\ \ell)$. Con $\ell = 0$, la capa no desvía.}
+  \mapaecmunodatos{A}
 \end{frame}
 
 \begin{frame}[c]{Calibración poblacional: capa B, ECM 1}
-  \mapaecmuno{B}{Parámetros: $(t_a,\ k)$. Con $k = 0$, la capa no desvía.}
+  \mapaecmunodatos{B}
 \end{frame}
 
 \begin{frame}[c]{Calibración poblacional: capa E, ECM 1}
-  \mapaecmuno{E}{Parámetros: $(a,\ b)$. Los dos óptimos coinciden en $(3;\ 0{,}25)$, en el borde de la grilla.}
+  \mapaecmunodatos{E}
 \end{frame}
 
 % 17 -- Mejores pares y validación cruzada (puntos b y d)
@@ -765,18 +730,25 @@
 \end{frame}
 
 % Comparación por evento y animaciones de los casos con diferencias en ECM 2.
+\newcommand{\paresbajografico}[3]{%
+  \par\vspace{2mm}
+  \begin{beamercolorbox}[wd=\linewidth,sep=2mm,center]{databox body}
+    \small Mejor par de variables:\hspace{3mm}%
+    \textcolor{TPBlue}{$\bullet$}\ A(#1)\hspace{4mm}%
+    \textcolor{TPBlue}{$\bullet$}\ B(#2)\hspace{4mm}%
+    \textcolor{TPBlue}{$\bullet$}\ E(#3)
+  \end{beamercolorbox}%
+}
 \begin{frame}[c]{Errores por evento: ECM 1}
   \centering
   \includegraphics[width=\textwidth,height=5.3cm,keepaspectratio]{figuras/errores-por-evento-ABE-ecm1.pdf}
-  \par\vspace{2mm}
-  {\footnotesize Mejor par poblacional de ECM 1: A(3; 0,5), B(3,5; 1) y E(3; 0,25). Un par compartido por ambos peatones y mantenido en los 19 eventos.}
+  \paresbajografico{3; 0,5}{3,5; 1}{3; 0,25}
 \end{frame}
 
 \begin{frame}[c]{Errores por evento: ECM 2}
   \centering
   \includegraphics[width=\textwidth,height=5.3cm,keepaspectratio]{figuras/errores-por-evento-ABE-ecm2.pdf}
-  \par\vspace{2mm}
-  {\footnotesize Mejor par poblacional de ECM 2: A(2; 0,5), B(3,5; 1) y E(3; 0,25). Un par compartido por ambos peatones y mantenido en los 19 eventos.}
+  \paresbajografico{2; 0,5}{3,5; 1}{3; 0,25}
 \end{frame}
 
 \newcommand{\animacioneventoecm}[2]{%
@@ -803,20 +775,23 @@
   \centering
   \includegraphics[width=\textwidth,height=5.3cm,keepaspectratio]{figuras/C2-ecm1.pdf}
   \par\vspace{2mm}
-  {\footnotesize Distribución de $E_m$ en los 19 eventos: con el par poblacional (lleno) y con el mejor par de cada evento (vacío). Arriba: cambio de la media.}
+  \begin{beamercolorbox}[wd=\linewidth,sep=2mm,center]{databox body}
+    \small\textcolor{TPBlue}{$\bullet$}\ 19 eventos
+  \end{beamercolorbox}
 \end{frame}
 
 \begin{frame}[c]{Calibración individual: cuánto se gana en ECM 2}
   \centering
   \includegraphics[width=\textwidth,height=5.3cm,keepaspectratio]{figuras/C2-ecm2.pdf}
   \par\vspace{2mm}
-  {\footnotesize Distribución de $E_m$ en los 19 eventos: con el par poblacional (lleno) y con el mejor par de cada evento (vacío). Arriba: cambio de la media.}
+  \begin{beamercolorbox}[wd=\linewidth,sep=2mm,center]{databox body}
+    \small\textcolor{TPBlue}{$\bullet$}\ 19 eventos
+  \end{beamercolorbox}
 \end{frame}
 
 \begin{frame}[c]{Sensibilidad a la velocidad inicial}
   \resultadofigura{figuras/V0-sensibilidad.pdf}{5.5cm}{ECM 1 con ajuste inicial de 3, 5 y 7 cuadros y con rapidez deseada}
-    {\item Variante $v_d$: módulo deseado y dirección del ajuste de 5 cuadros
-     \item $\rho = 0{,}9$ m}{}{}
+    {\item $\rho = 0{,}9$ m}{}{}
 \end{frame}
 
 \begin{frame}{Distancia mínima y corrimiento}
@@ -828,8 +803,7 @@
       \centering\maybeimage{figuras/R5b-corrimiento.pdf}{5.0cm}{Corrimiento $c$ por evento}
     \end{column}
   \end{columns}
-  \par\vspace{1mm}
-  {\footnotesize Mejor par de ECM 1 de cada capa: A(3; 0,5), B(3,5; 1) y E(3; 0,25). Izquierda: debajo de la identidad, el simulado pasa más cerca que el real. Derecha: $c > 0$, llega tarde}
+  \paresbajografico{3; 0,5}{3,5; 1}{3; 0,25}
 \end{frame}
 
 % ---------------- CONCLUSIONES ----------------

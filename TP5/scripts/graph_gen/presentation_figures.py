@@ -339,18 +339,18 @@ def top_legend(fig, handles, visible, **kwargs):
     return leg
 
 
-def r2_maps():
+def r2_maps(layers="ABFE", metrics=("ecm1", "ecm2")):
     from matplotlib.colors import LogNorm
     from matplotlib.lines import Line2D
     other = {"ecm1": "ecm2", "ecm2": "ecm1"}
     note("## Óptimos poblacionales (grilla oficial)")
-    for metric in ("ecm1", "ecm2"):
+    for metric in metrics:
         data = {layer: grid_matrix(layer, metric) for layer in "ABFE"}
         means = {layer: d[1].mean(axis=1) for layer, d in data.items()}
         # Escala de color compartida solo entre A y B (las dos que van juntas en la diapositiva). Los mapas de F del
         # anexo no se regeneran acá: conservan su escala compartida A/B/F de la tanda anterior.
         ab_range = (min(means[l].min() for l in MAIN_LAYERS), max(means[l].max() for l in MAIN_LAYERS))
-        for layer in "ABFE":
+        for layer in layers:
             # A y B comparten escala (van juntas); F (anexo) y E (su propia diapositiva) usan la suya
             vmin, vmax = ab_range if layer in MAIN_LAYERS else (means[layer].min(), means[layer].max())
             pairs, _, p1, p2 = data[layer]
@@ -378,11 +378,13 @@ def r2_maps():
                 cb.ax.yaxis.set_major_formatter(COMMA)
                 cb.ax.yaxis.set_minor_formatter(matplotlib.ticker.NullFormatter())
                 cb.set_label(f"⟨E⟩, {METRIC_LABEL[metric]} [m²], escala log")
-                # Leyenda dentro del mapa, en la esquina de arriba a la derecha (lejos de los óptimos)
-                ax.legend(handles=[Line2D([], [], ls="none", marker="*", ms=20, mfc="white", mec=INK, label=f"óptimo {METRIC_LABEL[metric]}"),
-                                   Line2D([], [], ls="none", marker="o", ms=17, mfc="none", mec=INK, mew=2.4,
-                                          label=f"óptimo {METRIC_LABEL[other[metric]]}")],
-                          loc="lower left" if layer == "F" else "upper right", frameon=True, framealpha=0.9, fontsize=16, handletextpad=0.2, borderpad=0.3)
+                # En los mapas principales, las referencias van en la caja lateral del Beamer.
+                if layer not in RESULT_LAYERS or metric != "ecm1":
+                    # Leyenda dentro del mapa, en la esquina de arriba a la derecha (lejos de los óptimos)
+                    ax.legend(handles=[Line2D([], [], ls="none", marker="*", ms=20, mfc="white", mec=INK, label=f"óptimo {METRIC_LABEL[metric]}"),
+                                       Line2D([], [], ls="none", marker="o", ms=17, mfc="none", mec=INK, mew=2.4,
+                                              label=f"óptimo {METRIC_LABEL[other[metric]]}")],
+                              loc="lower left" if layer == "F" else "upper right", frameon=True, framealpha=0.9, fontsize=16, handletextpad=0.2, borderpad=0.3)
                 save(fig, f"R2-{layer}-{metric}.pdf")
 
 

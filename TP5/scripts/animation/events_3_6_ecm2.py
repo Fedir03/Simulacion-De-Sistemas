@@ -2,10 +2,12 @@
 """Nuevas corridas y videos real vs A/B/E, eventos 3 y 6, con los pares del gráfico de ECM2.
 
 Uso: MPLCONFIGDIR=/tmp/tp5-matplotlib .venv/bin/python scripts/animation/events_3_6_ecm2.py
-Salida independiente: outputs/animaciones_eventos_3_6_ecm2. Videos a media velocidad.
+Salida: outputs/animaciones_eventos_3_6_ecm2 y copias en presentacion/. Videos a media velocidad.
+Una sola vista por evento: real y las tres capas superpuestas, con sus trayectorias.
 """
 import argparse
 import json
+import shutil
 from pathlib import Path
 import subprocess
 import sys
@@ -55,39 +57,33 @@ def video(event, meta, out):
     versions = list(COLORS.items())
     ab.RUNS = {layer: Path(meta[layer]["carpeta"]) for layer in COLORS}
     ev = ab.load_event(event, versions)
-    fig, axes = plt.subplots(3, 1, figsize=(13, 8.5))
-    fig.subplots_adjust(left=0.07, right=0.98, bottom=0.09, top=0.85, hspace=0.48)
-    scenes = []
-    distances = []
-    for ax, (layer, color) in zip(axes, versions):
-        scenes.append(ab.Scene(ax, ev, [(layer, color)]))
+    fig, ax = plt.subplots(figsize=(13, 6.8))
+    fig.subplots_adjust(left=0.075, right=0.98, bottom=0.20, top=0.82)
+    scene = ab.Scene(ax, ev, versions)
+    for i in (0, 1):
+        scene.lines[("real", i)].set_color(ab.INK)
+        scene.lines[("real", i)].set_zorder(3)
+    ax.set_xlabel("x [m]")
+    ax.set_ylabel("y [m]")
+    title = fig.text(0.075, 0.95, "", fontsize=19)
+    handles = [Line2D([], [], color=ab.INK, lw=2.4, label="Real")]
+    for layer, color in versions:
         info = meta[layer]
-        names = "a; b" if layer == "E" else ("t_a; ℓ" if layer == "A" else "t_a; k")
-        p = f"{info['p1']:g}; {info['p2']:g}".replace(".", ",")
-        ax.set_title(f"Capa {layer} ({names}) = ({p})     ECM 2 = {ab.c(info['ecm2'], 4)} m²", loc="left", fontsize=12, color=color, pad=7)
-        ax.set_ylabel("y [m]", fontsize=12)
-        distances.append(ax.text(0.99, 0.96, "", transform=ax.transAxes, ha="right", va="top", fontsize=10,
-                                 color=ab.INK, bbox=dict(facecolor="white", edgecolor="none", alpha=0.85, pad=2)))
-    axes[-1].set_xlabel("x [m]")
-    title = fig.text(0.07, 0.97, "", fontsize=17)
-    fig.text(0.07, 0.923, "SFM · parámetros poblacionales óptimos de ECM2 · velocidad inicial: ajuste de 5 cuadros · reproducción 0,5×", fontsize=11, color=ab.MUTED)
-    handles = [Line2D([], [], color=ab.GRAY, lw=2.4, label="Real")]
-    handles += [Line2D([], [], color=color, lw=2.4, label=layer) for layer, color in versions]
-    handles += [Line2D([], [], color=ab.MUTED, lw=2.4, label="Peatón izquierdo"),
-                Line2D([], [], color=ab.MUTED, lw=2.4, ls="--", label="Peatón derecho"),
-                Line2D([], [], color=ab.INK, lw=2, ls=":", label="Mínimo real")]
-    fig.legend(handles=handles, loc="lower center", bbox_to_anchor=(0.5, 0), ncol=7, frameon=False, fontsize=10)
+        pair = f"{info['p1']:g}; {info['p2']:g}".replace(".", ",")
+        handles.append(Line2D([], [], color=color, lw=2.4, label=f"{layer}({pair})"))
+    fig.legend(handles=handles, loc="upper center", bbox_to_anchor=(0.5, 0.91),
+               ncol=4, frameon=False, fontsize=15)
+    fig.legend(handles=[Line2D([], [], color=ab.MUTED, lw=2.4, label="Peatón izquierdo"),
+                        Line2D([], [], color=ab.MUTED, lw=2.4, ls="--", label="Peatón derecho"),
+                        Line2D([], [], color=ab.INK, lw=2, ls=":", label="Mínimo real")],
+               loc="lower center", bbox_to_anchor=(0.5, 0.065), ncol=3, frameon=False, fontsize=13)
 
     def update(k):
-        marker = " · mínimo acercamiento real" if k == ev["k_min"] else ""
-        title.set_text(f"Evento {event} · t = {ab.c(k * ev['dt'])} s{marker}")
-        for scene, distance, (layer, _) in zip(scenes, distances, versions):
-            scene.update(k)
-            for i, point in enumerate(ab.positions(ev, "real", k)):
-                if not np.isfinite(point).all():
-                    scene.circles[("real", i)].center = (np.nan, np.nan)
-            real_d, sim_d = ab.distance_text(ev, "real", k), ab.distance_text(ev, layer, k)
-            distance.set_text(f"Distancia real: {ab.c(real_d)} m · simulada: {ab.c(sim_d)} m")
+        title.set_text(f"Evento {event} · t = {ab.c(k * ev['dt'])} s")
+        scene.update(k)
+        for i, point in enumerate(ab.positions(ev, "real", k)):
+            if not np.isfinite(point).all():
+                scene.circles[("real", i)].center = (np.nan, np.nan)
 
     update(ev["k_min"])
     fig.savefig(out / f"evento_{event:02d}_minimo.png", dpi=120)
@@ -98,7 +94,11 @@ def video(event, meta, out):
     anim.save(target, writer=animation.FFMpegWriter(fps=1 / (2 * ev["dt"]), bitrate=2300,
                                                   extra_args=["-pix_fmt", "yuv420p", "-movflags", "+faststart"]), dpi=100)
     plt.close(fig)
-    print(f"Video: {target}", flush=True)
+    presentation = Path(__file__).resolve().parents[2] / "presentacion"
+    shutil.copy2(target, presentation / "animaciones" / f"ecm2_evento{event:02d}.mp4")
+    shutil.copy2(out / f"evento_{event:02d}_minimo.png",
+                 presentation / "figuras" / f"anim-evento-{event:02d}-ecm2.png")
+    print(f"Video y fotograma actualizados: {target}", flush=True)
 
 
 def main():

@@ -15,8 +15,10 @@ Copias de los MP4 que usa la presentación, con el nombre de la diapositiva dond
 | `ecm2_evento03.mp4` | Resultados: evento 3, real frente a A, B y E (ECM 2) | `\animacioneventoecm{03}{3}` | Enlace local: Reproducir evento 3 | | 12,0 s |
 | `ecm2_evento06.mp4` | Resultados: evento 6, real frente a A, B y E (ECM 2) | `\animacioneventoecm{06}{6}` | Enlace local: Reproducir evento 6 | | 11,1 s |
 
-Los videos de ECM2 de los eventos 3 y 6 se generan con `scripts/animation/events_3_6_ecm2.py` y se copian desde
-`outputs/animaciones_eventos_3_6_ecm2/`. Comparan real, A(2; 0,5), B(3,5; 1) y E(3; 0,25), con SFM y ajuste inicial de
+Los videos de ECM2 de los eventos 3 y 6 se generan con `scripts/animation/events_3_6_ecm2.py` y el script copia automáticamente los MP4 y sus fotogramas a la presentación desde
+`outputs/animaciones_eventos_3_6_ecm2/`. Cada evento tiene una única vista con las trayectorias real y de las tres capas
+superpuestas: real en negro, A en azul, B en naranja y E en bermellón; línea continua para el peatón izquierdo y
+discontinua para el derecho. Comparan real, A(2; 0,5), B(3,5; 1) y E(3; 0,25), con SFM y ajuste inicial de
 5 cuadros. Se reproducen a media velocidad. En el PDF, el fotograma y el texto «Reproducir evento» abren el MP4 de
 esta carpeta; conservar la estructura `presentacion/generated/` y `presentacion/animaciones/` al mover los archivos.
 El exportador a PPTX reconoce esos textos para insertar los dos videos.
