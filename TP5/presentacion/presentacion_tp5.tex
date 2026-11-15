@@ -119,8 +119,8 @@
 % ---------- Barra superior por sección ----------
 % Rangos de diapositivas:
 % Introducción 2--6 (incluye Modelo: SFM, A y B, E) | Implementación 7--8
-% Simulaciones 9--12 | Resultados 13--28 | Conclusiones 29--31
-% Anexo 33--44. El cierre (32) queda fuera de la barra.
+% Simulaciones 9--12 | Resultados 13--29 | Conclusiones 30--32
+% Anexo 34--45. El cierre (33) queda fuera de la barra.
 % Cada rango incluye su \sectiondivider como primera diapositiva del
 % bloque. Si se agregan o quitan diapositivas hay que renumerar estos
 % rangos a mano.
@@ -172,9 +172,9 @@
     \navblock{0.14}{Introducción}{2}{6}%
     \navblock{0.15}{Implementación}{7}{8}%
     \navblock{0.135}{Simulaciones}{9}{12}%
-    \navblock{0.195}{Resultados}{13}{28}%
-    \navblock{0.135}{Conclusiones}{29}{31}%
-    \navblock{0.245}{Anexo}{33}{44}%
+    \navblock{0.195}{Resultados}{13}{29}%
+    \navblock{0.135}{Conclusiones}{30}{32}%
+    \navblock{0.245}{Anexo}{34}{45}%
   }%
 }
 
@@ -771,21 +771,15 @@
 \end{frame}
 
 % 19 -- Calibración individual (punto c): ganancia
-\begin{frame}[c]{Calibración individual: cuánto se gana en ECM 1}
+\begin{frame}[c]{Calibración: parámetros compartidos y por peatón}
   \centering
-  \includegraphics[width=\textwidth,height=5.3cm,keepaspectratio]{figuras/C2-ecm1.pdf}
+  \includegraphics[width=\textwidth,height=5.3cm,keepaspectratio]{figuras/resumen-ABE.png}
   \par\vspace{2mm}
   \begin{beamercolorbox}[wd=\linewidth,sep=2mm,center]{databox body}
-    \small\textcolor{TPBlue}{$\bullet$}\ 19 eventos
-  \end{beamercolorbox}
-\end{frame}
-
-\begin{frame}[c]{Calibración individual: cuánto se gana en ECM 2}
-  \centering
-  \includegraphics[width=\textwidth,height=5.3cm,keepaspectratio]{figuras/C2-ecm2.pdf}
-  \par\vspace{2mm}
-  \begin{beamercolorbox}[wd=\linewidth,sep=2mm,center]{databox body}
-    \small\textcolor{TPBlue}{$\bullet$}\ 19 eventos
+    \small
+    \textcolor{TPBlue}{$\bullet$}\ 19 eventos\hspace{4mm}%
+    \textcolor{TPBlue}{$\bullet$}\ 2p: un par compartido\par
+    \textcolor{TPBlue}{$\bullet$}\ 4p: un par por peatón
   \end{beamercolorbox}
 \end{frame}
 
@@ -804,6 +798,16 @@
     \end{column}
   \end{columns}
   \paresbajografico{3; 0,5}{3,5; 1}{3; 0,25}
+\end{frame}
+
+\begin{frame}[c]{SFM frente a CPM, ECM 1}
+  \centering
+  \includegraphics[width=\textwidth,height=6.2cm,keepaspectratio]{figuras/comparacion-SFM-CPM-ecm1.png}
+\end{frame}
+
+\begin{frame}[c]{SFM frente a CPM, ECM 2}
+  \centering
+  \includegraphics[width=\textwidth,height=6.2cm,keepaspectratio]{figuras/comparacion-SFM-CPM-ecm2.png}
 \end{frame}
 
 % ---------------- CONCLUSIONES ----------------
