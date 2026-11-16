@@ -29,11 +29,11 @@ from pathlib import Path
 VIDEOS = {
     "Reproducir evento 3": "presentacion/animaciones/ecm2_evento03.mp4",
     "Reproducir evento 6": "presentacion/animaciones/ecm2_evento06.mp4",
-    "https://youtu.be/PENDIENTE-recorte": "presentacion/animaciones/01_recorte_evento09.mp4",
-    "https://youtu.be/PENDIENTE-sincapa": "presentacion/animaciones/02_sin_capa_vs_A_evento16.mp4",
-    "https://youtu.be/PENDIENTE-ab": "presentacion/animaciones/03_A_y_B_evento16.mp4",
+    "https://youtu.be/WETnC-l5T-E": "presentacion/animaciones/01_recorte_evento09.mp4",
+    "https://youtu.be/xMd4dxb6J3Y": "presentacion/animaciones/02_sin_capa_vs_A_evento16.mp4",
+    "https://youtu.be/8kWCAKh40UE": "presentacion/animaciones/03_A_y_B_evento16.mp4",
     "https://youtu.be/PENDIENTE-lado": "presentacion/animaciones/04_lado_contrario_evento12.mp4",
-    "https://youtu.be/PENDIENTE-e": "presentacion/animaciones/05_E_evento16.mp4",
+    "https://youtu.be/q93knt_rtnE": "presentacion/animaciones/05_E_evento16.mp4",
 }
 
 BASE = Path(__file__).resolve().parent          # TP5/presentacion
@@ -380,7 +380,7 @@ def main():
         slides.append(slide)
     # Control: la diapositiva de animaciones + d(t) (Resultados) lleva los dos videos del evento 16 juntos, uno sobre
     # cada fotograma (el gráfico de d(t) es vectorial y no cuenta como imagen)
-    merged = [VIDEOS[k] for k in ("https://youtu.be/PENDIENTE-sincapa", "https://youtu.be/PENDIENTE-ab") if k in VIDEOS]
+    merged = [VIDEOS[k] for k in ("https://youtu.be/xMd4dxb6J3Y", "https://youtu.be/8kWCAKh40UE") if k in VIDEOS]
     if len(merged) == 2:
         wanted = {str(TP5 / v) for v in merged}
         pages = [n for n, s in enumerate(slides, 1) if wanted & {v["video"] for v in s.get("videos", [])}]
