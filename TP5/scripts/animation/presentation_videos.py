@@ -8,9 +8,10 @@ Uso (desde TP5/): py scripts/animation/presentation_videos.py
   2. anim-recorte: evento 9, trayectoria
      completa y tramo recortado, con la flecha hacia el objetivo y su ángulo con x en cada inicio.
   3. anim-A-B: evento 16, real vs A y B seleccionadas.
-  4. anim-E: evento 16, real vs E seleccionada.
+  4. anim-E: evento 16, real vs E seleccionada, con el huevo de cada peatón simulado.
 Los pares se leen de la calibración poblacional, usando el mismo criterio de selección de las filas amarillas.
-Sin claves, regenera solo las cuatro animaciones vigentes. La clave opcional lado conserva el evento 12.
+Sin claves, regenera solo las cuatro animaciones vigentes. La clave opcional lado conserva el evento 12 y e2 hace la
+del evento 16 con el huevo EGG_ALT (punta más corta y más ancho que el seleccionado).
 Además copia los MP4 que usa la presentación a presentacion/animaciones/ con nombres por diapositiva.
 Mismo estilo que R7: real en negro con círculo gris relleno, simulados con círculo de color hueco, reloj, coma
 decimal, sin título. Un cuadro de video por cuadro experimental (Δt_exp), a 15 cuadros/s: tiempo real. Sin
@@ -37,7 +38,10 @@ from matplotlib.lines import Line2D  # noqa: E402
 from matplotlib.ticker import FuncFormatter  # noqa: E402
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "graph_gen"))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from egg_geometry import MIN_SPEED, boundary, placed  # noqa: E402
 from figure_data import R, experimental, read_run  # noqa: E402
+from matplotlib.patches import Patch, Polygon  # noqa: E402
 
 DATA = Path("data")
 OUT = Path("outputs/pilot/animaciones_presentacion")
@@ -45,6 +49,12 @@ DEST = Path("presentacion/figuras")
 RUN_A = OUT / "datos/A"
 RUN_B = OUT / "datos/B"
 RUN_E = OUT / "datos/E"
+RUN_E2 = OUT / "datos/E_corto"
+# Huevo alternativo (a, b) para la animación e2: punta más corta y más ancho que el par seleccionado, para comparar.
+# En el evento 16 el lado de cruce depende solo de a: con a ≤ 2,5 cruzan del lado contrario al real (para todo
+# b de la grilla) y con a ≥ 2,75 del real. 2,75 es la punta más corta que cruza bien; b = 0,35 da d_min = 0,70 m
+# (real 0,68 m)
+EGG_ALT = (2.75, 0.35)
 BASELINE = OUT / "datos/none"
 ANIM = Path("presentacion/animaciones")
 EVENT = 16
@@ -57,6 +67,7 @@ COPIES = {
     "anim-A-B.mp4": "03_A_y_B_evento16.mp4",
     "anim-lado-evento12.mp4": "04_lado_contrario_evento12.mp4",
     "anim-E.mp4": "05_E_evento16.mp4",
+    "anim-E-corto.mp4": "06_E_huevo_corto_evento16.mp4",
 }
 INK, MUTED, GRID = "#0b0b0b", "#52514e", "#e6e5e0"
 MINUS = "−"
@@ -70,6 +81,7 @@ plt.rcParams.update({"font.size": 22, "axes.labelsize": 24, "legend.fontsize": 2
 
 # Rótulo de cada corrida en la leyenda (con el par: la diapositiva no lo repite)
 LABELS = {"sin capa": "sin capa"}
+PAIRS = {}       # (p1, p2) seleccionado de cada capa; el de E son (a, b) del huevo que se dibuja
 FRAME_SIZE = (6.6, 3.4)     # pulgadas: a ~5,7 cm de ancho en la diapositiva, 20–24 pt quedan en ~7–9 pt
 FRAME_SIZE_COMPACT = (9.1, 2.08)     # lámina 13: rango de y ajustado y leyenda a la derecha; el lienzo del MP4 sigue al PNG
 
@@ -98,6 +110,7 @@ def prepare(only):
         selected = int(np.argmin((means/means.min(axis=0)-1).max(axis=1)))
         pair = choices[selected]["p1"], choices[selected]["p2"]
         LABELS[layer] = f"{layer}({pair[0]:g}; {pair[1]:g})".replace(".", ",")
+        PAIRS[layer] = pair
         if layer not in wanted: continue
         events = {EVENT} if only & {"sincapa", "ab", "e"} else set()
         if layer == "A" and "lado" in only: events.add(12)
@@ -117,6 +130,11 @@ def prepare(only):
             if expected is None: raise ValueError(f"Par ausente de las grillas: {layer}/{pair}")
             np.testing.assert_allclose([float(measured[2]), float(measured[4])], expected, atol=1e-6, rtol=0)
             print(f"Corrida nueva: evento {event}, {LABELS[layer]}; ECM verificados", flush=True)
+    if "e2" in only:
+        a, b = EGG_ALT
+        metadata["layers"]["E_corto"] = dict(p1=a, p2=b, criterion="fijo (EGG_ALT)", events=[EVENT])
+        subprocess.run(base+["run", "--event", str(EVENT), "--layer", "E", "--p1", str(a), "--p2", str(b),
+                            "--out", str(RUN_E2)]+common, check=True, stdout=subprocess.DEVNULL)
     if "sincapa" in only:
         subprocess.run(base+["run", "--event", str(EVENT), "--out", str(BASELINE)]+common,
                        check=True, stdout=subprocess.DEVNULL)
@@ -152,8 +170,10 @@ def real_minimum(exp):
 class Overlay:
     """Real (negro, círculo gris relleno) y una o más corridas simuladas (color, círculo hueco)."""
 
-    def __init__(self, exp, runs, figsize=FRAME_SIZE, compact=False):
-        """compact (lámina 13, dos animaciones apiladas): rango de y ajustado a las trayectorias, leyenda a la derecha del eje
+    def __init__(self, exp, runs, figsize=FRAME_SIZE, compact=False, eggs=None):
+        """eggs: {corrida: (a, b)}; dibuja el huevo de la capa E de cada peatón simulado de esa corrida, con la punta
+        hacia su velocidad (mismo borde y mismo rumbo que EggLayer.java, vía egg_geometry.py).
+        compact (lámina 13, dos animaciones apiladas): rango de y ajustado a las trayectorias, leyenda a la derecha del eje
         (fuera del área del gráfico, como en el recorte) y reloj arriba a la derecha, también afuera. Así la figura queda
         más apaisada y las trayectorias se ven más grandes con la misma altura en la diapositiva."""
         self.exp, self.runs, self.compact = exp, runs, compact
@@ -167,6 +187,14 @@ class Overlay:
             ax.set_ylim(np.nanmin(ys) - 0.5, np.nanmax(ys) + 2.1)     # franja libre arriba para la leyenda
         style(ax)
         self.lines, self.dots = {}, {}
+        self.eggs = {}
+        for name, (a, b) in (eggs or {}).items():
+            color = COLORS[name]
+            for i in (0, 1):
+                poly = Polygon(np.full((3, 2), np.nan), closed=True, facecolor=(*matplotlib.colors.to_rgb(color), 0.10),
+                               edgecolor=color, lw=1.6, ls="-" if i == 0 else "--", zorder=1.5)
+                ax.add_patch(poly)
+                self.eggs[(name, i)] = (poly, boundary(a, b))
         for name in ["real"] + list(runs):
             color = COLORS[name]
             for i in (0, 1):
@@ -178,6 +206,8 @@ class Overlay:
         handles = [Line2D([], [], color=COLORS["real"], lw=2.4, label="real")]
         handles += [Line2D([], [], color=COLORS[n], lw=3, label=LABELS[n]) for n in runs]
         handles += [Line2D([], [], ls="none", marker="o", ms=17, color=COLORS["real"], alpha=0.35, label="posición real")]
+        handles += [Patch(facecolor=(*matplotlib.colors.to_rgb(COLORS[n]), 0.10), edgecolor=COLORS[n], lw=1.6,
+                          label="huevo") for n in (eggs or {})]
         if compact:
             # A la derecha del eje, fuera del área del gráfico, una entrada por fila. Letra y muestras chicas (18 pt: ≈ 8,5 pt
             # en la lámina) para que la leyenda ocupe poco ancho: con escala 1:1, el alto del eje y sale del ancho que le
@@ -207,6 +237,16 @@ class Overlay:
                 self.lines[(name, i)].set_data(x, y)
                 ok = ~np.isnan(x)
                 self.dots[(name, i)].center = (x[ok][-1], y[ok][-1]) if ok.any() else (np.nan, np.nan)
+                if (name, i) in self.eggs:
+                    poly, shape = self.eggs[(name, i)]
+                    if ok.any():
+                        last = run[k][ok][-1]
+                        vx, vy = last[3 + 4 * i], last[4 + 4 * i]
+                        # Rumbo como en EggLayer: la velocidad; si es casi nula, hacia el objetivo (+x el 1, −x el 2)
+                        h = math.atan2(vy, vx) if math.hypot(vx, vy) > MIN_SPEED else (0.0 if i == 0 else math.pi)
+                        poly.set_xy(placed(shape, x[ok][-1], y[ok][-1], h))
+                    else:
+                        poly.set_xy(np.full((3, 2), np.nan))
         if self.compact:
             # En el cuadro del PDF el reloj es transparente pero ocupa su lugar: el PNG y el MP4 quedan con el mismo
             # encuadre y el PPTX pone el video exacto sobre el cuadro
@@ -217,8 +257,8 @@ class Overlay:
         return []
 
 
-def overlay_video(name, exp, runs, dt_exp, t_end, t_frame, compact=False):
-    ov = Overlay(exp, runs, figsize=FRAME_SIZE_COMPACT if compact else FRAME_SIZE, compact=compact)
+def overlay_video(name, exp, runs, dt_exp, t_end, t_frame, compact=False, eggs=None):
+    ov = Overlay(exp, runs, figsize=FRAME_SIZE_COMPACT if compact else FRAME_SIZE, compact=compact, eggs=eggs)
     ov.update(t_frame, with_clock=False)
     if compact:
         # Lienzo completo, igual que el MP4: misma proporción, así el PPTX pone el video exacto sobre el cuadro
@@ -269,7 +309,21 @@ def capa_e(event=EVENT):
     dt_exp = float(header["dt_exp"])
     t_frame = real_minimum(exp)
     t_end = min(e[-1, 0] for e in exp)
-    out = overlay_video("anim-E", exp, {"E": run_e}, dt_exp, t_end, t_frame, compact=True)
+    out = overlay_video("anim-E", exp, {"E": run_e}, dt_exp, t_end, t_frame, compact=True, eggs={"E": PAIRS["E"]})
+    return out, t_frame, t_end
+
+
+def capa_e_corto(event=EVENT):
+    """Como capa_e, con el huevo EGG_ALT (punta más corta, más ancho). Misma corrida de colores y fotograma."""
+    header, run_e = read_run(RUN_E2 / f"evento_{event:02d}.txt")
+    exp = experimental(DATA, header)
+    dt_exp = float(header["dt_exp"])
+    t_frame = real_minimum(exp)
+    t_end = min(e[-1, 0] for e in exp)
+    LABELS["E corto"] = f"E({EGG_ALT[0]:g}; {EGG_ALT[1]:g})".replace(".", ",")
+    COLORS["E corto"] = COLORS["E"]
+    out = overlay_video("anim-E-corto", exp, {"E corto": run_e}, dt_exp, t_end, t_frame, compact=True,
+                        eggs={"E corto": EGG_ALT})
     return out, t_frame, t_end
 
 
@@ -407,7 +461,7 @@ def main():
     DEST.mkdir(parents=True, exist_ok=True)
     ANIM.mkdir(parents=True, exist_ok=True)
     only = set(sys.argv[1:]) or {"recorte", "sincapa", "ab", "e"}
-    unknown = only - {"recorte", "sincapa", "ab", "lado", "e"}
+    unknown = only - {"recorte", "sincapa", "ab", "lado", "e", "e2"}
     if unknown: raise SystemExit(f"Claves desconocidas: {sorted(unknown)}")
     prepare(only)
     if "sincapa" in only:
@@ -422,11 +476,15 @@ def main():
     if "e" in only:
         out, tf, te = capa_e()
         print(f"{out}: fotograma en t = {tf:.2f} s (mínimo real), duración {te:.2f} s")
+    if "e2" in only:
+        out, tf, te = capa_e_corto()
+        print(f"{out}: fotograma en t = {tf:.2f} s (mínimo real), duración {te:.2f} s")
     if "lado" in only:
         out, tf, te = lado_evento12()
         print(f"{out}: fotograma en t = {tf:.2f} s (mínimo real), duración {te:.2f} s")
     selected_files = {"recorte": "anim-recorte.mp4", "sincapa": "anim-sin-capa-vs-A.mp4",
-                      "ab": "anim-A-B.mp4", "lado": "anim-lado-evento12.mp4", "e": "anim-E.mp4"}
+                      "ab": "anim-A-B.mp4", "lado": "anim-lado-evento12.mp4", "e": "anim-E.mp4",
+                      "e2": "anim-E-corto.mp4"}
     for src, dst in COPIES.items():
         if src in {selected_files[key] for key in only if key in selected_files} and (OUT / src).exists():
             shutil.copy(OUT / src, ANIM / dst)
