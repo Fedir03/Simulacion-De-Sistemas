@@ -374,7 +374,7 @@
   \setlength{\abovedisplayskip}{2pt}\setlength{\belowdisplayskip}{2pt}
   \begin{itemize}\small
     \item Dos peatones que se cruzan de frente esquivan antes de chocar
-    \item Dos modelos base, SFM sin fuerza social y CPM, + \emph{capa de elusión}: la capa solo cambia la dirección deseada
+    \item Modelo base: SFM sin fuerza social + \emph{capa de elusión}: la capa solo cambia la dirección deseada
   \end{itemize}
   \begin{columns}[T,onlytextwidth]
     \begin{column}{0.60\textwidth}
@@ -559,7 +559,7 @@
     ]
     \node[externa] (ic) at (0.0,2.1)  {\textbf{Estado inicial}\\[1pt]{\itshape evento recortado: $\mathbf{x}_i(0)$, $\mathbf{v}_i(0)$, $\mathbf{x}_f$, $v_d$}};
     \node[caja]    (ca) at (4.0,2.1)  {\textbf{Capa}\\[1pt]{\itshape ¿choque previsto? $\Rightarrow\ \mathbf{e}_a$}};
-    \node[caja]    (be) at (8.0,2.1)  {\textbf{Modelo}\\[1pt]{\itshape SFM: Beeman\\ CPM: reglas}};
+    \node[caja]    (be) at (8.0,2.1)  {\textbf{Modelo}\\[1pt]{\itshape SFM\\ Integración: Beeman}};
     \node[caja]    (sa) at (8.0,0.35) {\textbf{Control}\\[1pt]{\itshape ¿llegó a $\delta_a$? ¿toca guardar?}};
     \node[caja]    (av) at (4.0,0.35) {\textbf{Avance}\\[1pt]{\itshape $t \to t + \Delta t$}};
     \node[externa] (out) at (8.0,-1.35) {\textbf{Salida}\\[1pt]{\itshape una fila cada $\Delta t_{\mathrm{exp}}/4$}};
