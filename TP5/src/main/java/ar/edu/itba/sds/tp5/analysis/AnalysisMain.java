@@ -12,6 +12,7 @@ import ar.edu.itba.sds.tp5.engine.layer.AvoidanceLayer;
 import ar.edu.itba.sds.tp5.io.OutputFiles;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -40,8 +41,9 @@ public final class AnalysisMain {
                                  todos los eventos: evento_XX.txt y ecm.txt
                     run --event N [opciones] [--layer none|a|b|f|e --p1 X --p2 Y] [--out outputs/run] [--direction-series true]
                                  un solo evento; con --direction-series, también direccion_XX.txt (e_t y e_target)
-                    grid --layer a|b|f|e --p1-values X,Y,... --p2-values X,Y,... --out archivo [opciones]
+                    grid --layer a|b|f|e --p1-values X,Y,... --p2-values X,Y,... --out archivo [--event N] [opciones]
                                  una fila por par y evento, sin archivos de trayectoria
+                                 alternativa: --pairs-file archivo (dos columnas p1 p2), sin ejes cartesianos
                     grid-ped --layer a|b|f|e --p1-values ... --p2-values ... --out archivo
                                  calibración individual opcional: un par (p1, p2) por peatón, 4 parámetros por evento
                     trim-export [--out outputs/recorte] [opciones]
@@ -56,7 +58,7 @@ public final class AnalysisMain {
                 if (!o.containsKey("event")) throw new IllegalArgumentException("run necesita --event");
                 simulate(o, Integer.parseInt(o.get("event")));
             }
-            case "grid" -> grid(Main.options(args, Main.with("layer", "p1-values", "p2-values", "out")));
+            case "grid" -> grid(Main.options(args, Main.with("layer", "p1-values", "p2-values", "pairs-file", "out", "event")));
             case "grid-ped" -> pedestrianGrid(Main.options(args, Main.with("layer", "p1-values", "p2-values", "out")));
             case "trim-export" -> {
                 Map<String, String> o = Main.options(args, Main.with("out"));
@@ -116,14 +118,39 @@ public final class AnalysisMain {
     }
 
     private static void grid(Map<String, String> o) throws IOException {
-        for (String key : List.of("layer", "p1-values", "p2-values", "out"))
+        for (String key : List.of("layer", "out"))
             if (!o.containsKey(key)) throw new IllegalArgumentException("grid necesita --" + key);
-        double[] p1 = Main.values(o.get("p1-values")), p2 = Main.values(o.get("p2-values"));
+        List<double[]> pairs = new ArrayList<>();
+        if (o.containsKey("pairs-file")) {
+            if (o.containsKey("p1-values") || o.containsKey("p2-values"))
+                throw new IllegalArgumentException("Usar --pairs-file o los dos ejes, no ambos");
+            for (String line : Files.readAllLines(Path.of(o.get("pairs-file")))) {
+                String text = line.strip();
+                if (text.isEmpty() || text.startsWith("#")) continue;
+                String[] fields = text.split("\\s+");
+                if (fields.length != 2) throw new IllegalArgumentException("Se esperan dos columnas p1 p2");
+                double a = Double.parseDouble(fields[0]), b = Double.parseDouble(fields[1]);
+                if (!Double.isFinite(a) || !Double.isFinite(b)) throw new IllegalArgumentException("Par no finito");
+                pairs.add(new double[] { a, b });
+            }
+            if (pairs.isEmpty()) throw new IllegalArgumentException("Archivo de pares vacío");
+        } else {
+            for (String key : List.of("p1-values", "p2-values"))
+                if (!o.containsKey(key)) throw new IllegalArgumentException("grid necesita --" + key);
+            for (double a : Main.values(o.get("p1-values")))
+                for (double b : Main.values(o.get("p2-values"))) pairs.add(new double[] { a, b });
+        }
         String layer = o.get("layer");
         FrontalTrim.Options trim = FrontalTrim.Options.parse(o);
-        List<GridSearch.Row> rows = GridSearch.run(layer, p1, p2, Main.events(o, trim),
+        List<PedestrianEvent> events = Main.events(o, trim);
+        if (o.containsKey("event")) {
+            int number = Integer.parseInt(o.get("event"));
+            events = events.stream().filter(e -> e.number() == number).toList();
+            if (events.isEmpty()) throw new IllegalArgumentException("No existe el evento " + number);
+        }
+        List<GridSearch.Row> rows = GridSearch.runPairs(layer, pairs, events,
                 l -> Main.simulator(o, l), Main.contactRadius(o), Main.constants(o), Main.v0Frames(o));
         GridSearch.write(Path.of(o.get("out")), layer, trim, rows);
-        System.out.println("Grilla: " + o.get("out") + " | capa=" + layer + " | pares=" + p1.length * p2.length);
+        System.out.println("Grilla: " + o.get("out") + " | capa=" + layer + " | pares=" + pairs.size());
     }
 }

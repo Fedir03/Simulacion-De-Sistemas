@@ -4,11 +4,13 @@
 Uso (desde TP5/): py scripts/animation/presentation_videos.py
   Evento representativo: 16 (distancia mínima real y ECM 1 de A más cerca de las medianas de los 19; decisión del
   grupo del 11/11, antes era el 11). La capa F ya no está en las animaciones principales.
-  1. anim-sin-capa-vs-A: evento 16, real vs sin capa vs A(3; 0,5).
-  2. anim-recorte: evento 11 (decisión del grupo: el ángulo del objetivo en el 1.er s pasa de 17,5° a 1,8°), trayectoria
+  1. anim-sin-capa-vs-A: evento 16, real vs sin capa vs A seleccionada.
+  2. anim-recorte: evento 9, trayectoria
      completa y tramo recortado, con la flecha hacia el objetivo y su ángulo con x en cada inicio.
-  3. anim-A-B: evento 16, real vs A(3; 0,5) vs B(3,5; 1) (reemplaza a la de A, B y F de R7).
-  4. anim-lado-evento12: evento 12, real vs A(3; 0,5) (A elige el lado de cruce contrario al real).
+  3. anim-A-B: evento 16, real vs A y B seleccionadas.
+  4. anim-E: evento 16, real vs E seleccionada.
+Los pares se leen de la calibración poblacional, usando el mismo criterio de selección de las filas amarillas.
+Sin claves, regenera solo las cuatro animaciones vigentes. La clave opcional lado conserva el evento 12.
 Además copia los MP4 que usa la presentación a presentacion/animaciones/ con nombres por diapositiva.
 Mismo estilo que R7: real en negro con círculo gris relleno, simulados con círculo de color hueco, reloj, coma
 decimal, sin título. Un cuadro de video por cuadro experimental (Δt_exp), a 15 cuadros/s: tiempo real. Sin
@@ -16,8 +18,11 @@ interpolación: cada cuadro muestra las filas del motor con t ≤ instante del c
 ese cuadro. MP4 en outputs/pilot/animaciones_presentacion/; fotogramas PNG (sin reloj) en presentacion/figuras/.
 """
 import csv
+import hashlib
+import json
 import math
 import shutil
+import subprocess
 import sys
 from collections import defaultdict
 from pathlib import Path
@@ -37,17 +42,17 @@ from figure_data import R, experimental, read_run  # noqa: E402
 DATA = Path("data")
 OUT = Path("outputs/pilot/animaciones_presentacion")
 DEST = Path("presentacion/figuras")
-RUN_A = Path("outputs/pilot/figs/datos/a_3_0.5")
-RUN_B = Path("outputs/pilot/figs/datos/b_3.5_1")
-RUN_E = Path("outputs/pilot/figs/datos/e_3_0.25")
-BASELINE = Path("outputs/baseline")
+RUN_A = OUT / "datos/A"
+RUN_B = OUT / "datos/B"
+RUN_E = OUT / "datos/E"
+BASELINE = OUT / "datos/none"
 ANIM = Path("presentacion/animaciones")
 EVENT = 16
 # Mismos colores que presentation_figures.py (Okabe-Ito); "sin capa" en púrpura para no confundirlo con el gris real
 COLORS = {"real": "#000000", "A": "#0072B2", "B": "#E69F00", "E": "#D55E00", "sin capa": "#CC79A7", "izq": "#0072B2", "der": "#E69F00"}
 # MP4 que usa la presentación -> copia en presentacion/animaciones/ con el nombre de su diapositiva
 COPIES = {
-    "anim-recorte.mp4": "01_recorte_evento11.mp4",
+    "anim-recorte.mp4": "01_recorte_evento09.mp4",
     "anim-sin-capa-vs-A.mp4": "02_sin_capa_vs_A_evento16.mp4",
     "anim-A-B.mp4": "03_A_y_B_evento16.mp4",
     "anim-lado-evento12.mp4": "04_lado_contrario_evento12.mp4",
@@ -64,9 +69,61 @@ plt.rcParams.update({"font.size": 22, "axes.labelsize": 24, "legend.fontsize": 2
 
 
 # Rótulo de cada corrida en la leyenda (con el par: la diapositiva no lo repite)
-LABELS = {"sin capa": "sin capa", "A": "A(3; 0,5)", "B": "B(3,5; 1)", "E": "E(3; 0,25)"}
+LABELS = {"sin capa": "sin capa"}
 FRAME_SIZE = (6.6, 3.4)     # pulgadas: a ~5,7 cm de ancho en la diapositiva, 20–24 pt quedan en ~7–9 pt
 FRAME_SIZE_COMPACT = (9.1, 2.08)     # lámina 13: rango de y ajustado y leyenda a la derecha; el lienzo del MP4 sigue al PNG
+
+
+def prepare(only):
+    """Corridas nuevas, con los pares seleccionados en las tablas poblacionales."""
+    common = ["--data", str(DATA), "--model", "sfm", "--integrator", "beeman", "--dt-div", "64",
+              "--v0-frames", "5", "--delta-a", "0.1", "--rho", "0.9", "--trim", "on", "--trim-deg", "45",
+              "--trim-persist", "5", "--trim-half", "2", "--trim-target", "common", "--trim-shared", "on",
+              "--trim-shared-x", "1.5"]
+    base = ["java", "-cp", "target/tp5.jar", "ar.edu.itba.sds.tp5.analysis.AnalysisMain"]
+    source = Path("outputs/calibracion_poblacional/resumen.json")
+    calibration = json.loads(source.read_text())
+    metadata = {"calibration_source": str(source), "calibration_sha256": hashlib.sha256(source.read_bytes()).hexdigest(),
+                "jar_sha256": hashlib.sha256(Path("target/tp5.jar").read_bytes()).hexdigest(),
+                "selection": "Menor sacrificio relativo máximo entre ECM1 y ECM2; desempate por ECM1",
+                "event": EVENT, "trim_event": RECORTE_EVENT, "layers": {}}
+    wanted = set()
+    if only & {"sincapa", "ab", "lado"}: wanted.add("A")
+    if "ab" in only: wanted.add("B")
+    if "e" in only: wanted.add("E")
+    folders = {"A": RUN_A, "B": RUN_B, "E": RUN_E}
+    for layer in "ABE":
+        choices = calibration[layer]
+        means = np.array([c["mean"] for c in choices])
+        selected = int(np.argmin((means/means.min(axis=0)-1).max(axis=1)))
+        pair = choices[selected]["p1"], choices[selected]["p2"]
+        LABELS[layer] = f"{layer}({pair[0]:g}; {pair[1]:g})".replace(".", ",")
+        if layer not in wanted: continue
+        events = {EVENT} if only & {"sincapa", "ab", "e"} else set()
+        if layer == "A" and "lado" in only: events.add(12)
+        metadata["layers"][layer] = dict(p1=pair[0], p2=pair[1], criterion=f"ECM{selected+1}", events=sorted(events))
+        for event in sorted(events):
+            folder = folders[layer] if event == EVENT else folders[layer] / f"evento_{event:02d}"
+            subprocess.run(base+["run", "--event", str(event), "--layer", layer,
+                                "--p1", str(pair[0]), "--p2", str(pair[1]), "--out", str(folder)]+common,
+                           check=True, stdout=subprocess.DEVNULL)
+            measured = next(s.split() for s in (folder/"ecm.txt").read_text().splitlines() if s.startswith("E "))
+            expected = None
+            for path in sorted(source.parent.glob(f"{layer}_*.txt")):
+                rows = np.loadtxt(path, usecols=(0, 1, 2, 3, 5), ndmin=2)
+                at = rows[(rows[:, 0] == pair[0]) & (rows[:, 1] == pair[1]) & (rows[:, 2] == event)]
+                if len(at):
+                    expected = at[0, 3:]; break
+            if expected is None: raise ValueError(f"Par ausente de las grillas: {layer}/{pair}")
+            np.testing.assert_allclose([float(measured[2]), float(measured[4])], expected, atol=1e-6, rtol=0)
+            print(f"Corrida nueva: evento {event}, {LABELS[layer]}; ECM verificados", flush=True)
+    if "sincapa" in only:
+        subprocess.run(base+["run", "--event", str(EVENT), "--out", str(BASELINE)]+common,
+                       check=True, stdout=subprocess.DEVNULL)
+    if "recorte" in only:
+        subprocess.run(base+["trim-export", "--out", "outputs/recorte"]+common,
+                       check=True, stdout=subprocess.DEVNULL)
+    (OUT/"parametros_animaciones.json").write_text(json.dumps(metadata, ensure_ascii=False, indent=2)+"\n")
 
 
 def style(ax):
@@ -217,7 +274,7 @@ def capa_e(event=EVENT):
 
 
 def lado_evento12():
-    header, run_a = read_run(RUN_A / "evento_12.txt")
+    header, run_a = read_run(RUN_A / "evento_12/evento_12.txt")
     exp = experimental(DATA, header)
     dt_exp = float(header["dt_exp"])
     t_frame = real_minimum(exp)
@@ -227,7 +284,7 @@ def lado_evento12():
 
 
 # ---------------------------------------------------------------- recorte (2)
-RECORTE_EVENT = 11   # decisión del grupo (11/11): ángulo del objetivo en el 1.er s, 17,5° -> 1,8° (outputs/recorte/verificacion/resumen.md)
+RECORTE_EVENT = 9   # evento elegido para la diapositiva 10
 GRAY = "#9a9994"
 HIDE_NEAR = 2.0      # m: la flecha se oculta cerca del objetivo (ahí gira sola y su ángulo no dice nada)
 
@@ -344,12 +401,15 @@ def recorte(event=RECORTE_EVENT):
 
 
 def main():
-    """Uso: presentation_videos.py [clave ...] con claves recorte, sincapa, ab, lado, e; sin claves, todas."""
+    """Sin claves: las cuatro animaciones vigentes. lado es opcional."""
     sys.stdout.reconfigure(encoding="utf-8")
     OUT.mkdir(parents=True, exist_ok=True)
     DEST.mkdir(parents=True, exist_ok=True)
     ANIM.mkdir(parents=True, exist_ok=True)
-    only = set(sys.argv[1:]) or {"recorte", "sincapa", "ab", "lado", "e"}
+    only = set(sys.argv[1:]) or {"recorte", "sincapa", "ab", "e"}
+    unknown = only - {"recorte", "sincapa", "ab", "lado", "e"}
+    if unknown: raise SystemExit(f"Claves desconocidas: {sorted(unknown)}")
+    prepare(only)
     if "sincapa" in only:
         out, tf, te, why = sin_capa_vs_a()
         print(f"{out}: fotograma en t = {tf:.2f} s ({why}), duración {te:.2f} s")
@@ -365,8 +425,10 @@ def main():
     if "lado" in only:
         out, tf, te = lado_evento12()
         print(f"{out}: fotograma en t = {tf:.2f} s (mínimo real), duración {te:.2f} s")
+    selected_files = {"recorte": "anim-recorte.mp4", "sincapa": "anim-sin-capa-vs-A.mp4",
+                      "ab": "anim-A-B.mp4", "lado": "anim-lado-evento12.mp4", "e": "anim-E.mp4"}
     for src, dst in COPIES.items():
-        if (OUT / src).exists():
+        if src in {selected_files[key] for key in only if key in selected_files} and (OUT / src).exists():
             shutil.copy(OUT / src, ANIM / dst)
             print(f"copia: {ANIM / dst}")
 

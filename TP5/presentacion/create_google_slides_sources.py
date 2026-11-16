@@ -29,7 +29,7 @@ from pathlib import Path
 VIDEOS = {
     "Reproducir evento 3": "presentacion/animaciones/ecm2_evento03.mp4",
     "Reproducir evento 6": "presentacion/animaciones/ecm2_evento06.mp4",
-    "https://youtu.be/PENDIENTE-recorte": "presentacion/animaciones/01_recorte_evento11.mp4",
+    "https://youtu.be/PENDIENTE-recorte": "presentacion/animaciones/01_recorte_evento09.mp4",
     "https://youtu.be/PENDIENTE-sincapa": "presentacion/animaciones/02_sin_capa_vs_A_evento16.mp4",
     "https://youtu.be/PENDIENTE-ab": "presentacion/animaciones/03_A_y_B_evento16.mp4",
     "https://youtu.be/PENDIENTE-lado": "presentacion/animaciones/04_lado_contrario_evento12.mp4",

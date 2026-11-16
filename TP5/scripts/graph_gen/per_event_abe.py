@@ -22,6 +22,12 @@ from pilot_analysis import load_grid
 
 COLORS = {"A": "#0072B2", "B": "#E69F00", "E": "#D55E00"}
 METRICS = {"ecm1": (3, "ECM 1 [m²]"), "ecm2": (5, "ECM 2 [m²]")}
+PLOT_STYLE = {"font.size": 16, "axes.labelsize": 19, "legend.fontsize": 17, "pdf.fonttype": 42}
+
+
+def event_axes():
+    """Formato compartido por los gráficos originales y con trayectorias espejadas."""
+    return plt.subplots(figsize=(13.5, 5.4), constrained_layout=True)
 
 
 def main():

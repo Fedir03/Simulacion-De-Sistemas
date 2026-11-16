@@ -51,6 +51,13 @@ public final class GridSearch {
                                 Function<AvoidanceLayer, Simulator> model, double contactRadius, LayerConstants constants, int v0Frames) {
         List<double[]> pairs = new ArrayList<>();
         for (double p1 : p1Values) for (double p2 : p2Values) pairs.add(new double[] { p1, p2 });
+        return runPairs(layer, pairs, events, model, contactRadius, constants, v0Frames);
+    }
+
+    /** Evalúa pares explícitos sin formar su producto cartesiano (caché de refinamientos). */
+    public static List<Row> runPairs(String layer, List<double[]> pairs, List<PedestrianEvent> events,
+                                    Function<AvoidanceLayer, Simulator> model, double contactRadius,
+                                    LayerConstants constants, int v0Frames) {
         return IntStream.range(0, pairs.size()).parallel().boxed().flatMap(k -> {
             double p1 = pairs.get(k)[0], p2 = pairs.get(k)[1];
             Simulator sim = model.apply(Layers.of(layer, p1, p2, constants));

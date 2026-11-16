@@ -1,38 +1,23 @@
 # Animaciones de la presentación
 
-Copias de los MP4 que usa la presentación, con el nombre de la diapositiva donde van. Se regeneran con `py scripts/animation/presentation_videos.py` (desde TP5/), que también los copia acá.
+Las cuatro animaciones vigentes se regeneran desde TP5/ con:
 
-- **PDF de entrega:** cada animación aparece como fotograma, con el link de YouTube debajo.
-- **Exposición en vivo:** el PPTX (`presentacion/generated/SdS_TP5_presentacion_en_vivo.pptx`) trae estos mismos MP4 embebidos, así que no hace falta internet.
-- **Si no hay PPTX ni internet:** se muestran estos archivos directamente.
+```bash
+mvn package
+MPLCONFIGDIR=/tmp/tp5-matplotlib .venv/bin/python scripts/animation/presentation_videos.py
+```
 
-| Archivo | Diapositiva | Macro del .tex | Placeholder actual | URL de YouTube | Duración |
-|---|---|---|---|---|---|
-| `01_recorte_evento11.mp4` | Datos: recorte al tramo frontal (evento 11) | `\animacionRecorteURL` | `https://youtu.be/PENDIENTE-recorte` | | 17,5 s |
-| `02_sin_capa_vs_A_evento16.mp4` | Animaciones (Resultados), izquierda: sin capa y A | `\animacionSinCapaURL` | `https://youtu.be/PENDIENTE-sincapa` | | 7,3 s |
-| `03_A_y_B_evento16.mp4` | Animaciones (Resultados), derecha: A y B | `\animacionURL` | `https://youtu.be/PENDIENTE-ab` | | 7,3 s |
-| `04_lado_contrario_evento12.mp4` | Anexo: A elige el lado de cruce contrario al real (evento 12) | `\animacionLadoURL` | `https://youtu.be/PENDIENTE-lado` | | 7,2 s |
-| `ecm2_evento03.mp4` | Resultados: evento 3, real frente a A, B y E (ECM 2) | `\animacioneventoecm{03}{3}` | Enlace local: Reproducir evento 3 | | 12,0 s |
-| `ecm2_evento06.mp4` | Resultados: evento 6, real frente a A, B y E (ECM 2) | `\animacioneventoecm{06}{6}` | Enlace local: Reproducir evento 6 | | 11,1 s |
+El script vuelve a simular con los pares seleccionados en las tablas poblacionales, verifica los ECM contra las grillas y actualiza los MP4 de esta carpeta y sus fotogramas en `presentacion/figuras/`. Lee `outputs/calibracion_poblacional/resumen.json` y aplica el mismo criterio de selección de las filas amarillas: menor sacrificio relativo máximo entre las dos métricas; empate a favor de ECM1.
 
-Los videos de ECM2 de los eventos 3 y 6 se generan con `scripts/animation/events_3_6_ecm2.py` y el script copia automáticamente los MP4 y sus fotogramas a la presentación desde
-`outputs/animaciones_eventos_3_6_ecm2/`. Cada evento tiene una única vista con las trayectorias real y de las tres capas
-superpuestas: real en negro, A en azul, B en naranja y E en bermellón; línea continua para el peatón izquierdo y
-discontinua para el derecho. Comparan real, A(2; 0,5), B(3,5; 1) y E(3; 0,25), con SFM y ajuste inicial de
-5 cuadros. Se reproducen a media velocidad. En el PDF, el fotograma y el texto «Reproducir evento» abren el MP4 de
-esta carpeta; conservar la estructura `presentacion/generated/` y `presentacion/animaciones/` al mover los archivos.
-El exportador a PPTX reconoce esos textos para insertar los dos videos.
+| Archivo | Evento | Comparación | Duración |
+|---|---:|---|---:|
+| `01_recorte_evento09.mp4` | 9 | Trayectoria experimental completa y recortada | 10,2 s |
+| `02_sin_capa_vs_A_evento16.mp4` | 16 | Real, sin capa y A(2,18; 0,44) | 7,3 s |
+| `03_A_y_B_evento16.mp4` | 16 | Real, A(2,18; 0,44) y B(3,2; 0,92) | 7,3 s |
+| `05_E_evento16.mp4` | 16 | Real y E(3,4; 0,25) | 7,3 s |
 
-**Cuando se suban a YouTube:**
-1. Completar la columna "URL de YouTube" de esta tabla.
-2. Reemplazar cada placeholder en la macro correspondiente de `presentacion/presentacion_tp5.tex`.
-3. Reemplazar la misma clave en el diccionario `VIDEOS` de `presentacion/create_google_slides_sources.py`.
-4. Recompilar con `bash presentacion/build_presentacion.sh` y volver a armar el PPTX.
+Todos usan SFM, Beeman, paso experimental /64 y velocidad inicial ajustada con cinco cuadros. Los videos se reproducen a 15 cuadros/s, con un cuadro por cuadro experimental y sin interpolar. Real en negro con círculos grises rellenos; simulaciones con círculos huecos de color. El recorte usa la trayectoria completa en gris y los tramos recortados en color, con flechas hacia sus objetivos.
 
-**Formato de los videos:** son a 15 cuadros/s, un cuadro de video por cuadro experimental (tiempo real) y sin interpolar.
+Los MP4 originales, corridas nuevas y metadatos están en `outputs/pilot/animaciones_presentacion/`; los parámetros y hashes de entrada quedan en `parametros_animaciones.json`. La versión PDF se recompila con `bash presentacion/build_presentacion.sh`. El exportador `presentacion/create_google_slides_sources.py` asocia estos archivos a las URL de las diapositivas para insertar los videos en el PPTX.
 
-**Qué muestra cada uno:**
-- **Real:** en negro, con círculo gris relleno.
-- **Simulados:** con círculo hueco de color: sin capa en púrpura, A en azul y B en naranja.
-- **Evento 16:** es el representativo, porque su distancia mínima real y su ECM 1 con A están más cerca de las medianas de los 19 eventos.
-- **Recorte, evento 11:** en el 16 el recorte casi no cambia la dirección al objetivo (2,7° → 1,3°). En el 11 pasa de 17,5° a 1,8° (máximo de los dos peatones en el primer segundo; fuente: `outputs/recorte/verificacion/resumen.md`). Trayectoria completa en gris, con su objetivo (cuadrado); tramo recortado en color, con su objetivo (cruz). En cada inicio, una flecha hacia el objetivo con su ángulo respecto del eje x. Durante el video, la flecha sigue a cada peatón y se oculta a menos de 2 m del objetivo, porque ahí gira sola.
+Se pueden regenerar animaciones por separado pasando las claves `recorte`, `sincapa`, `ab` o `e`. La clave opcional `lado` genera el evento 12.
