@@ -1,0 +1,2 @@
+# Los scripts de bash se rompen con CRLF ("set: pipefail: invalid option name"), aun con core.autocrlf=true
+*.sh text eol=lf
